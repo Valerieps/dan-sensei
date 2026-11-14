@@ -65,6 +65,9 @@ O aluno pode cancelar sem perder a aula com pelo menos 24 h de antecedência.
   próximo pacote. *(1a)*
 - Pacote vencido com aulas sobrando: fica como **vencido**, com o saldo visível e guardado até a
   renovação. *(1a)*
+- O dia do vencimento ainda vale: o pacote só fica vencido no dia seguinte. Esgotado vale mais que
+  vencido: sem aulas sobrando, o pacote é esgotado. Uma aula num pacote vencido também fica "sem
+  pacote", até eu ligá-la ao pacote da renovação. *(1a)*
 
 ## Renovação
 
@@ -85,6 +88,9 @@ O aluno pode cancelar sem perder a aula com pelo menos 24 h de antecedência.
   o vencimento. *(1a)*
 - Um pacote pode ficar pausado no máximo 30 dias, somando todas as pausas. *(1a)*
   Por quê: sem limite, o aluno pausa e volta dois anos depois.
+- O dia de início e o dia de fim da pausa contam como pausados. Dia pausado só adia a validade a
+  partir da primeira aula, e um dia coberto por duas pausas conta uma vez. Dia de pausa própria
+  que já está numa "pausar todos" também não conta nos 30 dias. *(1a)*
 - Posso passar dos 30 dias, por exemplo numa lesão longa, mas aí o app pede que eu escreva o motivo.
   *(1a)*
 - "Pausar todos os pacotes" pausa os pacotes de todos os alunos pelo período que eu informar, para
@@ -115,6 +121,8 @@ O preço por aula vale para até 2 alunos na mesma aula; o app aceita no máximo
   avisar, desconta 1 aula, com a mesma regra das 24 h. *(1a)*
 - Um aluno da dupla pode ter também o seu próprio pacote. Aula em dupla desconta do pacote da dupla;
   aula sozinho desconta do pacote próprio. Se ele não tem pacote próprio, o app pergunta de onde
+  descontar. *(1a)*
+- Aula em dupla de dois alunos que não dividem pacote: o app pergunta de qual dos dois pacotes
   descontar. *(1a)*
 - O titular recebe o extrato do pacote e o aviso de renovação; o participante recebe só o resumo do
   próprio treino. *(1a)*
