@@ -206,6 +206,25 @@ export interface PendingStatement {
   readonly lastLessonOn: string;
 }
 
+/** A student's next scheduled lesson, as the cards show it. */
+export interface NextClass {
+  readonly id: string;
+  readonly date: string;
+  readonly time: string;
+}
+
+/** A monthly student the Início asks about: the fee is due today or is past due and unpaid. */
+export interface MonthlyDue {
+  readonly studentId: string;
+  readonly name: string;
+  readonly amountCents: number;
+  readonly dueDay: number;
+  readonly dueToday: boolean;
+  /** The month to register: the oldest pending one, or the current month on the due day. */
+  readonly month: string;
+  readonly pendingMonths: readonly string[];
+}
+
 export interface UrgencyItem {
   readonly studentId: string;
   readonly name: string;
@@ -219,6 +238,8 @@ export interface UrgencyItem {
   readonly highlighted: boolean;
   /** Lessons recorded "sem pacote" waiting to be linked. */
   readonly lessonsWithoutPackage: number;
+  /** The student's next scheduled lesson; null when none is scheduled. */
+  readonly nextClass: NextClass | null;
 }
 
 export interface GlobalPauseView {
@@ -313,6 +334,8 @@ export interface AgendaClass {
   /** For `missed`: whether the absence draws from the package. Null for the other statuses. */
   readonly absenceCharged: boolean | null;
   readonly confirmed: boolean;
+  /** The confirmation message was opened in WhatsApp; asked and not confirmed is highlighted on the day. */
+  readonly confirmationAsked: boolean;
   /** The address of the lesson: the chosen one, or the first student's default; null when there is none. */
   readonly address: string | null;
   readonly students: readonly { readonly id: string; readonly name: string }[];
@@ -438,6 +461,8 @@ export interface Queries {
   /** The Monday-to-Sunday week that holds `date`. */
   agendaWeek: { input: { date: string }; output: AgendaWeek };
   agendaHome: { input: Record<string, never>; output: AgendaHome };
+  /** Monthly students whose fee is due today or past due and unpaid, by name. */
+  monthlyDue: { input: Record<string, never>; output: MonthlyDue[] };
   /** Fixed times still running, optionally those of one student. */
   recurrences: { input: { studentId?: string }; output: RecurrenceView[] };
   /** Last lesson forecast against the due date; `not_found` for an unknown or closed package. */
@@ -497,6 +522,8 @@ export interface Commands {
   'class.complete': { input: { classId: string; packageId?: string | null }; output: RegisterClassResult };
   /** The student answered the confirmation; `confirmed: false` takes it back. */
   'class.confirm': { input: { classId: string; confirmed?: boolean }; output: null };
+  /** The confirmation was opened in WhatsApp (ADR-008); a scheduled lesson only, `conflict` otherwise. */
+  'class.markConfirmationAsked': { input: { classId: string }; output: null };
   /**
    * Starting balance of an old monthly student (1a): makes the student monthly with the fee, the
    * due day and the last month paid. Failure `conflict` when the student already has packages.

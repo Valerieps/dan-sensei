@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { UrgencyItem } from '../../application/api-contract';
+import { diaDaSemana } from '../../domain/agenda';
 import { formatPhone, initials } from '../../domain/alunos/student';
 import { formatarData, formatarReais } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
@@ -30,7 +31,7 @@ function saveHidden(hidden: boolean): void {
 }
 
 /** The label that says why a card is red; the red is never the only signal. */
-function urgencyLabel(item: UrgencyItem): string | null {
+export function urgencyLabel(item: UrgencyItem): string | null {
   if (!item.highlighted) return null;
   const labels = strings.packages.card.urgency;
   if (item.urgency === 1) return item.billing === 'monthly' ? strings.packages.card.monthlyPending : labels.payment;
@@ -190,6 +191,11 @@ function StudentCard({ item, forecast }: { item: UrgencyItem; forecast?: string 
           {item.asParticipant && <p className="muted small">{c.pair}</p>}
           <PackageProgress pkg={pkg} urgent={item.highlighted} />
         </>
+      )}
+      {item.nextClass ? (
+        <p className="small">{c.nextClass(`${strings.agenda.weekdaysShort[diaDaSemana(item.nextClass.date)]}, ${formatarData(item.nextClass.date).slice(0, 5)} às ${item.nextClass.time}`)}</p>
+      ) : (
+        <p className="muted small">{c.noNextClass}</p>
       )}
       {forecast && (
         <p className="small strong forecast">

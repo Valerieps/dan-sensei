@@ -1,7 +1,7 @@
 // The single entry to the group's data. The Durable Object calls it; every method is synchronous,
 // so a command runs alone and inside one transaction (ADR-004).
 import type { ApiResult, CommandName, Commands, QueryName, Queries, Topic } from '../../src/application/api-contract';
-import { agendaDay, agendaHome, agendaWeek, cancelClass, completeClass, confirmClass, createRecurrence, endRecurrence, generateAhead, markMissed, packageForecast, recurrencesOf, rescheduleClass, scheduleClass } from './agenda';
+import { agendaDay, agendaHome, agendaWeek, cancelClass, completeClass, confirmClass, createRecurrence, endRecurrence, generateAhead, markConfirmationAsked, markMissed, packageForecast, recurrencesOf, rescheduleClass, scheduleClass } from './agenda';
 import { deleteClass, lessonsWithoutPackage, linkClassToPackage, registerClass } from './classes';
 import { failure, QueryError, type CommandResult, type Context } from './context';
 import { exportAll } from './export';
@@ -22,7 +22,7 @@ import {
   type SignInResult,
 } from './members';
 import { createGlobalPause, createPackage, getPackage, packagesOverview, pausePackage, removeGlobalPause, removePackagePause, renewalPreview, studentPackages } from './packages';
-import { deleteMonthlyPayment, monthlyOf, registerMonthlyPayment, setMonthlyFee, setupMonthly } from './monthly';
+import { deleteMonthlyPayment, monthlyDue, monthlyOf, registerMonthlyPayment, setMonthlyFee, setupMonthly } from './monthly';
 import { createPayment, deletePayment, updatePayment } from './payments';
 import { createPlan, listPlans, updatePlan } from './plans';
 import { isAdmin } from '../../src/domain/group/roles';
@@ -53,6 +53,7 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   agendaDay,
   agendaWeek,
   agendaHome: (ctx) => agendaHome(ctx),
+  monthlyDue: (ctx) => monthlyDue(ctx),
   recurrences: recurrencesOf,
   packageForecast,
 };
@@ -89,6 +90,7 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'class.markMissed': markMissed,
   'class.complete': completeClass,
   'class.confirm': confirmClass,
+  'class.markConfirmationAsked': markConfirmationAsked,
   'monthly.setup': setupMonthly,
   'monthly.setFee': setMonthlyFee,
   'monthly.registerPayment': registerMonthlyPayment,

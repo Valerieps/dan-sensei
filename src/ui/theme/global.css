@@ -676,3 +676,29 @@ textarea {
 .forecast {
   margin: var(--space-2) 0 0;
 }
+
+/* Início: the day as a timeline (docs/spec/telas-de-gestao.md) */
+.timeline {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline-item.featured {
+  border-color: var(--color-brand);
+  border-width: var(--border-width-strong);
+}
+
+.timeline-item.unconfirmed {
+  border-left-width: var(--border-width-strong);
+  border-left-color: var(--color-brand);
+}
+
+.timeline-gap {
+  padding: var(--space-1) var(--space-4);
+}
+
+.monthly-question {
+  padding-top: var(--space-2);
+  border-top: var(--border-width) solid var(--color-border);
+}

@@ -197,6 +197,11 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
     `CREATE UNIQUE INDEX classes_slot ON classes(recurrence_id, slot_on) WHERE slot_on IS NOT NULL`,
     `CREATE INDEX classes_starts_at ON classes(starts_at)`,
   ],
+  [
+    // When the trainer opened the confirmation in WhatsApp; a lesson asked but not confirmed is
+    // highlighted on its day (docs/spec/agenda.md, Confirmação).
+    `ALTER TABLE classes ADD COLUMN confirmation_asked_at TEXT`,
+  ],
 ];
 
 export function migrate(sql: Sql): void {

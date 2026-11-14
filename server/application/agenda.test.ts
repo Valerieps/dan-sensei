@@ -436,3 +436,50 @@ describe('deleting a lesson of a fixed time', () => {
     expect(day('2026-10-27')).toMatchObject([{ status: 'cancelled' }]);
   });
 });
+
+describe('the Início: confirmation, next class and monthly questions', () => {
+  it('remembers that the confirmation was opened, and the lesson stays unconfirmed until the student answers', () => {
+    const maria = addStudent('Maria', 'Rua A, 10');
+    const lesson = command('class.schedule', { studentIds: [maria.id], date: '2026-10-22', time: '07:00' });
+    expect(lesson).toMatchObject({ confirmed: false, confirmationAsked: false });
+
+    command('class.markConfirmationAsked', { classId: lesson.id });
+    expect(query<AgendaHome>('agendaHome').tomorrow[0]).toMatchObject({ id: lesson.id, confirmed: false, confirmationAsked: true });
+
+    command('class.confirm', { classId: lesson.id });
+    expect(query<AgendaHome>('agendaHome').tomorrow[0]).toMatchObject({ confirmed: true, confirmationAsked: true });
+  });
+
+  it('refuses to mark a lesson that is not scheduled, or unknown', () => {
+    const maria = addStudent('Maria');
+    const lesson = command('class.schedule', { studentIds: [maria.id], date: '2026-10-22', time: '07:00' });
+    command('class.cancel', { classId: lesson.id, byTrainer: true });
+    expect(fail('class.markConfirmationAsked', { classId: lesson.id })).toBe('conflict');
+    expect(fail('class.markConfirmationAsked', { classId: 'nope' })).toBe('not_found');
+    expect(fail('class.markConfirmationAsked', {})).toBe('invalid');
+  });
+
+  it('shows each student\'s next scheduled lesson on the Alunos e pacotes card', () => {
+    const maria = addStudent('Maria');
+    const joao = addStudent('João');
+    command('class.schedule', { studentIds: [maria.id], date: '2026-10-25', time: '08:00' });
+    command('class.schedule', { studentIds: [maria.id], date: '2026-10-23', time: '07:30' });
+    const items = query<{ items: { studentId: string; nextClass: { date: string; time: string } | null }[] }>('packagesOverview').items;
+    expect(items.find((i) => i.studentId === maria.id)!.nextClass).toMatchObject({ date: '2026-10-23', time: '07:30' });
+    expect(items.find((i) => i.studentId === joao.id)!.nextClass).toBeNull();
+  });
+
+  it('asks about a monthly fee on its due day, and keeps asking while it is pending', () => {
+    const ana = addStudent('Ana');
+    command('monthly.setup', { studentId: ana.id, amountCents: 40000, dueDay: 21, lastPaidMonth: '2026-09' });
+    expect(query<{ studentId: string; dueToday: boolean; month: string }[]>('monthlyDue')).toMatchObject([{ studentId: ana.id, dueToday: true, month: '2026-10' }]);
+
+    command('monthly.registerPayment', { studentId: ana.id, month: '2026-10', paidOn: '2026-10-21', amountCents: 40000, method: 'pix' });
+    expect(query<unknown[]>('monthlyDue')).toEqual([]);
+
+    clock.set('2026-10-23T12:00:00Z');
+    const bia = addStudent('Bia');
+    command('monthly.setup', { studentId: bia.id, amountCents: 30000, dueDay: 22, lastPaidMonth: '2026-09' });
+    expect(query<{ studentId: string; dueToday: boolean; pendingMonths: string[] }[]>('monthlyDue')).toMatchObject([{ studentId: bia.id, dueToday: false, pendingMonths: ['2026-10'] }]);
+  });
+});

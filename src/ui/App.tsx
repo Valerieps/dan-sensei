@@ -7,6 +7,7 @@ import { Button } from './components/Button';
 import { Notice } from './components/Notice';
 import { Link, navigate, usePath } from './router';
 import { Agenda } from './screens/Agenda';
+import { Home } from './screens/Home';
 import { NewClass } from './screens/NewClass';
 import { Invites } from './screens/Invites';
 import { Members } from './screens/Members';
@@ -66,7 +67,8 @@ export function App() {
 function Navigation({ me, onSignOut }: { me: MeView; onSignOut: () => void }) {
   const path = usePath();
   const entries = [
-    { path: '/', label: strings.nav.students, current: path === '/' || path.startsWith('/alunos') || path.startsWith('/aulas') || path.startsWith('/pagamentos') || path.startsWith('/mensalidades') || path.startsWith('/pacotes') || path === '/nota-aluno' },
+    { path: '/', label: strings.nav.home, current: path === '/' },
+    { path: '/alunos', label: strings.nav.students, current: path.startsWith('/alunos') || path.startsWith('/aulas') || path.startsWith('/pagamentos') || path.startsWith('/mensalidades') || path.startsWith('/pacotes') || path === '/nota-aluno' },
     { path: '/agenda', label: strings.nav.agenda, current: path.startsWith('/agenda') },
     { path: '/configuracoes', label: strings.nav.settings, current: path === '/configuracoes' },
     { path: '/membros', label: strings.nav.members, current: path === '/membros' },
@@ -170,5 +172,6 @@ function Screen({ me }: { me: MeView }) {
     const tab = tabs[profile[2] as keyof typeof tabs] ?? 'registration';
     return <StudentProfile key={profile[1]} id={profile[1]} tab={tab} />;
   }
-  return <Overview />;
+  if (path === '/alunos') return <Overview />;
+  return <Home />;
 }

@@ -38,7 +38,7 @@ export function StudentProfile({ id, tab }: { id: string; tab: ProfileTab }) {
     return (
       <section>
         <Notice tone="error">{strings.students.notFound}</Notice>
-        <Link to="/">{strings.students.back}</Link>
+        <Link to="/alunos">{strings.students.back}</Link>
       </section>
     );
   }
