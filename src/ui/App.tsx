@@ -12,6 +12,7 @@ import { SignIn } from './screens/SignIn';
 import { Overview } from './screens/Overview';
 import { PackageForm } from './screens/PackageForm';
 import { PausePackage } from './screens/PausePackage';
+import { RegisterMonthly } from './screens/RegisterMonthly';
 import { RegisterPayment } from './screens/RegisterPayment';
 import { Settings } from './screens/Settings';
 import { RegisterLesson } from './screens/RegisterLesson';
@@ -63,7 +64,7 @@ export function App() {
 function Navigation({ me, onSignOut }: { me: MeView; onSignOut: () => void }) {
   const path = usePath();
   const entries = [
-    { path: '/', label: strings.nav.students, current: path === '/' || path.startsWith('/alunos') || path.startsWith('/aulas') || path.startsWith('/pagamentos') || path.startsWith('/pacotes') || path === '/nota-aluno' },
+    { path: '/', label: strings.nav.students, current: path === '/' || path.startsWith('/alunos') || path.startsWith('/aulas') || path.startsWith('/pagamentos') || path.startsWith('/mensalidades') || path.startsWith('/pacotes') || path === '/nota-aluno' },
     { path: '/configuracoes', label: strings.nav.settings, current: path === '/configuracoes' },
     { path: '/membros', label: strings.nav.members, current: path === '/membros' },
     ...(canManageGroup(me) ? [{ path: '/convites', label: strings.nav.invites, current: path === '/convites' }] : []),
@@ -98,6 +99,11 @@ function AddMenu() {
             </Link>
           </li>
           <li>
+            <Link className="button secondary" to="/mensalidades/registrar">
+              {strings.nav.addMonthlyPayment}
+            </Link>
+          </li>
+          <li>
             <Link className="button secondary" to="/nota-aluno">
               {strings.nav.addNote}
             </Link>
@@ -129,6 +135,8 @@ function Screen({ me }: { me: MeView }) {
   if (path === '/configuracoes') return <Settings />;
   const payment = /^\/pagamentos\/registrar(?:\/([^/]+)(?:\/([^/]+))?)?\/?$/.exec(path);
   if (payment) return <RegisterPayment key={path} studentId={payment[1]} packageId={payment[2]} />;
+  const monthlyPayment = /^\/mensalidades\/registrar(?:\/([^/]+))?\/?$/.exec(path);
+  if (monthlyPayment) return <RegisterMonthly key={path} studentId={monthlyPayment[1]} />;
   const pause = /^\/pacotes\/([^/]+)\/pausar\/?$/.exec(path);
   if (pause) return <PausePackage key={pause[1]} packageId={pause[1]} />;
   if (path === '/nota-aluno') return <StudentList />;
@@ -137,9 +145,10 @@ function Screen({ me }: { me: MeView }) {
   if (lesson) return <RegisterLesson key={lesson[1] ?? ''} studentId={lesson[1]} />;
   const packageForm = /^\/alunos\/([^/]+)\/pacotes\/(novo|saldo-inicial)\/?$/.exec(path);
   if (packageForm) return <PackageForm key={path} studentId={packageForm[1]} startingBalance={packageForm[2] === 'saldo-inicial'} />;
-  const profile = /^\/alunos\/([^/]+)(\/notas|\/pacotes)?\/?$/.exec(path);
+  const profile = /^\/alunos\/([^/]+)(\/notas|\/pacotes|\/mensalidades)?\/?$/.exec(path);
   if (profile) {
-    const tab = profile[2] === '/notas' ? 'notes' : profile[2] === '/pacotes' ? 'packages' : 'registration';
+    const tabs = { '/notas': 'notes', '/pacotes': 'packages', '/mensalidades': 'monthly' } as const;
+    const tab = tabs[profile[2] as keyof typeof tabs] ?? 'registration';
     return <StudentProfile key={profile[1]} id={profile[1]} tab={tab} />;
   }
   return <Overview />;

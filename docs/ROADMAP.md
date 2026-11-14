@@ -12,9 +12,8 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Mensalistas e mensalidades | 1a | `spec/mensalistas.md` | |
 | Extrato e renovação pelo WhatsApp | 1a | `spec/whatsapp.md` | ADR-008 |
-| Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, com Registrar pagamento, Nota sobre aluno e Novo aluno; entram Nova aula e Registrar mensalidade |
+| Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, com Registrar pagamento, Nota sobre aluno e Novo aluno; entra Nova aula |
 | Exportação completa dos dados | 1a | `spec/termo-e-lgpd.md` | |
 | Horários fixos, aulas agendadas e grade do dia | 1b | `spec/agenda.md` | |
 | Remarcação e regras de cancelamento | 1b | `spec/agenda.md` | |
@@ -63,6 +62,9 @@ O que ainda não está pronto.
   mês (`spec/pacotes-e-pagamentos.md`, `spec/telas-de-gestao.md`).
 - [ ] Mensalidade pendente conta os meses depois do último mês pago; sem nenhum mês pago, só o mês
   atual (`spec/mensalistas.md`).
+- [ ] Mensalistas: um mês tem no máximo uma mensalidade registrada; o aluno só vira mensalista se
+  não tem pacote; a mensalidade paga entra no "quanto recebi" do mês em que foi paga
+  (`spec/mensalistas.md`).
 - [ ] O aluno não tem foto, só iniciais (`spec/alunos.md`).
 - [ ] Sem termo assinado, o app não guarda anamnese nem alertas de saúde (`spec/termo-e-lgpd.md`).
 - [ ] A cor da aula na agenda mostra a situação, não o aluno (`spec/agenda.md`).

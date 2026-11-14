@@ -18,6 +18,7 @@ import {
   type SignInResult,
 } from './members';
 import { createGlobalPause, createPackage, getPackage, packagesOverview, pausePackage, removeGlobalPause, removePackagePause, renewalPreview, studentPackages } from './packages';
+import { deleteMonthlyPayment, monthlyOf, registerMonthlyPayment, setMonthlyFee, setupMonthly } from './monthly';
 import { createPayment, deletePayment, updatePayment } from './payments';
 import { createPlan, listPlans, updatePlan } from './plans';
 import type { Clock, IdGenerator, Sql } from './ports';
@@ -41,6 +42,7 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   studentPackages,
   renewalPreview,
   lessonsWithoutPackage,
+  monthly: monthlyOf,
 };
 
 /** Every command the API runs; each checks the actor's role itself. */
@@ -67,6 +69,10 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'class.register': registerClass,
   'class.linkToPackage': linkClassToPackage,
   'class.delete': deleteClass,
+  'monthly.setup': setupMonthly,
+  'monthly.setFee': setMonthlyFee,
+  'monthly.registerPayment': registerMonthlyPayment,
+  'monthly.deletePayment': deleteMonthlyPayment,
 };
 
 export class GroupService {

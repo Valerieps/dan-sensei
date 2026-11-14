@@ -28,7 +28,13 @@ Os alunos antigos que pagam mensalidade fixa, e a cobrança de cada mês.
   aluno. *(1b)*
 - Avisar por notificação no iPad ou no celular, com o app fechado, fica para a fase 2. *(2)*
 
+- Cada mês tem no máximo uma mensalidade registrada. Se registrei errado, apago e registro de novo;
+  o mês volta a ficar pendente. *(1a)*
+- O que recebi de mensalidade entra no "quanto recebi" do mês em que o dinheiro chegou, junto com os
+  pagamentos de pacote. *(1a)*
+
 ## Saldo inicial
 
 - No primeiro dia, eu cadastro de cada mensalista o valor, o dia de vencimento e o último mês pago.
   *(1a)*
+- Só vira mensalista quem não tem nenhum pacote. *(1a)*

@@ -1,5 +1,8 @@
 // Every user-facing text, in Brazilian Portuguese, in the app's voice (docs/GLOSSARIO.md has the
 // terms). The UI imports from here; it never writes its own text.
+/** "2026-10" as "10/2026". */
+export const formatMonth = (month: string): string => `${month.slice(5)}/${month.slice(0, 4)}`;
+
 export const strings = {
   appName: 'Dan Sensei',
   genericError: 'Algo deu errado. Tenta de novo?',
@@ -33,6 +36,7 @@ export const strings = {
     addNote: 'Nota sobre aluno',
     addStudent: 'Novo aluno',
     addPayment: 'Registrar pagamento',
+    addMonthlyPayment: 'Registrar mensalidade',
     settings: 'Configurações',
   },
 
@@ -46,7 +50,7 @@ export const strings = {
     notFound: 'Não achei esse aluno.',
     status: { active: 'Ativo', paused: 'Pausado', inactive: 'Inativo' },
     billing: { package: 'Pacote', monthly: 'Mensalista' },
-    tabs: { label: 'Seções do aluno', registration: 'Cadastro', packages: 'Pacotes', notes: 'Notas' },
+    tabs: { label: 'Seções do aluno', registration: 'Cadastro', packages: 'Pacotes', monthly: 'Mensalidades', notes: 'Notas' },
     form: {
       name: 'Nome',
       phone: 'Telefone (WhatsApp)',
@@ -107,6 +111,8 @@ export const strings = {
       pending: 'Pagamento pendente',
       noPackage: 'Sem pacote. Toque para criar o primeiro.',
       monthly: 'Mensalista',
+      monthlyPending: 'Mensalidade pendente',
+      monthlyPendingMonths: (months: readonly string[]) => `Falta pagar: ${months.map(formatMonth).join(', ')}`,
       pair: 'Pacote da dupla',
       withoutPackage: (n: number) => (n === 1 ? '1 aula sem pacote' : `${n} aulas sem pacote`),
       urgency: {
@@ -186,6 +192,40 @@ export const strings = {
       errors: {
         amount: 'Informe o valor, como 1440 ou 1.440,00.',
         paidOn: 'Informe a data do pagamento, que não pode ser futura.',
+      },
+    },
+    monthly: {
+      title: 'Registrar mensalidade',
+      student: 'Aluno',
+      pickStudent: 'Escolha o aluno',
+      noStudents: 'Nenhum mensalista. Na aba Mensalidades de um aluno antigo, cadastre a mensalidade dele.',
+      month: 'Mês da mensalidade',
+      submit: 'Registrar mensalidade',
+      feeOf: (amount: string, dueDay: number) => `${amount} por mês, vence todo dia ${dueDay}`,
+      lastPaid: (month: string) => `Último mês pago: ${month}`,
+      noneYet: 'Nenhum mês pago ainda.',
+      pending: (months: readonly string[]) => `Mensalidade pendente: ${months.map(formatMonth).join(', ')}`,
+      upToDate: 'Mensalidades em dia.',
+      payments: 'Mensalidades pagas',
+      noPayments: 'Nenhuma mensalidade registrada.',
+      line: (month: string, date: string, amount: string, method: string) => `${month} · pago em ${date} · ${amount} · ${method}`,
+      delete: 'Apagar',
+      deleteOf: (month: string) => `Apagar a mensalidade de ${month}`,
+      deleteConfirm: (month: string, amount: string) => `Apagar a mensalidade de ${month} (${amount})? O mês pode voltar a ficar pendente.`,
+      changeFee: 'Mudar valor ou vencimento',
+      saveFee: 'Salvar',
+      amount: 'Valor da mensalidade (R$)',
+      dueDay: 'Dia do vencimento',
+      lastPaidMonth: 'Último mês pago',
+      lastPaidHint: 'Deixe em branco se nenhum mês foi pago ainda.',
+      setupTitle: 'Cadastrar como mensalista',
+      setupHint: 'Para alunos antigos que pagam mensalidade fixa. Esse formato não é mais oferecido a alunos novos.',
+      setupSubmit: 'Cadastrar mensalista',
+      hasPackages: 'Esse aluno tem pacotes, então não pode virar mensalista.',
+      errors: {
+        amount: 'Informe o valor, como 400 ou 400,00.',
+        dueDay: 'O dia do vencimento vai de 1 a 31.',
+        lastPaidMonth: 'Escolha um mês que não seja futuro.',
       },
     },
     pause: {

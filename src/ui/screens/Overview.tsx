@@ -32,7 +32,7 @@ function saveHidden(hidden: boolean): void {
 function urgencyLabel(item: UrgencyItem): string | null {
   if (!item.highlighted) return null;
   const labels = strings.packages.card.urgency;
-  if (item.urgency === 1) return labels.payment;
+  if (item.urgency === 1) return item.billing === 'monthly' ? strings.packages.card.monthlyPending : labels.payment;
   if (item.package?.status === 'vencido') return labels.expired;
   if (item.package?.status === 'esgotado') return labels.exhausted;
   return labels.ending;
@@ -40,7 +40,7 @@ function urgencyLabel(item: UrgencyItem): string | null {
 
 /** "Alunos e pacotes": every student as a card, most urgent first, with the month's numbers on top. */
 export function Overview() {
-  const overview = useQuery('packagesOverview', {}, ['packages', 'payments', 'students', 'classes']);
+  const overview = useQuery('packagesOverview', {}, ['packages', 'payments', 'students', 'classes', 'monthly']);
   const [hidden, setHidden] = useState(readHidden);
   const [showInactive, setShowInactive] = useState(false);
   const inactive = useQuery('students', { includeInactive: true }, ['students']);
@@ -143,7 +143,12 @@ function StudentCard({ item }: { item: UrgencyItem }) {
   const c = strings.packages.card;
   const label = urgencyLabel(item);
   const pkg = item.package;
-  const destination = item.billing === 'monthly' || pkg ? `/alunos/${item.studentId}/pacotes` : `/alunos/${item.studentId}/pacotes/novo`;
+  const destination =
+    item.billing === 'monthly'
+      ? `/alunos/${item.studentId}/mensalidades`
+      : pkg
+        ? `/alunos/${item.studentId}/pacotes`
+        : `/alunos/${item.studentId}/pacotes/novo`;
   return (
     <Link className={item.highlighted ? 'card package-card urgent' : 'card package-card'} to={destination}>
       <div className="row spread">
@@ -156,6 +161,7 @@ function StudentCard({ item }: { item: UrgencyItem }) {
         {label && <span className="urgent-label">{label}</span>}
       </div>
       {item.billing === 'monthly' && <p className="muted">{c.monthly}</p>}
+      {item.pendingMonths.length > 0 && <p className="small">{c.monthlyPendingMonths(item.pendingMonths)}</p>}
       {item.billing !== 'monthly' && !pkg && <p className="muted">{c.noPackage}</p>}
       {pkg && (
         <>
