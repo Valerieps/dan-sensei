@@ -11,6 +11,9 @@ import { Members } from './screens/Members';
 import { SignIn } from './screens/SignIn';
 import { Overview } from './screens/Overview';
 import { PackageForm } from './screens/PackageForm';
+import { PausePackage } from './screens/PausePackage';
+import { RegisterPayment } from './screens/RegisterPayment';
+import { Settings } from './screens/Settings';
 import { RegisterLesson } from './screens/RegisterLesson';
 import { StudentList } from './screens/StudentList';
 import { NewStudent, StudentProfile } from './screens/StudentProfile';
@@ -60,7 +63,8 @@ export function App() {
 function Navigation({ me, onSignOut }: { me: MeView; onSignOut: () => void }) {
   const path = usePath();
   const entries = [
-    { path: '/', label: strings.nav.students, current: path === '/' || path.startsWith('/alunos') || path.startsWith('/aulas') || path === '/nota-aluno' },
+    { path: '/', label: strings.nav.students, current: path === '/' || path.startsWith('/alunos') || path.startsWith('/aulas') || path.startsWith('/pagamentos') || path.startsWith('/pacotes') || path === '/nota-aluno' },
+    { path: '/configuracoes', label: strings.nav.settings, current: path === '/configuracoes' },
     { path: '/membros', label: strings.nav.members, current: path === '/membros' },
     ...(canManageGroup(me) ? [{ path: '/convites', label: strings.nav.invites, current: path === '/convites' }] : []),
   ];
@@ -88,6 +92,11 @@ function AddMenu() {
     <div className="add-menu">
       {open && (
         <ul className="list add-menu-items">
+          <li>
+            <Link className="button secondary" to="/pagamentos/registrar">
+              {strings.nav.addPayment}
+            </Link>
+          </li>
           <li>
             <Link className="button secondary" to="/nota-aluno">
               {strings.nav.addNote}
@@ -117,6 +126,11 @@ function Screen({ me }: { me: MeView }) {
   const path = usePath();
   if (path === '/membros') return <Members me={me} />;
   if (path === '/convites' && canManageGroup(me)) return <Invites />;
+  if (path === '/configuracoes') return <Settings />;
+  const payment = /^\/pagamentos\/registrar(?:\/([^/]+)(?:\/([^/]+))?)?\/?$/.exec(path);
+  if (payment) return <RegisterPayment key={path} studentId={payment[1]} packageId={payment[2]} />;
+  const pause = /^\/pacotes\/([^/]+)\/pausar\/?$/.exec(path);
+  if (pause) return <PausePackage key={pause[1]} packageId={pause[1]} />;
   if (path === '/nota-aluno') return <StudentList />;
   if (path === '/alunos/novo') return <NewStudent />;
   const lesson = /^\/aulas\/registrar(?:\/([^/]+))?\/?$/.exec(path);

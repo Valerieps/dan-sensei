@@ -8,6 +8,7 @@ import { EmptyState } from '../components/EmptyState';
 import { Notice } from '../components/Notice';
 import { PackageProgress } from '../components/PackageProgress';
 import { Link } from '../router';
+import { PaymentEdit } from './RegisterPayment';
 import { useQuery } from '../use-query';
 
 const TOPICS = ['packages', 'payments', 'classes'] as const;
@@ -49,6 +50,14 @@ export function PackagesTab({ student }: { student: StudentView }) {
         <div key={pkg.id} className="card stack">
           <PackageHeader pkg={pkg} />
           <PackageProgress pkg={pkg} urgent={pkg.status === 'vencido' || pkg.status === 'esgotado' || pkg.paymentStatus === 'pending'} />
+          <div className="row">
+            <Link className="button secondary" to={`/pagamentos/registrar/${student.id}/${pkg.id}`}>
+              {t.registerPayment}
+            </Link>
+            <Link className="button secondary" to={`/pacotes/${pkg.id}/pausar`}>
+              {t.pausePackage}
+            </Link>
+          </div>
           <Statement id={pkg.id} />
         </div>
       ))}
@@ -108,6 +117,7 @@ function Statement({ id }: { id: string }) {
   const t = strings.packages.tab;
   const statement = useQuery('package', { id }, TOPICS);
   const [failed, setFailed] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
 
   if (!statement.data) return statement.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
   const { summary, lessons, payments, pauses } = statement.data;
@@ -115,6 +125,18 @@ function Statement({ id }: { id: string }) {
   async function remove(classId: string, date: string) {
     if (!window.confirm(t.deleteLessonConfirm(formatarData(date)))) return;
     const result = await backend.command('class.delete', { classId });
+    setFailed(!result.ok);
+  }
+
+  async function removePayment(id: string, date: string, cents: number) {
+    if (!window.confirm(t.deletePaymentConfirm(formatarData(date), formatarReais(cents)))) return;
+    const result = await backend.command('payment.delete', { id });
+    setFailed(!result.ok);
+  }
+
+  async function removePause(id: string) {
+    if (!window.confirm(t.removePauseConfirm)) return;
+    const result = await backend.command('package.removePause', { id });
     setFailed(!result.ok);
   }
 
@@ -147,10 +169,27 @@ function Statement({ id }: { id: string }) {
       <ul className="list">
         {payments.map((payment) => (
           <li key={payment.id} className="statement-line">
-            {formatarData(payment.paidOn)} · {formatarReais(payment.amountCents)} · {t.method[payment.method]}
+            {editing === payment.id ? (
+              <div className="grow">
+                <PaymentEdit payment={payment} missingCents={summary.missingCents} onDone={() => setEditing(null)} />
+              </div>
+            ) : (
+              <>
+                <span className="grow">
+                  {formatarData(payment.paidOn)} · {formatarReais(payment.amountCents)} · {t.method[payment.method]}
+                </span>
+                <Button variant="secondary" aria-label={t.editPaymentOf(formatarData(payment.paidOn))} onClick={() => setEditing(payment.id)}>
+                  {t.editPayment}
+                </Button>
+                <Button variant="secondary-danger" aria-label={t.deletePaymentOf(formatarData(payment.paidOn))} onClick={() => void removePayment(payment.id, payment.paidOn, payment.amountCents)}>
+                  {t.deletePayment}
+                </Button>
+              </>
+            )}
           </li>
         ))}
       </ul>
+      <p className="small strong">{summary.paymentStatus === 'pending' ? t.missing(formatarReais(summary.missingCents)) : t.paidAll}</p>
 
       {pauses.length > 0 && <h4>{t.pauses}</h4>}
       <ul className="list">
@@ -159,6 +198,11 @@ function Statement({ id }: { id: string }) {
             {formatarData(pause.startsOn)} a {formatarData(pause.endsOn)}
             {pause.general && <span className="muted small"> · {t.general}</span>}
             {pause.reason && <span className="muted small"> · {pause.reason}</span>}
+            {!pause.general && summary.status !== 'encerrado' && (
+              <Button variant="secondary-danger" aria-label={t.removePauseOf(formatarData(pause.startsOn))} onClick={() => void removePause(pause.id)}>
+                {t.removePause}
+              </Button>
+            )}
           </li>
         ))}
       </ul>
