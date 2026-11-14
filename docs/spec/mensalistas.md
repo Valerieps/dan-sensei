@@ -20,6 +20,8 @@ Os alunos antigos que pagam mensalidade fixa, e a cobrança de cada mês.
 - Eu registro cada mensalidade paga: mês, data, valor e forma (PIX, dinheiro ou cartão). *(1a)*
 - Depois do dia de vencimento, se o mês não foi registrado, o aluno aparece com "mensalidade
   pendente" na tela Alunos e pacotes. *(1a)*
+- Se o dia de vencimento não existe no mês (31 em fevereiro), vale o último dia do mês. A pendência
+  conta todos os meses depois do último mês pago; sem nenhum mês pago, só o mês atual. *(1a)*
 - No dia do vencimento, o Início me pergunta se o aluno pagou, com duas saídas: registrar o
   pagamento ou enviar um lembrete pelo WhatsApp. *(1b)*
 - Enquanto a mensalidade estiver pendente, a pergunta volta no cartão de cada aula agendada desse

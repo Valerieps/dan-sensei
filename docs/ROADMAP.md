@@ -63,6 +63,11 @@ O que ainda não está pronto.
   (`spec/pacotes-e-pagamentos.md`).
 - [ ] Um aluno é titular de no máximo um pacote ativo por vez, mas pode participar de outro
   (`spec/pacotes-e-pagamentos.md`).
+- [ ] Pausa: os dois dias das pontas contam; esgotado vale mais que vencido; aula em pacote vencido
+  fica "sem pacote"; dupla sem pacote em comum pergunta de qual descontar
+  (`spec/pacotes-e-pagamentos.md`).
+- [ ] Mensalidade pendente conta os meses depois do último mês pago; sem nenhum mês pago, só o mês
+  atual (`spec/mensalistas.md`).
 - [ ] O aluno não tem foto, só iniciais (`spec/alunos.md`).
 - [ ] Sem termo assinado, o app não guarda anamnese nem alertas de saúde (`spec/termo-e-lgpd.md`).
 - [ ] A cor da aula na agenda mostra a situação, não o aluno (`spec/agenda.md`).
