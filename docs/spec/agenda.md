@@ -27,6 +27,11 @@ Meus horários, que são quase todos fixos mas mudam muito em cima da hora.
 - Cancelamento com menos de 24 h: o app pergunta "cobrar ou abonar?", com "cobrar"
   pré-selecionado. *(1b)*
 - Falta sem aviso: o app sugere falta cobrada, e eu posso trocar. *(1b)*
+- Quando eu cancelo a aula, ela vira cancelada, mesmo com menos de 24 h: nunca cobra. *(1b)*
+  Por quê: o aluno não paga por um cancelamento meu.
+- Aula avulsa só pode ser marcada de hoje em diante, e só marco como dada uma aula de hoje ou de
+  dias passados. *(1b)*
+- O horário fixo de um aluno inativo para de gerar aulas. *(1b)*
 
 ## Visões
 
@@ -40,6 +45,8 @@ Meus horários, que são quase todos fixos mas mudam muito em cima da hora.
 
 - Com os horários fixos, o app projeta a data da última aula do pacote e avisa se ela cai depois da
   validade, por exemplo: "12ª aula prevista para 20/01; validade 15/01". *(1b)*
+- A previsão conta as aulas já agendadas e, depois delas, projeta os horários fixos em andamento.
+  Sem aulas ou horários suficientes para gastar o saldo, o app não projeta a última aula. *(1b)*
 
 ## Confirmação
 

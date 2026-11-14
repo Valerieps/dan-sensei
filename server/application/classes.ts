@@ -1,6 +1,6 @@
 // Lessons recorded by hand, before the agenda exists (docs/spec/pacotes-e-pagamentos.md, "Aula dada
 // e falta" and "Saldo"). A lesson draws 1 from one package, however many students it has.
-import type { ClassWithoutPackage, LessonOutcome, RegisterClassResult, WithoutPackageReason } from '../../src/application/api-contract';
+import type { ClassWithoutPackage, LessonOutcome, PackageSummary, RegisterClassResult, WithoutPackageReason } from '../../src/application/api-contract';
 import { dataEmSaoPaulo, pacoteDaAula, type PacoteCandidato } from '../../src/domain/pacotes';
 import { failure, nowIso, QueryError, type CommandResult, type Context } from './context';
 import type { Member } from './members';
@@ -21,6 +21,54 @@ const candidate = (state: PackageState): PacoteCandidato => ({
   situacao: state.resumo.situacao,
   pagamentoPendente: state.pagamento.situacao === 'pendente',
 });
+
+export type Resolution =
+  | { readonly choose: PackageSummary[] }
+  | { readonly packageId: string | null; readonly withoutPackage: WithoutPackageReason | null; readonly pendingPayment: boolean };
+
+/**
+ * Which package a lesson of these students on `date` draws from: the rules of `pacoteDaAula`, unless
+ * `explicit` is a package id or null ("sem pacote"). `choose` means the rules need an answer.
+ * Returns null when `explicit` is not a package of these students.
+ */
+export function resolveConsumption(
+  ctx: Context,
+  studentIds: readonly string[],
+  date: string,
+  consumes: boolean,
+  explicit: string | null | undefined,
+): Resolution | null {
+  // Situations as of the lesson's day, so a backdated lesson meets the package as it was then.
+  const states = loadPackages(ctx, date);
+  const related = [...states.values()].filter(
+    (s) => s.row.closed_at === null && (studentIds.includes(s.row.holder_id) || (s.row.participant_id !== null && studentIds.includes(s.row.participant_id))),
+  );
+
+  let packageId: string | null = null;
+  let withoutPackage: WithoutPackageReason | null = null;
+  if (explicit === null) {
+    withoutPackage = consumes ? 'escolhido' : null;
+  } else if (typeof explicit === 'string') {
+    const chosen = related.find((s) => s.row.id === explicit);
+    if (!chosen) return null;
+    const status = chosen.resumo.situacao;
+    if (consumes && (status === 'esgotado' || status === 'vencido')) withoutPackage = status;
+    else packageId = chosen.row.id;
+  } else {
+    const resolved = pacoteDaAula(studentIds as string[], related.map(candidate));
+    if (resolved.tipo === 'pacote') packageId = resolved.pacoteId;
+    else if (resolved.tipo === 'sem-pacote') withoutPackage = consumes ? resolved.motivo : null;
+    else if (consumes) {
+      const names = studentNames(ctx);
+      return { choose: resolved.opcoes.map((id) => summarize(ctx, states.get(id)!, names, todayIn(ctx))) };
+    }
+  }
+  return {
+    packageId,
+    withoutPackage,
+    pendingPayment: packageId !== null && consumes && states.get(packageId)!.pagamento.situacao === 'pendente',
+  };
+}
 
 /**
  * Records a lesson given or an absence. The package comes from `pacoteDaAula`, unless the trainer
@@ -44,53 +92,18 @@ export function registerClass(ctx: Context, _actor: Member, input: Record<string
   if (explicit !== undefined && explicit !== null && typeof explicit !== 'string') return failure('invalid');
 
   const consumes = outcome !== 'missed_waived';
-  // Situations as of the lesson's day, so a backdated lesson meets the package as it was then.
-  const states = loadPackages(ctx, input.date);
-  const related = [...states.values()].filter(
-    (s) => s.row.closed_at === null && (studentIds.includes(s.row.holder_id) || (s.row.participant_id !== null && studentIds.includes(s.row.participant_id))),
-  );
-
-  let packageId: string | null = null;
-  let withoutPackage: WithoutPackageReason | null = null;
-  if (explicit === null) {
-    withoutPackage = consumes ? 'escolhido' : null;
-  } else if (typeof explicit === 'string') {
-    const chosen = related.find((s) => s.row.id === explicit);
-    if (!chosen) return failure('invalid');
-    const status = chosen.resumo.situacao;
-    if (consumes && (status === 'esgotado' || status === 'vencido')) withoutPackage = status;
-    else packageId = chosen.row.id;
-  } else {
-    const resolved = pacoteDaAula(studentIds, related.map(candidate));
-    if (resolved.tipo === 'pacote') packageId = resolved.pacoteId;
-    else if (resolved.tipo === 'sem-pacote') withoutPackage = consumes ? resolved.motivo : null;
-    else if (consumes) {
-      const names = studentNames(ctx);
-      return {
-        ok: true,
-        value: {
-          registered: false,
-          choose: resolved.opcoes.map((id) => summarize(ctx, states.get(id)!, names, today)),
-        },
-        changed: [],
-      };
-    }
-  }
+  const resolved = resolveConsumption(ctx, studentIds, input.date, consumes, explicit);
+  if (resolved === null) return failure('invalid');
+  if ('choose' in resolved) return { ok: true, value: { registered: false, choose: resolved.choose }, changed: [] };
 
   const classId = ctx.ids.next();
   ctx.sql.run('INSERT INTO classes (id, starts_at, status, created_at) VALUES (?, ?, ?, ?)', classId, startsAt(input.date), outcome === 'given' ? 'given' : 'missed', nowIso(ctx));
   for (const studentId of studentIds) {
-    ctx.sql.run('INSERT INTO class_students (class_id, student_id, package_id, charge) VALUES (?, ?, ?, ?)', classId, studentId, packageId, consumes ? 'consumes' : 'waived');
+    ctx.sql.run('INSERT INTO class_students (class_id, student_id, package_id, charge) VALUES (?, ?, ?, ?)', classId, studentId, resolved.packageId, consumes ? 'consumes' : 'waived');
   }
   return {
     ok: true,
-    value: {
-      registered: true,
-      classId,
-      packageId,
-      withoutPackage,
-      pendingPayment: packageId !== null && consumes && states.get(packageId)!.pagamento.situacao === 'pendente',
-    },
+    value: { registered: true, classId, packageId: resolved.packageId, withoutPackage: resolved.withoutPackage, pendingPayment: resolved.pendingPayment },
     changed: ['classes', 'packages'],
   };
 }
@@ -117,7 +130,14 @@ export function linkClassToPackage(ctx: Context, _actor: Member, input: Record<s
 /** Removes a lesson recorded by mistake; the balance follows by itself. */
 export function deleteClass(ctx: Context, _actor: Member, input: { classId?: unknown }): CommandResult<null> {
   if (typeof input.classId !== 'string') return failure('invalid');
-  if (ctx.sql.all('SELECT 1 FROM classes WHERE id = ?', input.classId).length === 0) return failure('not_found');
+  const [lesson] = ctx.sql.all<{ status: string; slot_on: string | null }>('SELECT status, slot_on FROM classes WHERE id = ?', input.classId);
+  if (!lesson) return failure('not_found');
+  if (lesson.slot_on !== null && lesson.status === 'scheduled') {
+    // A day of a fixed time stays on the books, or the generator would make it again (ADR-010).
+    ctx.sql.run("UPDATE classes SET status = 'cancelled', confirmed_at = NULL WHERE id = ?", input.classId);
+    return { ok: true, value: null, changed: ['classes'] };
+  }
+  ctx.sql.run('UPDATE classes SET rescheduled_from = NULL WHERE rescheduled_from = ?', input.classId);
   ctx.sql.run('DELETE FROM class_students WHERE class_id = ?', input.classId);
   ctx.sql.run('DELETE FROM classes WHERE id = ?', input.classId);
   return { ok: true, value: null, changed: ['classes', 'packages'] };

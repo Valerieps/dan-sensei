@@ -103,7 +103,7 @@ export function loadPackages(ctx: Context, today: Data): Map<string, PackageStat
   const consumption = ctx.sql.all<ConsumptionRow>(
     `SELECT DISTINCT cs.package_id, c.id AS class_id, c.status, c.starts_at
        FROM class_students cs JOIN classes c ON c.id = cs.class_id
-      WHERE cs.charge = 'consumes' AND cs.package_id IS NOT NULL`,
+      WHERE cs.charge = 'consumes' AND cs.package_id IS NOT NULL AND c.status IN ('given', 'missed')`,
   );
   const states = new Map<string, PackageState>();
   for (const row of rows) {

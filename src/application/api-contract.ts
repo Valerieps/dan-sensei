@@ -299,6 +299,114 @@ export type RegisterClassResult =
   /** Nothing was saved: the trainer must pick one of these packages and send it again. */
   | { readonly registered: false; readonly choose: readonly PackageSummary[] };
 
+/** The agenda (docs/spec/agenda.md). Times are "HH:MM" in America/Sao_Paulo; weekdays are ISO (1 = Monday ... 7 = Sunday). */
+export type ClassStatus = 'scheduled' | 'given' | 'missed' | 'cancelled' | 'rescheduled';
+
+export interface AgendaClass {
+  readonly id: string;
+  /** The instant, ISO in UTC. */
+  readonly startsAt: string;
+  readonly date: string;
+  readonly time: string;
+  readonly durationMin: number;
+  readonly status: ClassStatus;
+  /** For `missed`: whether the absence draws from the package. Null for the other statuses. */
+  readonly absenceCharged: boolean | null;
+  readonly confirmed: boolean;
+  /** The address of the lesson: the chosen one, or the first student's default; null when there is none. */
+  readonly address: string | null;
+  readonly students: readonly { readonly id: string; readonly name: string }[];
+  readonly recurrenceId: string | null;
+  /** The lesson this one replaced, when it came from a reschedule. */
+  readonly rescheduledFrom: string | null;
+  /** The package a given or charged lesson drew from; null with `withoutPackage` for "sem pacote". */
+  readonly packageId: string | null;
+  readonly withoutPackage: boolean;
+}
+
+export interface RecurrenceView {
+  readonly id: string;
+  readonly studentIds: readonly string[];
+  readonly studentNames: readonly string[];
+  readonly weekday: number;
+  readonly time: string;
+  readonly durationMin: number;
+  readonly address: string | null;
+  readonly startsOn: string;
+  readonly endsOn: string | null;
+}
+
+export interface ScheduleClassInput {
+  /** One or two students. */
+  readonly studentIds: readonly string[];
+  readonly date: string;
+  readonly time: string;
+  /** 1 to 60; default 60. */
+  readonly durationMin?: number;
+  /** An address of one of the students; omitted or null means the first student's default. */
+  readonly addressId?: string | null;
+}
+
+export interface RecurrenceInput {
+  readonly studentIds: readonly string[];
+  readonly weekday: number;
+  readonly time: string;
+  readonly durationMin?: number;
+  readonly addressId?: string | null;
+  /** First day; default today. */
+  readonly startsOn?: string;
+}
+
+export type AbsenceDecision = 'charge' | 'waive';
+
+export type CancelClassResult =
+  | { readonly done: true; readonly status: 'cancelled' | 'missed'; readonly charged: boolean }
+  /** Less than 24 h: nothing changed; ask "cobrar ou abonar?" with `suggested` selected, then send again with `decision`. */
+  | { readonly done: false; readonly needsDecision: true; readonly suggested: AbsenceDecision }
+  /** A charged absence needs a package choice: nothing changed; pick one and send it again as `packageId`. */
+  | { readonly done: false; readonly needsPackage: true; readonly choose: readonly PackageSummary[] };
+
+/** One live package whose forecast goes past its validity. */
+export interface ForecastWarning {
+  readonly packageId: string;
+  readonly holderId: string;
+  readonly holderName: string;
+  readonly message: string;
+}
+
+export interface PackageForecast {
+  readonly packageId: string;
+  /** Date of the lesson that uses the last one left; null when the agenda has too few lessons. */
+  readonly lastClassOn: string | null;
+  readonly dueOn: string | null;
+  /** True while the package awaits start: the due date comes from the first scheduled lesson. */
+  readonly dueOnForecast: boolean;
+  readonly exceedsValidity: boolean;
+  readonly missingClasses: boolean;
+  /** "12ª aula prevista para 20/01/2027; validade 15/01/2027", only when it exceeds. */
+  readonly warning: string | null;
+}
+
+export interface AgendaWeek {
+  readonly from: string;
+  readonly to: string;
+  readonly classes: readonly AgendaClass[];
+}
+
+/** What the Início needs from the agenda. */
+export interface AgendaHome {
+  readonly today: string;
+  /** Today's lessons in time order, without the rescheduled and cancelled ones. */
+  readonly classes: readonly AgendaClass[];
+  /** The scheduled lesson happening now (start until the planned end), if any. */
+  readonly currentClassId: string | null;
+  /** The next scheduled lesson today that has not started. */
+  readonly nextClassId: string | null;
+  /** Tomorrow's scheduled lessons, with `confirmed` telling who still has not confirmed. */
+  readonly tomorrow: readonly AgendaClass[];
+  readonly forecastWarnings: readonly ForecastWarning[];
+}
+
 /** Reads: `POST /api/query/<name>`. They never change anything. */
 export interface Queries {
   me: { input: Record<string, never>; output: MeView };
@@ -325,6 +433,15 @@ export interface Queries {
   messageSettings: { input: Record<string, never>; output: MessageSettings };
   /** Holders whose last lesson's statement was not opened in WhatsApp yet, oldest lesson first. */
   pendingStatements: { input: Record<string, never>; output: PendingStatement[] };
+  /** The day's grid: every lesson of the date but the rescheduled ones, in time order. */
+  agendaDay: { input: { date: string }; output: AgendaClass[] };
+  /** The Monday-to-Sunday week that holds `date`. */
+  agendaWeek: { input: { date: string }; output: AgendaWeek };
+  agendaHome: { input: Record<string, never>; output: AgendaHome };
+  /** Fixed times still running, optionally those of one student. */
+  recurrences: { input: { studentId?: string }; output: RecurrenceView[] };
+  /** Last lesson forecast against the due date; `not_found` for an unknown or closed package. */
+  packageForecast: { input: { packageId: string }; output: PackageForecast };
 }
 
 /** Writes: `POST /api/command/<name>`. Each runs alone, in one transaction. */
@@ -361,6 +478,25 @@ export interface Commands {
   /** Links a "sem pacote" lesson to a package of one of its students. */
   'class.linkToPackage': { input: { classId: string; packageId: string }; output: null };
   'class.delete': { input: { classId: string }; output: null };
+  /** A one-off lesson (1b). Failure `invalid` for a past date, more than 2 students or 60+ minutes. */
+  'class.schedule': { input: ScheduleClassInput; output: AgendaClass };
+  /** A fixed weekly time; the lessons are generated ahead (ADR-010). */
+  'recurrence.create': { input: RecurrenceInput; output: RecurrenceView };
+  /** The last day of the fixed time; scheduled lessons after it are removed. */
+  'recurrence.end': { input: { id: string; endsOn: string }; output: null };
+  /**
+   * Moves a scheduled lesson to another date and time, keeping the link to the original.
+   * `following` moves this and the next lessons of its fixed time by the same shift.
+   */
+  'class.reschedule': { input: { classId: string; date: string; time: string; scope: 'this' | 'following' }; output: AgendaClass };
+  /** Less than 24 h before the start the answer asks for `decision` (see `CancelClassResult`). */
+  'class.cancel': { input: { classId: string; byTrainer?: boolean; decision?: AbsenceDecision; packageId?: string | null }; output: CancelClassResult };
+  /** A no-show: charged by default, `decision: 'waive'` to waive. Like `class.register`, it may answer with packages to choose from. */
+  'class.markMissed': { input: { classId: string; decision?: AbsenceDecision; packageId?: string | null }; output: RegisterClassResult };
+  /** The scheduled lesson happened; draws from the package by the rules of `class.register`. */
+  'class.complete': { input: { classId: string; packageId?: string | null }; output: RegisterClassResult };
+  /** The student answered the confirmation; `confirmed: false` takes it back. */
+  'class.confirm': { input: { classId: string; confirmed?: boolean }; output: null };
   /**
    * Starting balance of an old monthly student (1a): makes the student monthly with the fee, the
    * due day and the last month paid. Failure `conflict` when the student already has packages.

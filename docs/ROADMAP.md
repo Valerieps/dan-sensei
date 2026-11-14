@@ -12,10 +12,8 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Horários fixos, aulas agendadas e grade do dia | 1b | `spec/agenda.md` | |
-| Remarcação e regras de cancelamento | 1b | `spec/agenda.md` | |
-| Previsão de validade | 1b | `spec/agenda.md` | |
-| Início com a linha do tempo do dia | 1b | `spec/telas-de-gestao.md` | |
+| Telas da agenda: grade do dia, semana, remarcar, cancelar, confirmar e previsão | 1b | `spec/agenda.md` | O servidor (comandos e consultas) está pronto; faltam as telas |
+| Início com a linha do tempo do dia | 1b | `spec/telas-de-gestao.md` | A consulta `agendaHome` está pronta |
 | Confirmação de aulas e lembrete de mensalidade | 1b | `spec/agenda.md`, `spec/mensalistas.md` | |
 | Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | |
 | Programas, treinos e montagem em cartões | 1c | `spec/treinos-e-exercicios.md` | |
@@ -77,3 +75,9 @@ O que ainda não está pronto.
   endereços, notas de até 5.000 letras (`spec/alunos.md`).
 - [ ] Alunos e pacotes: o cartão mostra "Aula X de Y" com X igual às aulas usadas; a opção "esconder valores" esconde só o recebido do mês e fica guardada no aparelho; mensalistas aparecem sem barra; inativos ficam atrás de "Mostrar inativos" (`spec/telas-de-gestao.md`).
 - [ ] Menu +: antes da agenda, "Nova aula" é a tela "Registrar aula" (segunda opção, depois de Registrar pagamento); o perfil mostra no cabeçalho o plano, "Aula X de Y" e a situação do pacote atual (`spec/telas-de-gestao.md`).
+- [ ] Agenda (servidor): as aulas dos horários fixos são geradas 8 semanas à frente, no comando e no
+  cron (ADR-010); remarcar "esta e as seguintes" troca o horário fixo a partir daquela aula; aula
+  avulsa só a partir de hoje; cancelamento com menos de 24 h só muda depois da resposta "cobrar ou
+  abonar" (o app manda a decisão de novo); cancelamento feito por mim nunca cobra; marcar como dada
+  só vale até hoje; aluno inativo não gera aulas novas; o aviso de previsão usa os horários fixos
+  além das 8 semanas (`spec/agenda.md`).

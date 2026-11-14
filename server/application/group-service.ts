@@ -1,6 +1,7 @@
 // The single entry to the group's data. The Durable Object calls it; every method is synchronous,
 // so a command runs alone and inside one transaction (ADR-004).
 import type { ApiResult, CommandName, Commands, QueryName, Queries, Topic } from '../../src/application/api-contract';
+import { agendaDay, agendaHome, agendaWeek, cancelClass, completeClass, confirmClass, createRecurrence, endRecurrence, generateAhead, markMissed, packageForecast, recurrencesOf, rescheduleClass, scheduleClass } from './agenda';
 import { deleteClass, lessonsWithoutPackage, linkClassToPackage, registerClass } from './classes';
 import { failure, QueryError, type CommandResult, type Context } from './context';
 import { exportAll } from './export';
@@ -49,6 +50,11 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   monthly: monthlyOf,
   messageSettings: (ctx) => messageSettings(ctx),
   pendingStatements: (ctx) => pendingStatements(ctx),
+  agendaDay,
+  agendaWeek,
+  agendaHome: (ctx) => agendaHome(ctx),
+  recurrences: recurrencesOf,
+  packageForecast,
 };
 
 /** Every command the API runs; each checks the actor's role itself. */
@@ -75,6 +81,14 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'class.register': registerClass,
   'class.linkToPackage': linkClassToPackage,
   'class.delete': deleteClass,
+  'class.schedule': scheduleClass,
+  'recurrence.create': createRecurrence,
+  'recurrence.end': endRecurrence,
+  'class.reschedule': rescheduleClass,
+  'class.cancel': cancelClass,
+  'class.markMissed': markMissed,
+  'class.complete': completeClass,
+  'class.confirm': confirmClass,
   'monthly.setup': setupMonthly,
   'monthly.setFee': setMonthlyFee,
   'monthly.registerPayment': registerMonthlyPayment,
@@ -137,7 +151,9 @@ export class GroupService {
    */
   tick(): Topic[] {
     this.ctx.sql.run('DELETE FROM sessions WHERE expires_at <= ?', this.ctx.clock.now().toISOString());
-    return [];
+    // Keeps the agenda generated ahead (ADR-010); a no-op until a new day brings a new week into range.
+    const generated = this.ctx.sql.transaction(() => generateAhead(this.ctx));
+    return generated > 0 ? ['classes', 'packages'] : [];
   }
 }
 
