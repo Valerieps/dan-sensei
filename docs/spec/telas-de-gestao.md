@@ -46,7 +46,9 @@ Ao abrir, o app mostra o dia de hoje, pronto para começar a próxima aula.
   3. Menos de 4 aulas restantes ou validade em menos de 7 dias, com destaque em vermelho.
   4. Os demais, pela próxima aula.
 - O pacote Avulso e os mensalistas não recebem destaque de saldo e validade. *(1a)*
-- No topo, os números do mês: quanto recebi e as renovações previstas. *(1a)*
+- No topo, os números do mês: quanto recebi (a soma dos pagamentos com data no mês) e as renovações
+  previstas (alunos com pacote vencido, esgotado, com menos de 4 aulas ou vencendo em menos de 7
+  dias; Avulso e mensalistas ficam fora). *(1a)*
 
 ## Perfil do aluno
 

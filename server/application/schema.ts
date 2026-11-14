@@ -55,6 +55,85 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
     )`,
     `CREATE INDEX student_addresses_student ON student_addresses(student_id)`,
   ],
+  // 3: plans, packages, pauses, payments and the lessons that draw from packages
+  // (docs/spec/pacotes-e-pagamentos.md). Balance, due date and status are never stored.
+  [
+    // `price_cents` is the price of ONE lesson; the plan's total is `classes * price_cents`.
+    `CREATE TABLE plans (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      classes INTEGER NOT NULL,
+      price_cents INTEGER NOT NULL,
+      validity_days INTEGER NOT NULL,
+      active INTEGER NOT NULL DEFAULT 1,
+      sort INTEGER NOT NULL DEFAULT 0
+    )`,
+    `INSERT INTO plans (id, name, classes, price_cents, validity_days, sort) VALUES
+      ('plan-avulso', 'Avulso', 1, 20000, 7, 1),
+      ('plan-12', '12 aulas', 12, 12000, 60, 2),
+      ('plan-16', '16 aulas', 16, 11000, 75, 3),
+      ('plan-20', '20 aulas', 20, 10000, 90, 4)`,
+    // The package keeps a copy of the plan's values. `first_class_on` is only the starting-balance
+    // date; the real first lesson is the earlier of it and the first consuming lesson.
+    `CREATE TABLE packages (
+      id TEXT PRIMARY KEY,
+      holder_id TEXT NOT NULL REFERENCES students(id),
+      participant_id TEXT REFERENCES students(id),
+      plan_id TEXT NOT NULL REFERENCES plans(id),
+      classes INTEGER NOT NULL,
+      price_cents INTEGER NOT NULL,
+      validity_days INTEGER NOT NULL,
+      transferred_in INTEGER NOT NULL DEFAULT 0,
+      used_before_app INTEGER NOT NULL DEFAULT 0,
+      first_class_on TEXT,
+      previous_package_id TEXT REFERENCES packages(id),
+      created_on TEXT NOT NULL,
+      closed_at TEXT,
+      closed_note TEXT
+    )`,
+    `CREATE INDEX packages_holder ON packages(holder_id)`,
+    `CREATE TABLE package_pauses (
+      id TEXT PRIMARY KEY,
+      package_id TEXT NOT NULL REFERENCES packages(id),
+      starts_on TEXT NOT NULL,
+      ends_on TEXT NOT NULL,
+      reason TEXT
+    )`,
+    `CREATE INDEX package_pauses_package ON package_pauses(package_id)`,
+    // "Pausar todos" applies to every package, so it is one row here, not one per package.
+    `CREATE TABLE global_pauses (
+      id TEXT PRIMARY KEY,
+      starts_on TEXT NOT NULL,
+      ends_on TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE payments (
+      id TEXT PRIMARY KEY,
+      package_id TEXT NOT NULL REFERENCES packages(id),
+      paid_on TEXT NOT NULL,
+      amount_cents INTEGER NOT NULL,
+      method TEXT NOT NULL
+    )`,
+    `CREATE INDEX payments_package ON payments(package_id)`,
+    // 1a: only lessons recorded by hand ('given' or 'missed'); the agenda adds the rest.
+    `CREATE TABLE classes (
+      id TEXT PRIMARY KEY,
+      starts_at TEXT NOT NULL,
+      status TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )`,
+    // One row per student of the lesson; a pair lesson shares one package and one charge.
+    // `package_id` NULL on a consuming lesson means "sem pacote".
+    `CREATE TABLE class_students (
+      class_id TEXT NOT NULL REFERENCES classes(id),
+      student_id TEXT NOT NULL REFERENCES students(id),
+      package_id TEXT REFERENCES packages(id),
+      charge TEXT NOT NULL,
+      PRIMARY KEY (class_id, student_id)
+    )`,
+    `CREATE INDEX class_students_package ON class_students(package_id)`,
+    `CREATE INDEX class_students_student ON class_students(student_id)`,
+  ],
 ];
 
 export function migrate(sql: Sql): void {

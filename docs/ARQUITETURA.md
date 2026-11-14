@@ -63,15 +63,15 @@ Tabelas planejadas (só o desenho; cada migração vem com a sua feature):
 | --- | --- | --- | --- |
 | `students` | `id`, `name`, `phone`, `birth_date`, `height_cm`, `emergency_contact`, `status`, `billing` (`package`, `monthly`), `notes` | 1a | Aluno; não é membro e nunca faz login |
 | `student_addresses` | `id`, `student_id`, `label`, `address`, `is_default` | 1a | |
-| `plans` | `id`, `name`, `classes`, `price_cents`, `validity_days`, `active` | 1a | Os quatro de fábrica entram na migração |
-| `packages` | `id`, `holder_id`, `participant_id`, `plan_id`, cópia de `classes`/`price_cents`/`validity_days`, `transferred_in`, `used_before_app`, `first_class_on`, `closed_at`, `closed_note` | 1a | Saldo e vencimento nunca são gravados: calculados de `classes` e das aulas |
-| `package_pauses` | `id`, `package_id`, `starts_on`, `ends_on`, `reason`, `global_pause_id` | 1a | Pausa geral (`global_pause_id`) não conta nos 30 dias |
-| `global_pauses` | `id`, `starts_on`, `ends_on` | 1a | "Pausar todos os pacotes" |
+| `plans` | `id`, `name`, `classes`, `price_cents`, `validity_days`, `active` | 1a | `price_cents` é o preço de uma aula. Os quatro de fábrica entram na migração |
+| `packages` | `id`, `holder_id`, `participant_id`, `plan_id`, cópia de `classes`/`price_cents`/`validity_days`, `transferred_in`, `used_before_app`, `first_class_on`, `closed_at`, `closed_note` | 1a | Saldo e vencimento nunca são gravados: calculados de `classes` e das aulas. `first_class_on` é só a data do saldo inicial (a primeira aula é a mais antiga entre ela e as aulas que consomem). `previous_package_id` liga ao pacote encerrado na renovação |
+| `package_pauses` | `id`, `package_id`, `starts_on`, `ends_on`, `reason` | 1a | Só as pausas próprias do pacote; contam nos 30 dias |
+| `global_pauses` | `id`, `starts_on`, `ends_on`, `created_at` | 1a | "Pausar todos os pacotes": uma linha que vale para todo pacote, sem cópia por pacote; nunca conta nos 30 dias |
 | `payments` | `id`, `package_id`, `paid_on`, `amount_cents`, `method` (`pix`, `cash`, `card`) | 1a | |
 | `monthly_fees` | `id`, `student_id`, `amount_cents`, `due_day` | 1a | Um por mensalista |
 | `monthly_payments` | `id`, `student_id`, `month`, `paid_on`, `amount_cents`, `method` | 1a | |
-| `classes` | `id`, `starts_at`, `duration_min`, `address`, `status`, `rescheduled_from`, `recurrence_id`, `confirmed_at`, `finished_at` | 1a | Na 1a só aulas registradas à mão; a agenda gera as demais na 1b |
-| `class_students` | `class_id`, `student_id`, `package_id`, `charge` (`consumes`, `waived`), `pse` | 1a | Liga cada aluno da aula ao pacote que ela consome (ou nenhum) |
+| `classes` | `id`, `starts_at`, `status`, `created_at`; a agenda soma `duration_min`, `address`, `rescheduled_from`, `recurrence_id`, `confirmed_at`, `finished_at` | 1a | Na 1a só aulas registradas à mão (`given`, `missed`), ao meio-dia de São Paulo; a agenda gera as demais na 1b |
+| `class_students` | `class_id`, `student_id`, `package_id`, `charge` (`consumes`, `waived`), `pse` | 1a | Liga cada aluno da aula ao pacote que ela consome; `package_id` nulo com `consumes` é "sem pacote". Uma aula em dupla tem duas linhas no mesmo pacote e consome 1 aula (`pse` entra na 1c) |
 | `recurrences` | `id`, `student_ids`, `weekday`, `time`, `starts_on`, `ends_on` | 1b | Horário fixo |
 | `message_log` | `id`, `student_id`, `kind`, `opened_at` | 1a | Mensagem aberta no WhatsApp (ADR-008) |
 | `exercises` | `id`, `name`, `aliases`, `primary_groups`, `secondary_groups`, `tags`, `measure`, `load_step`, `equipment`, `media_url` | 1c | |

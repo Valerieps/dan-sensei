@@ -2,6 +2,7 @@
 // Types only. The server imports it with `import type`, so nothing here runs on either side.
 import type { Billing, StudentStatus } from '../domain/alunos/student';
 import type { Role } from '../domain/group/roles';
+import type { NivelDeUrgencia, SituacaoDoPacote } from '../domain/pacotes';
 
 export interface MemberView {
   readonly id: string;
@@ -59,6 +60,192 @@ export interface StudentFormInput {
   readonly addresses: readonly { id?: string; label: string; address: string; isDefault: boolean }[];
 }
 
+/** Dates are "YYYY-MM-DD" in America/Sao_Paulo, months "YYYY-MM"; money is integer cents. */
+export type PaymentMethod = 'pix' | 'cash' | 'card';
+
+export interface PlanView {
+  readonly id: string;
+  readonly name: string;
+  readonly classes: number;
+  /** Price of one lesson, in cents; the plan's total is `classes` times this. */
+  readonly priceCents: number;
+  readonly validityDays: number;
+  readonly active: boolean;
+}
+
+export interface PlanInput {
+  readonly name: string;
+  readonly classes: number;
+  readonly priceCents: number;
+  readonly validityDays: number;
+}
+
+export interface PaymentView {
+  readonly id: string;
+  readonly packageId: string;
+  readonly paidOn: string;
+  readonly amountCents: number;
+  readonly method: PaymentMethod;
+}
+
+export interface PaymentInput {
+  readonly paidOn: string;
+  readonly amountCents: number;
+  readonly method: PaymentMethod;
+}
+
+/** Everything about a package that is calculated (balance, due date, status), never stored. */
+export interface PackageSummary {
+  readonly id: string;
+  readonly holderId: string;
+  readonly holderName: string;
+  readonly participantId: string | null;
+  readonly participantName: string | null;
+  readonly planId: string;
+  readonly planName: string;
+  /** New lessons bought (the plan's, possibly edited); transferred ones come on top. */
+  readonly classes: number;
+  readonly priceCents: number;
+  readonly validityDays: number;
+  /** What the package costs: `classes` times `priceCents`. */
+  readonly totalCents: number;
+  readonly transferredIn: number;
+  readonly usedBeforeApp: number;
+  /** New plus transferred lessons. */
+  readonly total: number;
+  readonly used: number;
+  readonly remaining: number;
+  readonly status: SituacaoDoPacote;
+  /** Day of the first consuming lesson; null while awaiting start. */
+  readonly firstClassOn: string | null;
+  readonly dueOn: string | null;
+  /** The due date before any pause. */
+  readonly originalDueOn: string | null;
+  readonly pausedToday: boolean;
+  /** Paused days that count against the 30-day limit. */
+  readonly pausedDaysInLimit: number;
+  readonly paymentStatus: 'paid' | 'pending';
+  readonly paidCents: number;
+  readonly missingCents: number;
+  readonly createdOn: string;
+  /** "15 aulas (12 novas + 3 transferidas)". */
+  readonly origin: string;
+  readonly closedNote: string | null;
+}
+
+export interface PackageFormInput {
+  readonly holderId: string;
+  readonly participantId?: string | null;
+  readonly planId: string;
+  /** Overrides of the plan's values; omitted means the plan's. */
+  readonly classes?: number;
+  readonly priceCents?: number;
+  readonly validityDays?: number;
+  /** Starting balance: lessons used before the app, and the day of the first one. */
+  readonly usedBeforeApp?: number;
+  readonly firstClassOn?: string | null;
+  readonly payments?: readonly PaymentInput[];
+}
+
+export interface RenewalPreview {
+  /** The package that a new one for this holder would close; null when there is none. */
+  readonly previousPackageId: string | null;
+  readonly transferred: number;
+  /** "3 aulas do pacote anterior serão transferidas"; null when nothing moves. */
+  readonly notice: string | null;
+}
+
+export interface UrgencyItem {
+  readonly studentId: string;
+  readonly name: string;
+  readonly billing: Billing;
+  /** The package shown is one the student only takes part in (pair package). */
+  readonly asParticipant: boolean;
+  readonly package: PackageSummary | null;
+  readonly urgency: NivelDeUrgencia;
+  readonly highlighted: boolean;
+  /** Lessons recorded "sem pacote" waiting to be linked. */
+  readonly lessonsWithoutPackage: number;
+}
+
+export interface GlobalPauseView {
+  readonly id: string;
+  readonly startsOn: string;
+  readonly endsOn: string;
+}
+
+export interface PackagesOverview {
+  readonly month: string;
+  /** Payments dated in the month. */
+  readonly receivedCents: number;
+  /** Students whose package is expired, used up or about to be (urgency 2 or 3), Avulso aside. */
+  readonly expectedRenewals: number;
+  /** Already in urgency order. */
+  readonly items: UrgencyItem[];
+  /** "Pausar todos" periods that have not ended yet. */
+  readonly globalPauses: GlobalPauseView[];
+}
+
+export type LessonOutcome = 'given' | 'missed_charged' | 'missed_waived';
+
+export interface StatementLesson {
+  readonly classId: string;
+  readonly date: string;
+  readonly outcome: LessonOutcome;
+  readonly studentIds: readonly string[];
+  readonly studentNames: readonly string[];
+}
+
+export interface StatementPause {
+  /** The package pause's id, or the global pause's id when `general`. */
+  readonly id: string;
+  readonly startsOn: string;
+  readonly endsOn: string;
+  readonly reason: string | null;
+  /** "Pausar todos": never counts against the 30 days. */
+  readonly general: boolean;
+}
+
+export interface PackageStatement {
+  readonly summary: PackageSummary;
+  /** Lessons that drew from this package, newest first. */
+  readonly lessons: StatementLesson[];
+  readonly pauses: StatementPause[];
+  readonly payments: PaymentView[];
+  readonly transferredFrom: { readonly packageId: string; readonly count: number } | null;
+  readonly transferredTo: { readonly packageId: string; readonly count: number; readonly note: string } | null;
+}
+
+export interface ClassWithoutPackage {
+  readonly classId: string;
+  readonly date: string;
+  readonly outcome: LessonOutcome;
+  readonly studentIds: readonly string[];
+}
+
+export type WithoutPackageReason = 'sem-pacote-cadastrado' | 'esgotado' | 'vencido' | 'escolhido';
+
+export interface RegisterClassInput {
+  readonly date: string;
+  readonly outcome: LessonOutcome;
+  /** One or two students. */
+  readonly studentIds: readonly string[];
+  /** Which package it draws from; omitted lets the rules decide, null forces "sem pacote". */
+  readonly packageId?: string | null;
+}
+
+export type RegisterClassResult =
+  | {
+      readonly registered: true;
+      readonly classId: string;
+      readonly packageId: string | null;
+      /** Why the lesson is "sem pacote"; null when it drew from a package or consumes nothing. */
+      readonly withoutPackage: WithoutPackageReason | null;
+      readonly pendingPayment: boolean;
+    }
+  /** Nothing was saved: the trainer must pick one of these packages and send it again. */
+  | { readonly registered: false; readonly choose: readonly PackageSummary[] };
+
 /** Reads: `POST /api/query/<name>`. They never change anything. */
 export interface Queries {
   me: { input: Record<string, never>; output: MeView };
@@ -68,6 +255,17 @@ export interface Queries {
   members: { input: Record<string, never>; output: MemberListItem[] };
   /** Admins only. */
   invites: { input: Record<string, never>; output: InviteView[] };
+  plans: { input: { includeInactive?: boolean }; output: PlanView[] };
+  /** The Alunos e pacotes screen: every non-inactive student, in urgency order, with the month's numbers. */
+  packagesOverview: { input: Record<string, never>; output: PackagesOverview };
+  /** The statement of one package: lessons, pauses, payments and transfers. */
+  package: { input: { id: string }; output: PackageStatement };
+  /** Every package the student holds or takes part in, newest first. */
+  studentPackages: { input: { studentId: string }; output: PackageSummary[] };
+  /** What a new package for this holder would transfer from the current one. */
+  renewalPreview: { input: { holderId: string }; output: RenewalPreview };
+  /** Lessons of the student recorded "sem pacote", oldest first. */
+  lessonsWithoutPackage: { input: { studentId: string }; output: ClassWithoutPackage[] };
 }
 
 /** Writes: `POST /api/command/<name>`. Each runs alone, in one transaction. */
@@ -83,13 +281,34 @@ export interface Commands {
   'student.update': { input: StudentFormInput & { id: string }; output: StudentView };
   'student.setStatus': { input: { id: string; status: StudentStatus }; output: StudentView };
   'student.setNotes': { input: { id: string; notes: string }; output: StudentView };
+  'plan.create': { input: PlanInput; output: PlanView };
+  'plan.update': { input: PlanInput & { id: string; active?: boolean }; output: PlanView };
+  /**
+   * Sells a package. When the holder still has a live package, it is closed in the same
+   * transaction and its leftover lessons move to the new one (see `renewalPreview`).
+   */
+  'package.create': { input: PackageFormInput; output: PackageSummary };
+  /** Going over 30 days of own pause needs a `reason`; failure `invalid` otherwise. */
+  'package.pause': { input: { packageId: string; startsOn: string; endsOn: string; reason?: string }; output: StatementPause };
+  'package.removePause': { input: { id: string }; output: null };
+  /** "Pausar todos os pacotes". */
+  'pause.createGlobal': { input: { startsOn: string; endsOn: string }; output: GlobalPauseView };
+  'pause.removeGlobal': { input: { id: string }; output: null };
+  'payment.create': { input: PaymentInput & { packageId: string }; output: PaymentView };
+  'payment.update': { input: PaymentInput & { id: string }; output: PaymentView };
+  'payment.delete': { input: { id: string }; output: null };
+  /** Records a lesson given or an absence by hand (1a). */
+  'class.register': { input: RegisterClassInput; output: RegisterClassResult };
+  /** Links a "sem pacote" lesson to a package of one of its students. */
+  'class.linkToPackage': { input: { classId: string; packageId: string }; output: null };
+  'class.delete': { input: { classId: string }; output: null };
 }
 
 export type QueryName = keyof Queries;
 export type CommandName = keyof Commands;
 
 /** What a live message says changed; the screens that show it refetch. */
-export type Topic = 'me' | 'members' | 'invites' | 'students';
+export type Topic = 'me' | 'members' | 'invites' | 'students' | 'plans' | 'packages' | 'payments' | 'classes';
 
 export interface LiveMessage {
   readonly type: 'changed';
