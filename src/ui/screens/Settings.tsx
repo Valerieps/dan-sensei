@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import type { PlanView } from '../../application/api-contract';
+import { CHAVE_PIX_MAX, MODELOS_PADRAO, MODELO_MAX } from '../../domain/mensagens/extrato';
 import { formatarData, formatarReais, lerReais, reaisParaTexto } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
@@ -19,6 +20,9 @@ export function Settings() {
       <h1>{strings.settings.title}</h1>
       <PauseAll />
       <Plans />
+      <Messages />
+      <Export />
+      <Devices />
     </section>
   );
 }
@@ -117,6 +121,133 @@ function Plans() {
                 </Button>
               </div>
             )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function Messages() {
+  const { backend } = useServices();
+  const t = strings.settings.messages;
+  const settings = useQuery('messageSettings', {}, ['messages']);
+  const [form, setForm] = useState<{ pixKey: string; statementTemplate: string; renewalTemplate: string } | null>(null);
+  const [status, setStatus] = useState<'idle' | 'saved' | 'failed'>('idle');
+  const current = form ?? settings.data;
+  if (!current) return settings.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+
+  const change = (patch: Partial<typeof current>) => {
+    setStatus('idle');
+    setForm({ ...current, ...patch });
+  };
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    const result = await backend.command('settings.setMessages', current!);
+    setStatus(result.ok ? 'saved' : 'failed');
+    if (result.ok) setForm(null);
+  }
+
+  return (
+    <form className="card stack" onSubmit={submit} noValidate>
+      <h2>{t.title}</h2>
+      <p className="muted">{t.hint}</p>
+      <Field label={t.pixKey} value={current.pixKey} maxLength={CHAVE_PIX_MAX} onChange={(e) => change({ pixKey: e.target.value })} />
+      <label className="field">
+        <span className="field-label">{t.statementTemplate}</span>
+        <textarea rows={3} value={current.statementTemplate} maxLength={MODELO_MAX} onChange={(e) => change({ statementTemplate: e.target.value })} />
+        <span className="muted small">{t.statementHelp}</span>
+      </label>
+      <label className="field">
+        <span className="field-label">{t.renewalTemplate}</span>
+        <textarea rows={3} value={current.renewalTemplate} maxLength={MODELO_MAX} onChange={(e) => change({ renewalTemplate: e.target.value })} />
+        <span className="muted small">{t.renewalHelp}</span>
+      </label>
+      {status === 'failed' && <Notice tone="error">{strings.genericError}</Notice>}
+      {status === 'saved' && <p className="small strong">{t.saved}</p>}
+      <div className="row">
+        <Button type="submit">{t.save}</Button>
+        <Button variant="secondary" onClick={() => change({ statementTemplate: MODELOS_PADRAO.extrato, renewalTemplate: MODELOS_PADRAO.renovacao })}>
+          {t.restore}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function Export() {
+  const { backend } = useServices();
+  const t = strings.settings.export;
+  const [status, setStatus] = useState<'idle' | 'busy' | 'done' | 'failed'>('idle');
+
+  async function download() {
+    setStatus('busy');
+    const result = await backend.exportData();
+    if (!result.ok) {
+      setStatus('failed');
+      return;
+    }
+    // A blob link in a throwaway anchor: the browser saves the file; nothing leaves the device.
+    const url = URL.createObjectURL(result.value);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `dan-sensei-dados-${new Date().toISOString().slice(0, 10)}.zip`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus('done');
+  }
+
+  return (
+    <div className="card stack">
+      <h2>{t.title}</h2>
+      <p className="muted">{t.hint}</p>
+      {status === 'failed' && <Notice tone="error">{strings.genericError}</Notice>}
+      {status === 'done' && <p className="small strong">{t.done}</p>}
+      <div className="row">
+        <Button onClick={() => void download()} disabled={status === 'busy'}>
+          {t.button}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function Devices() {
+  const { backend } = useServices();
+  const t = strings.settings.devices;
+  const me = useQuery('me', {}, ['me']);
+  const members = useQuery('members', {}, ['members']);
+  const [done, setDone] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  async function signOutAll(id: string, name: string) {
+    const self = id === me.data?.id;
+    if (!window.confirm(self ? t.confirmSelf : t.confirmOther(name))) return;
+    const result = await backend.command('session.signOutAll', self ? {} : { memberId: id });
+    setFailed(!result.ok);
+    if (!result.ok) return;
+    if (self) {
+      await backend.signOut();
+      window.location.assign('/');
+    } else {
+      setDone(t.doneOther(name));
+    }
+  }
+
+  return (
+    <div className="card stack">
+      <h2>{t.title}</h2>
+      <p className="muted">{t.hint}</p>
+      {failed && <Notice tone="error">{strings.genericError}</Notice>}
+      {done && <p className="small strong">{done}</p>}
+      <ul className="list">
+        {(members.data ?? []).map((member) => (
+          <li key={member.id} className="statement-line">
+            <span className="grow strong">{member.name}</span>
+            <Button variant="secondary-danger" aria-label={t.signOutAllOf(member.name)} onClick={() => void signOutAll(member.id, member.name)}>
+              {t.signOutAll}
+            </Button>
           </li>
         ))}
       </ul>

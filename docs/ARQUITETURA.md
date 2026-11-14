@@ -54,6 +54,7 @@ app (celular) ──POST /api/query|command──► Worker ──RPC──► G
 | Tabela | Campos principais | Observação |
 | --- | --- | --- |
 | `members` | `id`, `google_sub`, `email`, `name`, `photo_url`, `roles` (JSON), `active` | Removido fica com `active = 0`; um convite novo traz o mesmo membro de volta |
+| `settings` | `key`, `value` | 1a | Chave PIX e modelos das mensagens; só o que difere do padrão é guardado |
 | `sessions` | `token_hash`, `member_id`, `expires_at` | Só o SHA-256 do token; o cron apaga as vencidas |
 | `invites` | `email`, `invited_by`, `state` (`pending`, `accepted`, `revoked`) | Um por e-mail |
 
@@ -73,7 +74,7 @@ Tabelas planejadas (só o desenho; cada migração vem com a sua feature):
 | `classes` | `id`, `starts_at`, `status`, `created_at`; a agenda soma `duration_min`, `address`, `rescheduled_from`, `recurrence_id`, `confirmed_at`, `finished_at` | 1a | Na 1a só aulas registradas à mão (`given`, `missed`), ao meio-dia de São Paulo; a agenda gera as demais na 1b |
 | `class_students` | `class_id`, `student_id`, `package_id`, `charge` (`consumes`, `waived`), `pse` | 1a | Liga cada aluno da aula ao pacote que ela consome; `package_id` nulo com `consumes` é "sem pacote". Uma aula em dupla tem duas linhas no mesmo pacote e consome 1 aula (`pse` entra na 1c) |
 | `recurrences` | `id`, `student_ids`, `weekday`, `time`, `starts_on`, `ends_on` | 1b | Horário fixo |
-| `message_log` | `id`, `student_id`, `kind`, `opened_at` | 1a | Mensagem aberta no WhatsApp (ADR-008) |
+| `message_log` | `id`, `student_id`, `kind`, `opened_at`, `opened_by` | 1a | Mensagem aberta no WhatsApp (ADR-008) |
 | `exercises` | `id`, `name`, `aliases`, `primary_groups`, `secondary_groups`, `tags`, `measure`, `load_step`, `equipment`, `media_url` | 1c | |
 | `programs`, `workouts`, `prescribed_exercises` | programa → treinos → exercícios prescritos com ordem, séries, faixa, carga, descanso, método, grupo de bi-set | 1c | Editar não muda aulas passadas |
 | `performed_sets` | `id`, `class_id`, `student_id`, `exercise_id`, `order`, `reps`, `load_g`, `seconds`, `meters`, `client_command_id` | 1c | `client_command_id` torna o reenvio offline idempotente (ADR-009) |

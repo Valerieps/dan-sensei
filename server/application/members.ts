@@ -188,3 +188,16 @@ export function removeMember(ctx: Context, actor: Member, input: { memberId?: un
   ctx.sql.run('DELETE FROM sessions WHERE member_id = ?', target.id);
   return { ok: true, value: null, changed: ['members'], disconnect: [target.id] };
 }
+
+/**
+ * Ends every session of a member, for a lost iPad or phone. Anyone can do it to themself; only
+ * admins to another member. The member stays: they sign in again with Google.
+ */
+export function signOutEverywhere(ctx: Context, actor: Member, input: { memberId?: unknown }): CommandResult<null> {
+  if (input.memberId !== undefined && typeof input.memberId !== 'string') return failure('invalid');
+  const targetId = input.memberId ?? actor.id;
+  if (targetId !== actor.id && !isAdmin(actor)) return failure('forbidden');
+  if (!findMember(ctx, targetId)) return failure('not_found');
+  ctx.sql.run('DELETE FROM sessions WHERE member_id = ?', targetId);
+  return { ok: true, value: null, changed: [], disconnect: [targetId] };
+}

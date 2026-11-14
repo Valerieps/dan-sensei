@@ -190,6 +190,22 @@ export interface MonthlyPaymentInput {
   readonly method: PaymentMethod;
 }
 
+/** The trainer's message settings; an empty template means "use the default" and is never stored. */
+export interface MessageSettings {
+  readonly pixKey: string;
+  readonly statementTemplate: string;
+  readonly renewalTemplate: string;
+}
+
+export type MessageKind = 'statement';
+
+/** A student whose package statement has not been opened in WhatsApp since the last lesson. */
+export interface PendingStatement {
+  readonly studentId: string;
+  readonly name: string;
+  readonly lastLessonOn: string;
+}
+
 export interface UrgencyItem {
   readonly studentId: string;
   readonly name: string;
@@ -305,6 +321,10 @@ export interface Queries {
   lessonsWithoutPackage: { input: { studentId: string }; output: ClassWithoutPackage[] };
   /** A monthly student's fee and payments; `not_found` for a student without a monthly fee. */
   monthly: { input: { studentId: string }; output: MonthlyView };
+  /** The PIX key and the message templates, defaults filled in. */
+  messageSettings: { input: Record<string, never>; output: MessageSettings };
+  /** Holders whose last lesson's statement was not opened in WhatsApp yet, oldest lesson first. */
+  pendingStatements: { input: Record<string, never>; output: PendingStatement[] };
 }
 
 /** Writes: `POST /api/command/<name>`. Each runs alone, in one transaction. */
@@ -351,13 +371,19 @@ export interface Commands {
   /** Failure `conflict` when that month already has a payment. */
   'monthly.registerPayment': { input: MonthlyPaymentInput & { studentId: string }; output: MonthlyPaymentView };
   'monthly.deletePayment': { input: { id: string }; output: null };
+  /** An empty template or key goes back to the default (the key to none). */
+  'settings.setMessages': { input: MessageSettings; output: MessageSettings };
+  /** The app opened the message in WhatsApp; it cannot know it was sent (ADR-008). */
+  'message.markOpened': { input: { studentId: string; kind: MessageKind }; output: null };
+  /** Ends every session of a member (default: the actor's own), for a lost iPad or phone. */
+  'session.signOutAll': { input: { memberId?: string }; output: null };
 }
 
 export type QueryName = keyof Queries;
 export type CommandName = keyof Commands;
 
 /** What a live message says changed; the screens that show it refetch. */
-export type Topic = 'me' | 'members' | 'invites' | 'students' | 'plans' | 'packages' | 'payments' | 'classes' | 'monthly';
+export type Topic = 'me' | 'members' | 'invites' | 'students' | 'plans' | 'packages' | 'payments' | 'classes' | 'monthly' | 'messages';
 
 export interface LiveMessage {
   readonly type: 'changed';

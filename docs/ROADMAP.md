@@ -12,9 +12,7 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Extrato e renovação pelo WhatsApp | 1a | `spec/whatsapp.md` | ADR-008 |
 | Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, com Registrar pagamento, Nota sobre aluno e Novo aluno; entra Nova aula |
-| Exportação completa dos dados | 1a | `spec/termo-e-lgpd.md` | |
 | Horários fixos, aulas agendadas e grade do dia | 1b | `spec/agenda.md` | |
 | Remarcação e regras de cancelamento | 1b | `spec/agenda.md` | |
 | Previsão de validade | 1b | `spec/agenda.md` | |
@@ -68,7 +66,14 @@ O que ainda não está pronto.
 - [ ] O aluno não tem foto, só iniciais (`spec/alunos.md`).
 - [ ] Sem termo assinado, o app não guarda anamnese nem alertas de saúde (`spec/termo-e-lgpd.md`).
 - [ ] A cor da aula na agenda mostra a situação, não o aluno (`spec/agenda.md`).
-- [ ] Nenhuma mensagem de WhatsApp leva dado de saúde (`spec/whatsapp.md`).
+- [ ] WhatsApp: o extrato e a renovação saem numa só mensagem (a renovação é um parágrafo no fim);
+  o valor do parágrafo é o total do pacote atual; o plano Avulso nunca recebe o parágrafo; a data
+  aparece como dia/mês; o extrato fica "para enviar" até eu abrir a mensagem depois da última aula
+  dada; o app guarda só que abri, não que enviei (`spec/whatsapp.md`).
+- [ ] Exportação: um `.zip` com uma planilha CSV por tabela, sem sessões nem o código da conta Google;
+  só admin exporta (`spec/termo-e-lgpd.md`).
+- [ ] "Sair de todos os aparelhos": cada admin encerra os aparelhos de qualquer membro, inclusive os
+  próprios (`spec/termo-e-lgpd.md`).
 - [ ] Limites do cadastro do aluno: telefone com 10 a 13 números, altura de 50 a 250 cm, até 5
   endereços, notas de até 5.000 letras (`spec/alunos.md`).
 - [ ] Alunos e pacotes: o cartão mostra "Aula X de Y" com X igual às aulas usadas; a opção "esconder valores" esconde só o recebido do mês e fica guardada no aparelho; mensalistas aparecem sem barra; inativos ficam atrás de "Mostrar inativos" (`spec/telas-de-gestao.md`).

@@ -12,3 +12,9 @@ export const IMAGE_ORIGINS: readonly string[] = ['https://lh3.googleusercontent.
 
 /** The only servers the Worker (server/) calls: Google sign-in. Add an API here with an ADR. */
 export const SERVER_ORIGINS: readonly string[] = ['https://accounts.google.com', 'https://oauth2.googleapis.com'];
+
+/**
+ * Where the app may send the member by a link they tap (navigation, not a request): WhatsApp, with
+ * the message ready (ADR-008). Not in the CSP: `connect-src` and `img-src` do not apply to links.
+ */
+export const LINK_ORIGINS: readonly string[] = ['https://wa.me'];
