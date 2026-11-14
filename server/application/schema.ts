@@ -169,6 +169,34 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
     )`,
     `CREATE INDEX message_log_student ON message_log(student_id, kind)`,
   ],
+  // 6: the agenda (docs/spec/agenda.md, ADR-010). A scheduled lesson is a `classes` row with status
+  // 'scheduled' whose students have charge 'waived' (it consumes nothing until it is given or missed).
+  [
+    // Fixed weekly time. `student_ids` is a JSON array of one or two ids; `weekday` is ISO (1 = Monday);
+    // `time` is "HH:MM" in America/Sao_Paulo; `address` null means the first student's default.
+    `CREATE TABLE recurrences (
+      id TEXT PRIMARY KEY,
+      student_ids TEXT NOT NULL,
+      weekday INTEGER NOT NULL,
+      time TEXT NOT NULL,
+      duration_min INTEGER NOT NULL DEFAULT 60,
+      address TEXT,
+      starts_on TEXT NOT NULL,
+      ends_on TEXT,
+      created_at TEXT NOT NULL
+    )`,
+    `ALTER TABLE classes ADD COLUMN duration_min INTEGER NOT NULL DEFAULT 60`,
+    `ALTER TABLE classes ADD COLUMN address TEXT`,
+    // The lesson this one replaced, when it came from a reschedule.
+    `ALTER TABLE classes ADD COLUMN rescheduled_from TEXT REFERENCES classes(id)`,
+    `ALTER TABLE classes ADD COLUMN recurrence_id TEXT REFERENCES recurrences(id)`,
+    // The day of the fixed time this row stands for; it stays on a cancelled or rescheduled row, so the
+    // generator never makes that day again. Null on a one-off lesson and on a rescheduled replacement.
+    `ALTER TABLE classes ADD COLUMN slot_on TEXT`,
+    `ALTER TABLE classes ADD COLUMN confirmed_at TEXT`,
+    `CREATE UNIQUE INDEX classes_slot ON classes(recurrence_id, slot_on) WHERE slot_on IS NOT NULL`,
+    `CREATE INDEX classes_starts_at ON classes(starts_at)`,
+  ],
 ];
 
 export function migrate(sql: Sql): void {
