@@ -5,6 +5,7 @@ import { formatMonth, strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
 import { Field } from '../components/Field';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { Link } from '../router';
 import { useQuery } from '../use-query';
@@ -16,7 +17,7 @@ export function MonthlyTab({ student }: { student: StudentView }) {
   const monthly = useQuery('monthly', { studentId: student.id }, TOPICS);
   if (monthly.data) return <Fees student={student} monthly={monthly.data} />;
   if (monthly.error === 'not_found') return <Setup student={student} />;
-  return monthly.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  return monthly.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
 }
 
 type FeeField = keyof typeof strings.packages.monthly.errors;
@@ -34,7 +35,7 @@ function FeeFields({
   withLastPaid: boolean;
   submitLabel: string;
   failed: boolean;
-  onSubmit: (value: { amountCents: number; dueDay: number; lastPaidMonth: string | null }) => void;
+  onSubmit: (value: { amountCents: number; dueDay: number; lastPaidMonth: string | null }) => Promise<void>;
   onCancel?: () => void;
 }) {
   const t = strings.packages.monthly;
@@ -42,9 +43,10 @@ function FeeFields({
   const [dueDay, setDueDay] = useState(initial.dueDay ? String(initial.dueDay) : '');
   const [lastPaid, setLastPaid] = useState('');
   const [errors, setErrors] = useState<ReadonlySet<FeeField>>(new Set());
+  const [busy, setBusy] = useState(false);
   const thisMonth = mesDe(dataEmSaoPaulo(new Date()));
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     const amountCents = lerReais(amount);
     const day = Number(dueDay);
@@ -54,7 +56,9 @@ function FeeFields({
     if (lastPaid > thisMonth) found.add('lastPaidMonth');
     setErrors(found);
     if (found.size > 0 || amountCents === null) return;
-    onSubmit({ amountCents, dueDay: day, lastPaidMonth: lastPaid === '' ? null : lastPaid });
+    setBusy(true);
+    await onSubmit({ amountCents, dueDay: day, lastPaidMonth: lastPaid === '' ? null : lastPaid });
+    setBusy(false);
   }
 
   const error = (field: FeeField) => (errors.has(field) ? t.errors[field] : null);
@@ -71,7 +75,7 @@ function FeeFields({
       {withLastPaid && <p className="muted small">{t.lastPaidHint}</p>}
       {failed && <Notice tone="error">{strings.genericError}</Notice>}
       <div className="row">
-        <Button type="submit">{submitLabel}</Button>
+        <Button type="submit" disabled={busy}>{submitLabel}</Button>
         {onCancel && (
           <Button variant="secondary" onClick={onCancel}>
             {strings.cancel}
@@ -89,7 +93,7 @@ function Setup({ student }: { student: StudentView }) {
   const packages = useQuery('studentPackages', { studentId: student.id }, TOPICS);
   const [failed, setFailed] = useState(false);
 
-  if (!packages.data) return packages.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!packages.data) return packages.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
   if (packages.data.length > 0) return <p className="muted">{t.hasPackages}</p>;
 
   async function save(value: { amountCents: number; dueDay: number; lastPaidMonth: string | null }) {
@@ -101,7 +105,7 @@ function Setup({ student }: { student: StudentView }) {
     <div className="stack">
       <h2>{t.setupTitle}</h2>
       <p className="muted">{t.setupHint}</p>
-      <FeeFields initial={{ amountCents: null, dueDay: null }} withLastPaid submitLabel={t.setupSubmit} failed={failed} onSubmit={(v) => void save(v)} />
+      <FeeFields initial={{ amountCents: null, dueDay: null }} withLastPaid submitLabel={t.setupSubmit} failed={failed} onSubmit={save} />
     </div>
   );
 }
@@ -140,7 +144,7 @@ function Fees({ student, monthly }: { student: StudentView; monthly: MonthlyView
             withLastPaid={false}
             submitLabel={t.saveFee}
             failed={failed}
-            onSubmit={(v) => void saveFee(v)}
+            onSubmit={saveFee}
             onCancel={() => setEditing(false)}
           />
         ) : (

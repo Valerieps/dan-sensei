@@ -99,8 +99,8 @@ function AddMenu() {
             </Link>
           </li>
           <li>
-            <Link className="button secondary" to="/mensalidades/registrar">
-              {strings.nav.addMonthlyPayment}
+            <Link className="button secondary" to="/aulas/registrar">
+              {strings.nav.addLesson}
             </Link>
           </li>
           <li>
@@ -111,6 +111,11 @@ function AddMenu() {
           <li>
             <Link className="button secondary" to="/alunos/novo">
               {strings.nav.addStudent}
+            </Link>
+          </li>
+          <li>
+            <Link className="button secondary" to="/mensalidades/registrar">
+              {strings.nav.addMonthlyPayment}
             </Link>
           </li>
         </ul>

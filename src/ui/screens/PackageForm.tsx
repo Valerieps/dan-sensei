@@ -6,6 +6,7 @@ import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { SelectField } from '../components/SelectField';
 import { Link, navigate } from '../router';
@@ -44,7 +45,7 @@ export function PackageForm({ studentId, startingBalance }: { studentId: string;
 
   const back = `/alunos/${studentId}/pacotes`;
   if (student.error === 'not_found') return <Notice tone="error">{strings.students.notFound}</Notice>;
-  if (!student.data || !plans.data) return plans.error || student.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!student.data || !plans.data) return plans.error || student.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
   if (student.data.billing === 'monthly') {
     return (
       <EmptyState action={<Link className="button secondary" to={back}>{strings.back}</Link>}>

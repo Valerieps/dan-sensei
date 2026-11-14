@@ -6,6 +6,7 @@ import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { SelectField } from '../components/SelectField';
 import { Link, navigate } from '../router';
@@ -123,7 +124,7 @@ export function RegisterPayment({ studentId = '', packageId = '' }: { studentId?
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  if (!students.data) return students.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!students.data) return students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
   const eligible = students.data.filter((s) => s.billing === 'package');
   if (eligible.length === 0) {
     return (

@@ -6,6 +6,7 @@ export const formatMonth = (month: string): string => `${month.slice(5)}/${month
 export const strings = {
   appName: 'Dan Sensei',
   genericError: 'Algo deu errado. Tenta de novo?',
+  loading: 'Carregando…',
   retry: 'Tentar de novo',
   cancel: 'Cancelar',
   back: 'Voltar',
@@ -36,6 +37,7 @@ export const strings = {
     addNote: 'Nota sobre aluno',
     addStudent: 'Novo aluno',
     addPayment: 'Registrar pagamento',
+    addLesson: 'Registrar aula',
     addMonthlyPayment: 'Registrar mensalidade',
     settings: 'Configurações',
   },

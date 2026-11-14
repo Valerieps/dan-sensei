@@ -12,7 +12,6 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, com Registrar pagamento, Nota sobre aluno e Novo aluno; entra Nova aula |
 | Horários fixos, aulas agendadas e grade do dia | 1b | `spec/agenda.md` | |
 | Remarcação e regras de cancelamento | 1b | `spec/agenda.md` | |
 | Previsão de validade | 1b | `spec/agenda.md` | |
@@ -77,3 +76,4 @@ O que ainda não está pronto.
 - [ ] Limites do cadastro do aluno: telefone com 10 a 13 números, altura de 50 a 250 cm, até 5
   endereços, notas de até 5.000 letras (`spec/alunos.md`).
 - [ ] Alunos e pacotes: o cartão mostra "Aula X de Y" com X igual às aulas usadas; a opção "esconder valores" esconde só o recebido do mês e fica guardada no aparelho; mensalistas aparecem sem barra; inativos ficam atrás de "Mostrar inativos" (`spec/telas-de-gestao.md`).
+- [ ] Menu +: antes da agenda, "Nova aula" é a tela "Registrar aula" (segunda opção, depois de Registrar pagamento); o perfil mostra no cabeçalho o plano, "Aula X de Y" e a situação do pacote atual (`spec/telas-de-gestao.md`).

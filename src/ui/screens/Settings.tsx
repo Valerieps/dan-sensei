@@ -7,6 +7,7 @@ import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { useQuery } from '../use-query';
 
@@ -35,6 +36,7 @@ function PauseAll() {
   const [endsOn, setEndsOn] = useState('');
   const [invalid, setInvalid] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -42,7 +44,9 @@ function PauseAll() {
     const ok = startsOn !== '' && endsOn !== '' && endsOn >= startsOn;
     setInvalid(!ok);
     if (!ok) return;
+    setBusy(true);
     const result = await backend.command('pause.createGlobal', { startsOn, endsOn });
+    setBusy(false);
     setFailed(!result.ok);
     if (result.ok) {
       setStartsOn('');
@@ -67,7 +71,7 @@ function PauseAll() {
         </div>
         {failed && <Notice tone="error">{strings.genericError}</Notice>}
         <div className="row">
-          <Button type="submit">{t.submit}</Button>
+          <Button type="submit" disabled={busy}>{t.submit}</Button>
         </div>
       </form>
       <h3>{t.active}</h3>
@@ -97,7 +101,7 @@ function Plans() {
     <div className="card stack">
       <div className="row spread">
         <h2>{t.title}</h2>
-        {editing !== 'new' && <Button onClick={() => setEditing('new')}>{t.new}</Button>}
+        {editing !== 'new' && <Button variant="secondary" onClick={() => setEditing('new')}>{t.new}</Button>}
       </div>
       <p className="muted">{t.hint}</p>
       {editing === 'new' && <PlanForm onDone={() => setEditing(null)} />}
@@ -133,9 +137,9 @@ function Messages() {
   const t = strings.settings.messages;
   const settings = useQuery('messageSettings', {}, ['messages']);
   const [form, setForm] = useState<{ pixKey: string; statementTemplate: string; renewalTemplate: string } | null>(null);
-  const [status, setStatus] = useState<'idle' | 'saved' | 'failed'>('idle');
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const current = form ?? settings.data;
-  if (!current) return settings.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!current) return settings.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
 
   const change = (patch: Partial<typeof current>) => {
     setStatus('idle');
@@ -144,6 +148,7 @@ function Messages() {
 
   async function submit(event: FormEvent) {
     event.preventDefault();
+    setStatus('saving');
     const result = await backend.command('settings.setMessages', current!);
     setStatus(result.ok ? 'saved' : 'failed');
     if (result.ok) setForm(null);
@@ -167,7 +172,7 @@ function Messages() {
       {status === 'failed' && <Notice tone="error">{strings.genericError}</Notice>}
       {status === 'saved' && <p className="small strong">{t.saved}</p>}
       <div className="row">
-        <Button type="submit">{t.save}</Button>
+        <Button type="submit" disabled={status === 'saving'}>{t.save}</Button>
         <Button variant="secondary" onClick={() => change({ statementTemplate: MODELOS_PADRAO.extrato, renewalTemplate: MODELOS_PADRAO.renovacao })}>
           {t.restore}
         </Button>
@@ -205,7 +210,7 @@ function Export() {
       {status === 'failed' && <Notice tone="error">{strings.genericError}</Notice>}
       {status === 'done' && <p className="small strong">{t.done}</p>}
       <div className="row">
-        <Button onClick={() => void download()} disabled={status === 'busy'}>
+        <Button variant="secondary" onClick={() => void download()} disabled={status === 'busy'}>
           {t.button}
         </Button>
       </div>
