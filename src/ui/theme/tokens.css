@@ -59,6 +59,10 @@
   --size-touch: 44px;
   --size-avatar: 40px;
   --size-content: 720px;
+  --size-sidebar: 240px;
+  --size-bar: 64px;
+  --size-fab: 56px;
+  --size-avatar-large: 64px;
   --focus-ring-width: 2px;
   --focus-ring-offset: 2px;
 

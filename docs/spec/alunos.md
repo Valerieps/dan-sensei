@@ -25,6 +25,8 @@ Quem são meus alunos, como falar com eles e o que preciso saber da saúde e dos
 - O aluno não tem foto: o app mostra as iniciais do nome. *(1a)*
   Por quê: foto é dado pessoal e entraria no termo; as iniciais bastam para achar o aluno.
 - Eu escrevo notas livres sobre o aluno, também pelo celular. *(1a)*
+- O telefone vale com DDD (10 a 13 números, com ou sem o 55); a altura, de 50 a 250 cm; cada aluno
+  tem até 5 endereços e notas de até 5.000 letras. No perfil, também pauso e reativo o aluno. *(1a)*
 
 ## Anamnese
 

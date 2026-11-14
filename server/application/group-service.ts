@@ -18,6 +18,7 @@ import {
 } from './members';
 import type { Clock, IdGenerator, Sql } from './ports';
 import { migrate } from './schema';
+import { createStudent, getStudent, listStudents, setStudentNotes, setStudentStatus, updateStudent } from './students';
 
 type Input = Record<string, unknown>;
 
@@ -28,6 +29,8 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   me: (_ctx, actor) => me(actor),
   members: (ctx, actor) => listMembers(ctx, actor),
   invites: (ctx, actor) => listInvites(ctx, actor),
+  students: listStudents,
+  student: getStudent,
 };
 
 /** Every command the API runs; each checks the actor's role itself. */
@@ -37,6 +40,10 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'member.setRoles': setRoles,
   'member.remove': removeMember,
   'member.rename': rename,
+  'student.create': createStudent,
+  'student.update': updateStudent,
+  'student.setStatus': setStudentStatus,
+  'student.setNotes': setStudentNotes,
 };
 
 export class GroupService {
