@@ -17,7 +17,15 @@ conferidas pelo `src/security.test.ts`, que roda em todo build.
   `send_metrics: false`.
 - Segredos nunca vão para o código do cliente: tudo que está no bundle é público. O segredo do login
   Google, e qualquer chave de API, ficam só no Worker (`wrangler secret put`; localmente no `.dev.vars`).
-- <O `BOOTSTRAP.md` escreve aqui quais dados pessoais o app guarda e se algum é sensível.>
+- **Dados que o app guarda:** dos alunos, nome, telefone, endereços, data de nascimento, altura,
+  contato de emergência, pacotes, pagamentos, agenda, treinos e séries; a partir da fase 1c, termo
+  assinado, PAR-Q, alertas de saúde e PSE; na fase 2, laudos de bioimpedância e fotos. Dos membros,
+  nome, e-mail e foto da conta Google.
+- **Sensíveis (LGPD):** anamnese, PAR-Q, alertas de saúde, laudos e fotos. Só entram depois do termo
+  assinado (`spec/termo-e-lgpd.md`), nunca vão em mensagens de WhatsApp nem em logs, e saem do app só
+  pela exportação. Dinheiro (pagamentos) não é sensível pela LGPD, mas segue as mesmas regras.
+- **WhatsApp:** o app só abre um link `https://wa.me/` com o texto pronto, que o próprio membro
+  envia; não chama nenhuma API do WhatsApp (ADR-008).
 
 ## 2. Acesso e dados
 
