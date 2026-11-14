@@ -45,6 +45,7 @@ export function Overview() {
   const [hidden, setHidden] = useState(readHidden);
   const [showInactive, setShowInactive] = useState(false);
   const pending = useQuery('pendingStatements', {}, ['messages', 'classes', 'packages', 'students']);
+  const agenda = useQuery('agendaHome', {}, ['classes', 'packages', 'students']);
   const inactive = useQuery('students', { includeInactive: true }, ['students']);
   const o = strings.packages.overview;
 
@@ -126,7 +127,7 @@ export function Overview() {
       <ul className="list">
         {data?.items.map((item) => (
           <li key={item.studentId}>
-            <StudentCard item={item} />
+            <StudentCard item={item} forecast={agenda.data?.forecastWarnings.find((w) => w.packageId === item.package?.id)?.message} />
           </li>
         ))}
       </ul>
@@ -160,7 +161,7 @@ export function Overview() {
   );
 }
 
-function StudentCard({ item }: { item: UrgencyItem }) {
+function StudentCard({ item, forecast }: { item: UrgencyItem; forecast?: string }) {
   const c = strings.packages.card;
   const label = urgencyLabel(item);
   const pkg = item.package;
@@ -189,6 +190,11 @@ function StudentCard({ item }: { item: UrgencyItem }) {
           {item.asParticipant && <p className="muted small">{c.pair}</p>}
           <PackageProgress pkg={pkg} urgent={item.highlighted} />
         </>
+      )}
+      {forecast && (
+        <p className="small strong forecast">
+          {strings.agenda.forecastTitle}: {forecast}
+        </p>
       )}
       {item.lessonsWithoutPackage > 0 && <p className="small">{c.withoutPackage(item.lessonsWithoutPackage)}</p>}
     </Link>

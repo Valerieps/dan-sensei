@@ -6,6 +6,8 @@ import { useLiveStatus, useServices } from './backend-context';
 import { Button } from './components/Button';
 import { Notice } from './components/Notice';
 import { Link, navigate, usePath } from './router';
+import { Agenda } from './screens/Agenda';
+import { NewClass } from './screens/NewClass';
 import { Invites } from './screens/Invites';
 import { Members } from './screens/Members';
 import { SignIn } from './screens/SignIn';
@@ -65,6 +67,7 @@ function Navigation({ me, onSignOut }: { me: MeView; onSignOut: () => void }) {
   const path = usePath();
   const entries = [
     { path: '/', label: strings.nav.students, current: path === '/' || path.startsWith('/alunos') || path.startsWith('/aulas') || path.startsWith('/pagamentos') || path.startsWith('/mensalidades') || path.startsWith('/pacotes') || path === '/nota-aluno' },
+    { path: '/agenda', label: strings.nav.agenda, current: path.startsWith('/agenda') },
     { path: '/configuracoes', label: strings.nav.settings, current: path === '/configuracoes' },
     { path: '/membros', label: strings.nav.members, current: path === '/membros' },
     ...(canManageGroup(me) ? [{ path: '/convites', label: strings.nav.invites, current: path === '/convites' }] : []),
@@ -96,6 +99,11 @@ function AddMenu() {
           <li>
             <Link className="button secondary" to="/pagamentos/registrar">
               {strings.nav.addPayment}
+            </Link>
+          </li>
+          <li>
+            <Link className="button secondary" to="/agenda/nova">
+              {strings.nav.addClass}
             </Link>
           </li>
           <li>
@@ -138,6 +146,12 @@ function Screen({ me }: { me: MeView }) {
   if (path === '/membros') return <Members me={me} />;
   if (path === '/convites' && canManageGroup(me)) return <Invites />;
   if (path === '/configuracoes') return <Settings />;
+  const newClass = /^\/agenda\/nova(?:\/(\d{4}-\d{2}-\d{2})(?:\/(\d{2}:\d{2}))?)?\/?$/.exec(path);
+  if (newClass) return <NewClass key={path} date={newClass[1]} time={newClass[2]} />;
+  const week = /^\/agenda\/semana(?:\/(\d{4}-\d{2}-\d{2}))?\/?$/.exec(path);
+  if (week) return <Agenda mode="week" date={week[1]} />;
+  const day = /^\/agenda(?:\/(\d{4}-\d{2}-\d{2}))?\/?$/.exec(path);
+  if (day) return <Agenda mode="day" date={day[1]} />;
   const payment = /^\/pagamentos\/registrar(?:\/([^/]+)(?:\/([^/]+))?)?\/?$/.exec(path);
   if (payment) return <RegisterPayment key={path} studentId={payment[1]} packageId={payment[2]} />;
   const monthlyPayment = /^\/mensalidades\/registrar(?:\/([^/]+))?\/?$/.exec(path);

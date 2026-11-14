@@ -171,6 +171,12 @@ const NON_TEXT_PAIRS = [
   ['--color-border-strong', '--color-surface'],
   ['--color-focus', '--color-bg'],
   ['--color-focus', '--color-surface'],
+  ['--color-class-scheduled', '--color-bg'],
+  ['--color-class-scheduled', '--color-surface'],
+  ['--color-class-given', '--color-bg'],
+  ['--color-class-given', '--color-surface'],
+  ['--color-class-missed', '--color-bg'],
+  ['--color-class-missed', '--color-surface'],
 ] as const;
 
 describe.each([
