@@ -9,3 +9,4 @@ Quando a tela de um rascunho fica pronta, o rascunho é apagado: o código passa
 
 | Rascunho | Status |
 | --- | --- |
+| [plano-fases-1a-1b.md](plano-fases-1a-1b.md) | Plano das sessões das fases 1a e 1b, em uso pelo orquestrador; sai na S12 |
