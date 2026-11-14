@@ -12,8 +12,6 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Início com a linha do tempo do dia | 1b | `spec/telas-de-gestao.md` | A consulta `agendaHome` está pronta |
-| Confirmação de aulas e lembrete de mensalidade | 1b | `spec/agenda.md`, `spec/mensalistas.md` | |
 | Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | |
 | Programas, treinos e montagem em cartões | 1c | `spec/treinos-e-exercicios.md` | |
 | Modo Ao Vivo individual, cronômetro e registro das séries | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7) |
@@ -86,3 +84,11 @@ O que ainda não está pronto.
   abonar" (o app manda a decisão de novo); cancelamento feito por mim nunca cobra; marcar como dada
   só vale até hoje; aluno inativo não gera aulas novas; o aviso de previsão usa os horários fixos
   além das 8 semanas (`spec/agenda.md`).
+- [ ] Início (1b): o Início é a primeira tela (`/`) e Alunos e pacotes passou para `/alunos`. Como o
+  Modo Ao Vivo só chega na 1c, a aula em destaque tem "Marcar como dada" no lugar de "Iniciar aula".
+  O texto da confirmação e do lembrete de mensalidade é fixo (não há modelo editável nas
+  configurações); eu edito no WhatsApp antes de enviar. "Quem não confirmou" é quem recebeu a
+  mensagem aberta no WhatsApp e ainda não confirmou: a aula fica em destaque no dia. O Início
+  pergunta da mensalidade só no dia do vencimento; depois dele a pendência aparece em "Precisa de
+  atenção" e no cartão de cada aula do aluno. O cartão de Alunos e pacotes mostra a próxima aula
+  agendada, ou "Sem próxima aula agendada" (`spec/agenda.md`, `spec/mensalistas.md`).

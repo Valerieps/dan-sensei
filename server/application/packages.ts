@@ -34,6 +34,7 @@ import {
   toPaymentView,
   type PackageState,
 } from './package-data';
+import { nextClassByStudent } from './agenda';
 import { monthlyReceivedCents, pendingMonthsByStudent } from './monthly';
 import { insertPayment, parsePayment } from './payments';
 import { findPlan, isDate, isPositiveInt, MAX_CLASSES, MAX_PRICE_CENTS, MAX_VALIDITY_DAYS } from './plans';
@@ -248,6 +249,7 @@ export function packagesOverview(ctx: Context, _actor: Member): PackagesOverview
   );
 
   const monthlyPending = pendingMonthsByStudent(ctx, today);
+  const nextClasses = nextClassByStudent(ctx);
   let expectedRenewals = 0;
   const candidates: Candidate[] = students.map((s) => {
     const mensalista = s.billing === 'monthly';
@@ -272,8 +274,7 @@ export function packagesOverview(ctx: Context, _actor: Member): PackagesOverview
       situacao: current?.resumo.situacao ?? null,
       restantes: current?.resumo.restantes ?? 0,
       vencimento: current?.resumo.vencimento ?? null,
-      // The next scheduled lesson exists from phase 1b on.
-      proximaAula: null,
+      proximaAula: nextClasses.get(s.id)?.date ?? null,
     };
     const nivel = nivelDeUrgencia({ ...base, pagamentoPendente: false }, today);
     if (!mensalista && current !== null && (nivel === 2 || nivel === 3)) expectedRenewals += 1;
@@ -287,6 +288,7 @@ export function packagesOverview(ctx: Context, _actor: Member): PackagesOverview
       urgency: nivelDeUrgencia(base, today),
       highlighted: comDestaqueVermelho(base, today),
       lessonsWithoutPackage: unlinked.get(s.id) ?? 0,
+      nextClass: nextClasses.get(s.id) ?? null,
     };
     return { ...base, view };
   });

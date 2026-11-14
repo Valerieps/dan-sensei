@@ -56,3 +56,5 @@ Confirmo as aulas de alguns alunos e dos alunos novos, até eles se acostumarem 
   *(1b)*
 - Quando o aluno responde, um toque marca a aula como confirmada. Quem não confirmou aparece em
   destaque na aula do dia seguinte. *(1b)*
+  Por quê: só destaco quem recebeu a mensagem; os alunos que não confirmo não ficam sempre em alerta.
+  O app guarda que abri a mensagem, não que enviei (`whatsapp.md`).

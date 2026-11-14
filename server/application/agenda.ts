@@ -10,6 +10,7 @@ import type {
   CancelClassResult,
   ClassStatus,
   ForecastWarning,
+  NextClass,
   PackageForecast,
   PackageSummary,
   RecurrenceView,
@@ -50,6 +51,7 @@ interface ClassRow {
   recurrence_id: string | null;
   slot_on: string | null;
   confirmed_at: string | null;
+  confirmation_asked_at: string | null;
 }
 
 interface RecurrenceRow {
@@ -164,6 +166,7 @@ function loadAgenda(ctx: Context, from: Data, to: Data): AgendaClass[] {
       status: row.status,
       absenceCharged: row.status === 'missed' ? consumes : null,
       confirmed: row.confirmed_at !== null,
+      confirmationAsked: row.confirmation_asked_at !== null,
       address: row.address ?? (mine[0] ? (addresses.get(mine[0].student_id) ?? null) : null),
       students: mine.map((l) => ({ id: l.student_id, name: names.get(l.student_id) ?? '' })),
       recurrenceId: row.recurrence_id,
@@ -425,6 +428,29 @@ export function confirmClass(ctx: Context, _actor: Member, input: Input): Comman
   if (lesson.status !== 'scheduled') return failure('conflict');
   ctx.sql.run('UPDATE classes SET confirmed_at = ? WHERE id = ?', input.confirmed === false ? null : nowIso(ctx), lesson.id);
   return { ok: true, value: null, changed: ['classes'] };
+}
+
+/** The confirmation was opened in WhatsApp; the app cannot know it was sent (ADR-008). */
+export function markConfirmationAsked(ctx: Context, _actor: Member, input: Input): CommandResult<null> {
+  const lesson = scheduledClass(ctx, input.classId);
+  if (!lesson) return failure(typeof input.classId === 'string' ? 'not_found' : 'invalid');
+  if (lesson.status !== 'scheduled') return failure('conflict');
+  ctx.sql.run('UPDATE classes SET confirmation_asked_at = ? WHERE id = ?', nowIso(ctx), lesson.id);
+  return { ok: true, value: null, changed: ['classes'] };
+}
+
+/** The next scheduled lesson of each student (from now on), as the Alunos e pacotes cards show it. */
+export function nextClassByStudent(ctx: Context): Map<string, NextClass> {
+  const next = new Map<string, NextClass>();
+  const rows = ctx.sql.all<{ student_id: string; id: string; starts_at: string }>(
+    `SELECT cs.student_id, c.id, c.starts_at FROM classes c JOIN class_students cs ON cs.class_id = c.id
+      WHERE c.status = 'scheduled' AND c.starts_at >= ? ORDER BY c.starts_at, c.rowid`,
+    ctx.clock.now().toISOString(),
+  );
+  for (const row of rows) {
+    if (!next.has(row.student_id)) next.set(row.student_id, { id: row.id, date: dataEmSaoPaulo(row.starts_at), time: horaEmSaoPaulo(row.starts_at) });
+  }
+  return next;
 }
 
 // ---- validity forecast ----------------------------------------------------------------------

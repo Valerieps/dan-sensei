@@ -1,7 +1,7 @@
 // Monthly students: the fee, its due day and the months paid (docs/spec/mensalistas.md).
 // The pending months come from `src/domain/pacotes/mensalidade.ts`; nothing derived is stored.
-import type { MonthlyPaymentView, MonthlyView, PaymentMethod } from '../../src/application/api-contract';
-import { mensalidadePendente, mesDe, mesesPendentes } from '../../src/domain/pacotes';
+import type { MonthlyDue, MonthlyPaymentView, MonthlyView, PaymentMethod } from '../../src/application/api-contract';
+import { mensalidadePendente, mensalidadeVenceHoje, mesDe, mesesPendentes } from '../../src/domain/pacotes';
 import { failure, QueryError, type CommandResult, type Context } from './context';
 import type { Member } from './members';
 import { todayIn } from './package-data';
@@ -60,6 +60,33 @@ export function pendingMonthsByStudent(ctx: Context, today: string): Map<string,
     if (view && mensalidadePendente({ diaVencimento: view.dueDay, ultimoMesPago: view.lastPaidMonth }, today)) pending.set(student_id, view.pendingMonths);
   }
   return pending;
+}
+
+/**
+ * Monthly students the Início asks about (docs/spec/mensalistas.md): the fee is due today, or it is
+ * past due and unpaid. Inactive students are left out. Ordered by name.
+ */
+export function monthlyDue(ctx: Context): MonthlyDue[] {
+  const today = todayIn(ctx);
+  const rows = ctx.sql.all<{ student_id: string; name: string }>(
+    "SELECT f.student_id, s.name FROM monthly_fees f JOIN students s ON s.id = f.student_id WHERE s.status <> 'inactive' ORDER BY s.name",
+  );
+  const due: MonthlyDue[] = [];
+  for (const row of rows) {
+    const view = loadMonthly(ctx, row.student_id, today)!;
+    const dueToday = mensalidadeVenceHoje({ diaVencimento: view.dueDay, ultimoMesPago: view.lastPaidMonth }, today);
+    if (!dueToday && view.pendingMonths.length === 0) continue;
+    due.push({
+      studentId: row.student_id,
+      name: row.name,
+      amountCents: view.amountCents,
+      dueDay: view.dueDay,
+      dueToday,
+      month: view.pendingMonths[0] ?? mesDe(today),
+      pendingMonths: view.pendingMonths,
+    });
+  }
+  return due;
 }
 
 /** Monthly fees paid on a day of the given month ("YYYY-MM"), for "Recebi". */
