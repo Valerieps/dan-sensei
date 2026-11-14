@@ -34,6 +34,7 @@ import {
   toPaymentView,
   type PackageState,
 } from './package-data';
+import { monthlyReceivedCents, pendingMonthsByStudent } from './monthly';
 import { insertPayment, parsePayment } from './payments';
 import { findPlan, isDate, isPositiveInt, MAX_CLASSES, MAX_PRICE_CENTS, MAX_VALIDITY_DAYS } from './plans';
 
@@ -246,6 +247,7 @@ export function packagesOverview(ctx: Context, _actor: Member): PackagesOverview
       .map((r) => [r.student_id, r.n]),
   );
 
+  const monthlyPending = pendingMonthsByStudent(ctx, today);
   let expectedRenewals = 0;
   const candidates: Candidate[] = students.map((s) => {
     const mensalista = s.billing === 'monthly';
@@ -257,7 +259,10 @@ export function packagesOverview(ctx: Context, _actor: Member): PackagesOverview
       asParticipant = current !== null;
     }
     // Only the holder owes the payment; the participant just sees the shared package.
-    const pagamentoPendente = current !== null && !asParticipant && current.pagamento.situacao === 'pendente';
+    const pendingMonths = monthlyPending.get(s.id) ?? [];
+    const pagamentoPendente = mensalista
+      ? pendingMonths.length > 0
+      : current !== null && !asParticipant && current.pagamento.situacao === 'pendente';
     const base: ItemDeUrgencia = {
       id: s.id,
       nome: s.name,
@@ -276,6 +281,7 @@ export function packagesOverview(ctx: Context, _actor: Member): PackagesOverview
       studentId: s.id,
       name: s.name,
       billing: s.billing,
+      pendingMonths,
       asParticipant,
       package: current ? summarize(ctx, current, names, today) : null,
       urgency: nivelDeUrgencia(base, today),
@@ -286,10 +292,11 @@ export function packagesOverview(ctx: Context, _actor: Member): PackagesOverview
   });
 
   const month = mesDe(today);
-  const receivedCents = [...states.values()]
-    .flatMap((s) => s.payments)
-    .filter((p) => mesDe(p.paid_on) === month)
-    .reduce((sum, p) => sum + p.amount_cents, 0);
+  const receivedCents =
+    [...states.values()]
+      .flatMap((s) => s.payments)
+      .filter((p) => mesDe(p.paid_on) === month)
+      .reduce((sum, p) => sum + p.amount_cents, 0) + monthlyReceivedCents(ctx, month);
 
   return {
     month,

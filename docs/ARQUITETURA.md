@@ -68,8 +68,8 @@ Tabelas planejadas (só o desenho; cada migração vem com a sua feature):
 | `package_pauses` | `id`, `package_id`, `starts_on`, `ends_on`, `reason` | 1a | Só as pausas próprias do pacote; contam nos 30 dias |
 | `global_pauses` | `id`, `starts_on`, `ends_on`, `created_at` | 1a | "Pausar todos os pacotes": uma linha que vale para todo pacote, sem cópia por pacote; nunca conta nos 30 dias |
 | `payments` | `id`, `package_id`, `paid_on`, `amount_cents`, `method` (`pix`, `cash`, `card`) | 1a | |
-| `monthly_fees` | `id`, `student_id`, `amount_cents`, `due_day` | 1a | Um por mensalista |
-| `monthly_payments` | `id`, `student_id`, `month`, `paid_on`, `amount_cents`, `method` | 1a | |
+| `monthly_fees` | `student_id`, `amount_cents`, `due_day`, `paid_through` | 1a | Um por mensalista; `paid_through` é o último mês pago antes do app (saldo inicial) |
+| `monthly_payments` | `id`, `student_id`, `month`, `paid_on`, `amount_cents`, `method` | 1a | Um por aluno e mês; os meses pendentes são calculados, nunca guardados |
 | `classes` | `id`, `starts_at`, `status`, `created_at`; a agenda soma `duration_min`, `address`, `rescheduled_from`, `recurrence_id`, `confirmed_at`, `finished_at` | 1a | Na 1a só aulas registradas à mão (`given`, `missed`), ao meio-dia de São Paulo; a agenda gera as demais na 1b |
 | `class_students` | `class_id`, `student_id`, `package_id`, `charge` (`consumes`, `waived`), `pse` | 1a | Liga cada aluno da aula ao pacote que ela consome; `package_id` nulo com `consumes` é "sem pacote". Uma aula em dupla tem duas linhas no mesmo pacote e consome 1 aula (`pse` entra na 1c) |
 | `recurrences` | `id`, `student_ids`, `weekday`, `time`, `starts_on`, `ends_on` | 1b | Horário fixo |

@@ -134,6 +134,25 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
     `CREATE INDEX class_students_package ON class_students(package_id)`,
     `CREATE INDEX class_students_student ON class_students(student_id)`,
   ],
+  // 4: monthly students' fee and payments (docs/spec/mensalistas.md). What is pending is never stored.
+  [
+    // `paid_through` is the last month paid before the app ("saldo inicial"); null when none.
+    `CREATE TABLE monthly_fees (
+      student_id TEXT PRIMARY KEY REFERENCES students(id),
+      amount_cents INTEGER NOT NULL,
+      due_day INTEGER NOT NULL,
+      paid_through TEXT
+    )`,
+    `CREATE TABLE monthly_payments (
+      id TEXT PRIMARY KEY,
+      student_id TEXT NOT NULL REFERENCES students(id),
+      month TEXT NOT NULL,
+      paid_on TEXT NOT NULL,
+      amount_cents INTEGER NOT NULL,
+      method TEXT NOT NULL,
+      UNIQUE (student_id, month)
+    )`,
+  ],
 ];
 
 export function migrate(sql: Sql): void {

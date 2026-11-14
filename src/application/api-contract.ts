@@ -155,10 +155,47 @@ export interface RenewalPreview {
   readonly notice: string | null;
 }
 
+export interface MonthlyPaymentView {
+  readonly id: string;
+  /** The month the fee refers to, "YYYY-MM". */
+  readonly month: string;
+  readonly paidOn: string;
+  readonly amountCents: number;
+  readonly method: PaymentMethod;
+}
+
+/** A monthly student's fee; what is pending is calculated, never stored. */
+export interface MonthlyView {
+  readonly studentId: string;
+  readonly amountCents: number;
+  /** Day of the month the fee is due, 1 to 31. */
+  readonly dueDay: number;
+  /** Last month paid ("YYYY-MM"): the starting balance or the latest registered payment; null when none. */
+  readonly lastPaidMonth: string | null;
+  /** Months past their due day without payment, oldest first. */
+  readonly pendingMonths: readonly string[];
+  /** Newest first. */
+  readonly payments: readonly MonthlyPaymentView[];
+}
+
+export interface MonthlyFeeInput {
+  readonly amountCents: number;
+  readonly dueDay: number;
+}
+
+export interface MonthlyPaymentInput {
+  readonly month: string;
+  readonly paidOn: string;
+  readonly amountCents: number;
+  readonly method: PaymentMethod;
+}
+
 export interface UrgencyItem {
   readonly studentId: string;
   readonly name: string;
   readonly billing: Billing;
+  /** Months of a monthly student's fee past due and unpaid; empty for everyone else. */
+  readonly pendingMonths: readonly string[];
   /** The package shown is one the student only takes part in (pair package). */
   readonly asParticipant: boolean;
   readonly package: PackageSummary | null;
@@ -266,6 +303,8 @@ export interface Queries {
   renewalPreview: { input: { holderId: string }; output: RenewalPreview };
   /** Lessons of the student recorded "sem pacote", oldest first. */
   lessonsWithoutPackage: { input: { studentId: string }; output: ClassWithoutPackage[] };
+  /** A monthly student's fee and payments; `not_found` for a student without a monthly fee. */
+  monthly: { input: { studentId: string }; output: MonthlyView };
 }
 
 /** Writes: `POST /api/command/<name>`. Each runs alone, in one transaction. */
@@ -302,13 +341,23 @@ export interface Commands {
   /** Links a "sem pacote" lesson to a package of one of its students. */
   'class.linkToPackage': { input: { classId: string; packageId: string }; output: null };
   'class.delete': { input: { classId: string }; output: null };
+  /**
+   * Starting balance of an old monthly student (1a): makes the student monthly with the fee, the
+   * due day and the last month paid. Failure `conflict` when the student already has packages.
+   */
+  'monthly.setup': { input: MonthlyFeeInput & { studentId: string; lastPaidMonth: string | null }; output: MonthlyView };
+  /** Changes the fee or the due day of a monthly student. */
+  'monthly.setFee': { input: MonthlyFeeInput & { studentId: string }; output: MonthlyView };
+  /** Failure `conflict` when that month already has a payment. */
+  'monthly.registerPayment': { input: MonthlyPaymentInput & { studentId: string }; output: MonthlyPaymentView };
+  'monthly.deletePayment': { input: { id: string }; output: null };
 }
 
 export type QueryName = keyof Queries;
 export type CommandName = keyof Commands;
 
 /** What a live message says changed; the screens that show it refetch. */
-export type Topic = 'me' | 'members' | 'invites' | 'students' | 'plans' | 'packages' | 'payments' | 'classes';
+export type Topic = 'me' | 'members' | 'invites' | 'students' | 'plans' | 'packages' | 'payments' | 'classes' | 'monthly';
 
 export interface LiveMessage {
   readonly type: 'changed';
