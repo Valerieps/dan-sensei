@@ -32,6 +32,29 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
       revoked_at TEXT
     )`,
   ],
+  // 2: students and their addresses (docs/spec/alunos.md).
+  [
+    `CREATE TABLE students (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      birth_date TEXT,
+      height_cm INTEGER,
+      emergency_contact TEXT NOT NULL DEFAULT '',
+      status TEXT NOT NULL DEFAULT 'active',
+      billing TEXT NOT NULL DEFAULT 'package',
+      notes TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE student_addresses (
+      id TEXT PRIMARY KEY,
+      student_id TEXT NOT NULL REFERENCES students(id),
+      label TEXT NOT NULL DEFAULT '',
+      address TEXT NOT NULL,
+      is_default INTEGER NOT NULL DEFAULT 0
+    )`,
+    `CREATE INDEX student_addresses_student ON student_addresses(student_id)`,
+  ],
 ];
 
 export function migrate(sql: Sql): void {

@@ -12,16 +12,15 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Cadastro do aluno e notas | 1a | `spec/alunos.md` | Substitui a tela de exemplo `Home` |
 | Planos e pacotes, com aula dada e falta registradas à mão | 1a | `spec/pacotes-e-pagamentos.md` | |
 | Saldo, renovação com transferência e pausas (inclusive "pausar todos") | 1a | `spec/pacotes-e-pagamentos.md` | |
 | Pagamentos | 1a | `spec/pacotes-e-pagamentos.md` | |
 | Pacote da dupla (titular e participante) | 1a | `spec/pacotes-e-pagamentos.md` | |
 | Mensalistas e mensalidades | 1a | `spec/mensalistas.md` | |
 | Saldo inicial | 1a | `spec/pacotes-e-pagamentos.md` | Necessário no primeiro dia de uso |
-| Tela Alunos e pacotes (cartões) e perfil do aluno | 1a | `spec/telas-de-gestao.md` | |
+| Tela Alunos e pacotes (cartões) e abas do perfil | 1a | `spec/telas-de-gestao.md` | A lista de alunos e o perfil (abas Cadastro e Notas) existem; faltam os cartões com barra de progresso, os números do mês e a aba Pacotes e pagamentos |
 | Extrato e renovação pelo WhatsApp | 1a | `spec/whatsapp.md` | ADR-008 |
-| Layout do celular e botão + | 1a | `spec/telas-de-gestao.md` | |
+| Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, só com Nota sobre aluno e Novo aluno; entram Registrar pagamento, Nova aula e Registrar mensalidade |
 | Exportação completa dos dados | 1a | `spec/termo-e-lgpd.md` | |
 | Horários fixos, aulas agendadas e grade do dia | 1b | `spec/agenda.md` | |
 | Remarcação e regras de cancelamento | 1b | `spec/agenda.md` | |
@@ -41,8 +40,6 @@ O que ainda não está pronto.
 
 ## O código ainda não segue o spec
 
-- O app ainda é o template: só login, convites e membros. A tela `Home` e `src/domain/greeting.ts`
-  são de exemplo e saem quando a primeira tela de verdade (Alunos e pacotes) existir.
 - `tokens.css` ainda tem a paleta do template, não o tema escuro com esmeralda do spec.
 
 ## Adiado
@@ -72,3 +69,5 @@ O que ainda não está pronto.
 - [ ] Sem termo assinado, o app não guarda anamnese nem alertas de saúde (`spec/termo-e-lgpd.md`).
 - [ ] A cor da aula na agenda mostra a situação, não o aluno (`spec/agenda.md`).
 - [ ] Nenhuma mensagem de WhatsApp leva dado de saúde (`spec/whatsapp.md`).
+- [ ] Limites do cadastro do aluno: telefone com 10 a 13 números, altura de 50 a 250 cm, até 5
+  endereços, notas de até 5.000 letras (`spec/alunos.md`).
