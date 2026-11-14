@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { ApiError, MeView, MemberListItem } from '../../application/api-contract';
+import { NAME_MAX_LENGTH, normalizeName } from '../../domain/group/profile';
 import { canManageGroup, isAdmin } from '../../domain/group/roles';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
+import { Field } from '../components/Field';
 import { Notice } from '../components/Notice';
 import { useQuery } from '../use-query';
 
@@ -11,6 +13,45 @@ function errorText(error: ApiError): string {
   if (error === 'last_admin') return strings.members.lastAdmin;
   if (error === 'forbidden') return strings.forbidden;
   return strings.genericError;
+}
+
+/** The member's own name: it starts as the Google account's and can be changed. */
+function MyName({ me }: { me: MeView }) {
+  const { backend } = useServices();
+  const [name, setName] = useState(me.name);
+  const [status, setStatus] = useState<'idle' | 'saving' | 'saved' | 'invalid' | 'failed'>('idle');
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    if (normalizeName(name) === null) {
+      setStatus('invalid');
+      return;
+    }
+    setStatus('saving');
+    const result = await backend.command('member.rename', { name });
+    setStatus(result.ok ? 'saved' : 'failed');
+  }
+
+  return (
+    <form className="row end" onSubmit={submit} noValidate>
+      <Field
+        className="grow"
+        label={strings.members.myName}
+        value={name}
+        maxLength={NAME_MAX_LENGTH}
+        error={status === 'invalid' ? strings.members.nameInvalid : null}
+        onChange={(e) => {
+          setName(e.target.value);
+          setStatus('idle');
+        }}
+      />
+      <Button type="submit" variant="secondary" disabled={status === 'saving'}>
+        {strings.members.saveName}
+      </Button>
+      {status === 'saved' && <p className="small strong">{strings.members.nameSaved}</p>}
+      {status === 'failed' && <Notice tone="error">{strings.genericError}</Notice>}
+    </form>
+  );
 }
 
 export function Members({ me }: { me: MeView }) {
@@ -38,6 +79,7 @@ export function Members({ me }: { me: MeView }) {
   return (
     <section>
       <h1>{strings.members.title}</h1>
+      <MyName me={me} />
       {members.error && !members.data && <Notice tone="error">{strings.genericError}</Notice>}
       {error && <Notice tone="error">{error}</Notice>}
       {members.data?.length === 1 && <p className="muted">{strings.members.empty}</p>}
