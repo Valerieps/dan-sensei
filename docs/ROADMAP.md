@@ -12,7 +12,6 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Telas da agenda: grade do dia, semana, remarcar, cancelar, confirmar e previsão | 1b | `spec/agenda.md` | O servidor (comandos e consultas) está pronto; faltam as telas |
 | Início com a linha do tempo do dia | 1b | `spec/telas-de-gestao.md` | A consulta `agendaHome` está pronta |
 | Confirmação de aulas e lembrete de mensalidade | 1b | `spec/agenda.md`, `spec/mensalistas.md` | |
 | Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | |
@@ -63,6 +62,12 @@ O que ainda não está pronto.
 - [ ] O aluno não tem foto, só iniciais (`spec/alunos.md`).
 - [ ] Sem termo assinado, o app não guarda anamnese nem alertas de saúde (`spec/termo-e-lgpd.md`).
 - [ ] A cor da aula na agenda mostra a situação, não o aluno (`spec/agenda.md`).
+- [ ] Agenda (telas): a grade do dia vai das 6h às 22h e cresce se há aula fora disso; arrasto pela
+  alça da aula (a aula em si rola a página), em passos de 15 min, e soltar abre a confirmação de
+  "remarcar" com "só esta" ou "esta e as seguintes"; a alternativa sem arrastar é tocar na aula,
+  escolher dia e hora e remarcar (3 toques) ou as setas do teclado na alça; aula cancelada ou
+  remarcada não conta como ocupada nos intervalos; a previsão aparece no cartão do aluno em
+  "Alunos e pacotes" (`spec/agenda.md`).
 - [ ] WhatsApp: o extrato e a renovação saem numa só mensagem (a renovação é um parágrafo no fim);
   o valor do parágrafo é o total do pacote atual; o plano Avulso nunca recebe o parágrafo; a data
   aparece como dia/mês; o extrato fica "para enviar" até eu abrir a mensagem depois da última aula

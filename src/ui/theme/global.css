@@ -499,3 +499,180 @@ textarea {
   padding: var(--space-2) 0;
   border-bottom: var(--border-width) solid var(--color-border);
 }
+
+/* Agenda: the day grid, the lessons colored by situation, the sheet (docs/spec/agenda.md) */
+
+.agenda-nav .agenda-label {
+  margin: 0;
+  text-align: center;
+}
+
+.day-grid {
+  position: relative;
+  margin-bottom: var(--space-4);
+}
+
+.hour-row {
+  display: flex;
+  align-items: flex-start;
+  height: var(--size-hour);
+  border-top: var(--border-width) solid var(--color-border);
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.hour-label {
+  width: var(--size-hour-label);
+  font-size: var(--font-size-small);
+}
+
+.day-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: var(--size-hour-label);
+  pointer-events: none;
+}
+
+.gap-label {
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: var(--border-width) dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.class-block {
+  position: absolute;
+  right: 0;
+  left: 0;
+  display: flex;
+  min-height: var(--size-touch);
+  overflow: hidden;
+  border: var(--border-width) solid var(--color-border);
+  border-left: var(--size-class-bar) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  pointer-events: auto;
+}
+
+.class-block.dragging {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 var(--border-width-strong) var(--color-brand);
+}
+
+.class-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.class-main > span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.class-handle {
+  flex-shrink: 0;
+  width: var(--size-handle);
+  border: 0;
+  border-left: var(--border-width) solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--font-size-title);
+  cursor: grab;
+  /* A finger dragging the handle moves the lesson; it does not scroll the page. */
+  touch-action: none;
+  user-select: none;
+}
+
+.class-block.scheduled,
+.week-class.scheduled {
+  border-left-color: var(--color-class-scheduled);
+}
+
+.class-block.given,
+.week-class.given {
+  border-left-color: var(--color-class-given);
+}
+
+.class-block.missed,
+.week-class.missed {
+  border-left-color: var(--color-class-missed);
+  border-left-style: double;
+}
+
+.class-block.cancelled,
+.week-class.cancelled {
+  color: var(--color-text-muted);
+  border-left-style: dashed;
+}
+
+.week-day h3 {
+  margin-top: 0;
+}
+
+.week-day.today {
+  border-color: var(--color-brand);
+}
+
+.week-class {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  min-height: var(--size-touch);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-left: var(--size-class-bar) solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--color-scrim);
+}
+
+.sheet {
+  width: 100%;
+  max-width: var(--size-content);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--space-4);
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--color-bg);
+}
+
+.forecast {
+  margin: var(--space-2) 0 0;
+}
