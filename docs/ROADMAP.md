@@ -12,13 +12,10 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Planos e pacotes, com aula dada e falta registradas à mão | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas |
-| Saldo, renovação com transferência e pausas (inclusive "pausar todos") | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas |
-| Pagamentos | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas |
-| Pacote da dupla (titular e participante) | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas |
+| Tela de planos (editar valores e criar planos) | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; falta a tela. Pacotes e aulas à mão já têm tela |
+| Pausas de pacote e "pausar todos" | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas. O saldo e a renovação com transferência já têm tela |
+| Registrar, editar e apagar pagamentos depois da venda | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto. O pagamento informado ao criar o pacote já funciona; falta a tela do pagamento avulso |
 | Mensalistas e mensalidades | 1a | `spec/mensalistas.md` | |
-| Saldo inicial | 1a | `spec/pacotes-e-pagamentos.md` | Necessário no primeiro dia de uso. Servidor pronto; falta a tela |
-| Tela Alunos e pacotes (cartões) e abas do perfil | 1a | `spec/telas-de-gestao.md` | A lista de alunos e o perfil (abas Cadastro e Notas) existem; faltam os cartões com barra de progresso, os números do mês e a aba Pacotes e pagamentos |
 | Extrato e renovação pelo WhatsApp | 1a | `spec/whatsapp.md` | ADR-008 |
 | Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, só com Nota sobre aluno e Novo aluno; entram Registrar pagamento, Nova aula e Registrar mensalidade |
 | Exportação completa dos dados | 1a | `spec/termo-e-lgpd.md` | |
@@ -75,3 +72,4 @@ O que ainda não está pronto.
 - [ ] Nenhuma mensagem de WhatsApp leva dado de saúde (`spec/whatsapp.md`).
 - [ ] Limites do cadastro do aluno: telefone com 10 a 13 números, altura de 50 a 250 cm, até 5
   endereços, notas de até 5.000 letras (`spec/alunos.md`).
+- [ ] Alunos e pacotes: o cartão mostra "Aula X de Y" com X igual às aulas usadas; a opção "esconder valores" esconde só o recebido do mês e fica guardada no aparelho; mensalistas aparecem sem barra; inativos ficam atrás de "Mostrar inativos" (`spec/telas-de-gestao.md`).

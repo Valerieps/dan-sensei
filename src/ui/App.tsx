@@ -9,6 +9,9 @@ import { Link, navigate, usePath } from './router';
 import { Invites } from './screens/Invites';
 import { Members } from './screens/Members';
 import { SignIn } from './screens/SignIn';
+import { Overview } from './screens/Overview';
+import { PackageForm } from './screens/PackageForm';
+import { RegisterLesson } from './screens/RegisterLesson';
 import { StudentList } from './screens/StudentList';
 import { NewStudent, StudentProfile } from './screens/StudentProfile';
 import { useQuery } from './use-query';
@@ -57,7 +60,7 @@ export function App() {
 function Navigation({ me, onSignOut }: { me: MeView; onSignOut: () => void }) {
   const path = usePath();
   const entries = [
-    { path: '/', label: strings.nav.students, current: path === '/' || path.startsWith('/alunos') || path === '/nota-aluno' },
+    { path: '/', label: strings.nav.students, current: path === '/' || path.startsWith('/alunos') || path.startsWith('/aulas') || path === '/nota-aluno' },
     { path: '/membros', label: strings.nav.members, current: path === '/membros' },
     ...(canManageGroup(me) ? [{ path: '/convites', label: strings.nav.invites, current: path === '/convites' }] : []),
   ];
@@ -114,9 +117,16 @@ function Screen({ me }: { me: MeView }) {
   const path = usePath();
   if (path === '/membros') return <Members me={me} />;
   if (path === '/convites' && canManageGroup(me)) return <Invites />;
-  if (path === '/nota-aluno') return <StudentList pickForNote />;
+  if (path === '/nota-aluno') return <StudentList />;
   if (path === '/alunos/novo') return <NewStudent />;
-  const profile = /^\/alunos\/([^/]+)(\/notas)?\/?$/.exec(path);
-  if (profile) return <StudentProfile key={profile[1]} id={profile[1]} tab={profile[2] ? 'notes' : 'registration'} />;
-  return <StudentList />;
+  const lesson = /^\/aulas\/registrar(?:\/([^/]+))?\/?$/.exec(path);
+  if (lesson) return <RegisterLesson key={lesson[1] ?? ''} studentId={lesson[1]} />;
+  const packageForm = /^\/alunos\/([^/]+)\/pacotes\/(novo|saldo-inicial)\/?$/.exec(path);
+  if (packageForm) return <PackageForm key={path} studentId={packageForm[1]} startingBalance={packageForm[2] === 'saldo-inicial'} />;
+  const profile = /^\/alunos\/([^/]+)(\/notas|\/pacotes)?\/?$/.exec(path);
+  if (profile) {
+    const tab = profile[2] === '/notas' ? 'notes' : profile[2] === '/pacotes' ? 'packages' : 'registration';
+    return <StudentProfile key={profile[1]} id={profile[1]} tab={tab} />;
+  }
+  return <Overview />;
 }

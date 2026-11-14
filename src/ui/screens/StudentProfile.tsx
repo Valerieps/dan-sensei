@@ -7,13 +7,15 @@ import { Button } from '../components/Button';
 import { Notice } from '../components/Notice';
 import { Link, navigate } from '../router';
 import { useQuery } from '../use-query';
+import { PackagesTab } from './PackagesTab';
 import { StudentForm } from './StudentForm';
 
-/** Tabs of the profile. The next sessions add Pacotes e pagamentos (and later Treinos, Histórico) here. */
-export type ProfileTab = 'registration' | 'notes';
+/** Tabs of the profile. Later sessions add Treinos and Histórico here. */
+export type ProfileTab = 'registration' | 'packages' | 'notes';
 
 const TABS: { tab: ProfileTab; label: string; path: (id: string) => string }[] = [
   { tab: 'registration', label: strings.students.tabs.registration, path: (id) => `/alunos/${id}` },
+  { tab: 'packages', label: strings.students.tabs.packages, path: (id) => `/alunos/${id}/pacotes` },
   { tab: 'notes', label: strings.students.tabs.notes, path: (id) => `/alunos/${id}/notas` },
 ];
 
@@ -60,7 +62,9 @@ export function StudentProfile({ id, tab }: { id: string; tab: ProfileTab }) {
           </Link>
         ))}
       </nav>
-      {tab === 'registration' ? <Registration student={data} /> : <Notes student={data} />}
+      {tab === 'registration' && <Registration student={data} />}
+      {tab === 'packages' && <PackagesTab student={data} />}
+      {tab === 'notes' && <Notes student={data} />}
     </section>
   );
 }

@@ -1,0 +1,201 @@
+import { useState } from 'react';
+import type { ClassWithoutPackage, PackageSummary, StudentView } from '../../application/api-contract';
+import { formatarData, formatarReais } from '../../domain/pacotes';
+import { strings } from '../../domain/strings';
+import { useServices } from '../backend-context';
+import { Button } from '../components/Button';
+import { EmptyState } from '../components/EmptyState';
+import { Notice } from '../components/Notice';
+import { PackageProgress } from '../components/PackageProgress';
+import { Link } from '../router';
+import { useQuery } from '../use-query';
+
+const TOPICS = ['packages', 'payments', 'classes'] as const;
+
+/** The profile's Pacotes tab: the current package with its statement, then the earlier ones. */
+export function PackagesTab({ student }: { student: StudentView }) {
+  const t = strings.packages.tab;
+  const packages = useQuery('studentPackages', { studentId: student.id }, TOPICS);
+  const orphans = useQuery('lessonsWithoutPackage', { studentId: student.id }, TOPICS);
+
+  if (student.billing === 'monthly') return <EmptyState>{t.monthly}</EmptyState>;
+  if (!packages.data) return packages.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+
+  const live = packages.data.filter((p) => p.status !== 'encerrado');
+  const closed = packages.data.filter((p) => p.status === 'encerrado');
+  const holds = live.some((p) => p.holderId === student.id);
+  const linkable = live.find((p) => p.status === 'ativo' || p.status === 'aguardando-inicio');
+
+  return (
+    <div className="stack">
+      <div className="row">
+        <Link className="button" to={`/alunos/${student.id}/pacotes/novo`}>
+          {holds ? t.renew : t.newPackage}
+        </Link>
+        {packages.data.length === 0 && (
+          <Link className="button secondary" to={`/alunos/${student.id}/pacotes/saldo-inicial`}>
+            {t.initialBalance}
+          </Link>
+        )}
+        <Link className="button secondary" to={`/aulas/registrar/${student.id}`}>
+          {t.registerLesson}
+        </Link>
+      </div>
+
+      {packages.data.length === 0 && <EmptyState>{t.empty}</EmptyState>}
+
+      {live.length > 0 && <h2>{t.current}</h2>}
+      {live.map((pkg) => (
+        <div key={pkg.id} className="card stack">
+          <PackageHeader pkg={pkg} />
+          <PackageProgress pkg={pkg} urgent={pkg.status === 'vencido' || pkg.status === 'esgotado' || pkg.paymentStatus === 'pending'} />
+          <Statement id={pkg.id} />
+        </div>
+      ))}
+
+      {orphans.data && orphans.data.length > 0 && (
+        <>
+          <h2>{t.orphans}</h2>
+          <p className="muted">{t.orphansHint}</p>
+          <OrphanLessons lessons={orphans.data} target={linkable} />
+        </>
+      )}
+
+      {closed.length > 0 && <h2>{t.previous}</h2>}
+      {closed.map((pkg) => (
+        <ClosedPackage key={pkg.id} pkg={pkg} />
+      ))}
+    </div>
+  );
+}
+
+function PackageHeader({ pkg }: { pkg: PackageSummary }) {
+  const t = strings.packages.tab;
+  return (
+    <div>
+      <div className="row spread">
+        <h3>{pkg.planName}</h3>
+        <span className="strong">{strings.packages.status[pkg.status]}</span>
+      </div>
+      <p className="muted small">
+        {pkg.participantName ? t.participant(pkg.participantName) : t.holder(pkg.holderName)} · {formatarReais(pkg.totalCents)}
+      </p>
+    </div>
+  );
+}
+
+function ClosedPackage({ pkg }: { pkg: PackageSummary }) {
+  const [open, setOpen] = useState(false);
+  const t = strings.packages.tab;
+  return (
+    <div className="card stack">
+      <PackageHeader pkg={pkg} />
+      <p className="small">{pkg.origin}</p>
+      {pkg.closedNote && <p className="muted small">{pkg.closedNote}</p>}
+      <div className="row">
+        <Button variant="secondary" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {open ? t.hideStatement : t.showStatement}
+        </Button>
+      </div>
+      {open && <Statement id={pkg.id} />}
+    </div>
+  );
+}
+
+/** Lessons, payments and pauses of one package. */
+function Statement({ id }: { id: string }) {
+  const { backend } = useServices();
+  const t = strings.packages.tab;
+  const statement = useQuery('package', { id }, TOPICS);
+  const [failed, setFailed] = useState(false);
+
+  if (!statement.data) return statement.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  const { summary, lessons, payments, pauses } = statement.data;
+
+  async function remove(classId: string, date: string) {
+    if (!window.confirm(t.deleteLessonConfirm(formatarData(date)))) return;
+    const result = await backend.command('class.delete', { classId });
+    setFailed(!result.ok);
+  }
+
+  return (
+    <div className="stack">
+      {failed && <Notice tone="error">{strings.genericError}</Notice>}
+      {summary.transferredIn > 0 && <p className="small">{t.transferredFrom(summary.transferredIn)}</p>}
+      {summary.usedBeforeApp > 0 && <p className="small">{t.usedBeforeApp(summary.usedBeforeApp)}</p>}
+
+      <h4>{t.lessons}</h4>
+      {lessons.length === 0 && <p className="muted small">{t.noLessons}</p>}
+      <ul className="list">
+        {lessons.map((lesson) => (
+          <li key={lesson.classId} className="statement-line">
+            <span className="grow">
+              {formatarData(lesson.date)} · {t.outcome[lesson.outcome]}
+              {lesson.studentNames.length > 0 && <span className="muted small"> · {lesson.studentNames.join(', ')}</span>}
+            </span>
+            {summary.status !== 'encerrado' && (
+              <Button variant="secondary-danger" aria-label={t.deleteLessonOf(formatarData(lesson.date))} onClick={() => void remove(lesson.classId, lesson.date)}>
+                {t.deleteLesson}
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      <h4>{t.payments}</h4>
+      {payments.length === 0 && <p className="muted small">{t.noPayments}</p>}
+      <ul className="list">
+        {payments.map((payment) => (
+          <li key={payment.id} className="statement-line">
+            {formatarData(payment.paidOn)} · {formatarReais(payment.amountCents)} · {t.method[payment.method]}
+          </li>
+        ))}
+      </ul>
+
+      {pauses.length > 0 && <h4>{t.pauses}</h4>}
+      <ul className="list">
+        {pauses.map((pause) => (
+          <li key={pause.id} className="statement-line">
+            {formatarData(pause.startsOn)} a {formatarData(pause.endsOn)}
+            {pause.general && <span className="muted small"> · {t.general}</span>}
+            {pause.reason && <span className="muted small"> · {pause.reason}</span>}
+          </li>
+        ))}
+      </ul>
+      {summary.originalDueOn && summary.dueOn && summary.originalDueOn !== summary.dueOn && (
+        <p className="muted small">{t.originalDue(formatarData(summary.originalDueOn))}</p>
+      )}
+    </div>
+  );
+}
+
+function OrphanLessons({ lessons, target }: { lessons: ClassWithoutPackage[]; target: PackageSummary | undefined }) {
+  const { backend } = useServices();
+  const [failed, setFailed] = useState(false);
+  const t = strings.packages.tab;
+
+  async function link(classId: string, packageId: string) {
+    const result = await backend.command('class.linkToPackage', { classId, packageId });
+    setFailed(!result.ok);
+  }
+
+  return (
+    <>
+      {failed && <Notice tone="error">{strings.genericError}</Notice>}
+      <ul className="list">
+        {lessons.map((lesson) => (
+          <li key={lesson.classId} className="statement-line">
+            <span className="grow">
+              {formatarData(lesson.date)} · {t.outcome[lesson.outcome]}
+            </span>
+            {target && (
+              <Button variant="secondary" onClick={() => void link(lesson.classId, target.id)}>
+                {t.link}
+              </Button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}

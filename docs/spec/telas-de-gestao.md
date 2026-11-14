@@ -7,11 +7,6 @@ no iPad e no celular.
 - **Não entra aqui:** a agenda (`agenda.md`), o Modo Ao Vivo (`aula-ao-vivo.md`) e as regras de
   pacote (`pacotes-e-pagamentos.md`).
 
-## Em aberto
-
-- [ ] Quer a opção "esconder valores", que troca os R$ do topo da tela Alunos e pacotes por •••
-  até um toque, para quando o iPad está à vista do aluno? Proposta: sim. *(1a)*
-
 ## Aparência
 
 - iPad na horizontal, com menu lateral e a logomarca. Tema escuro como padrão. *(1a)*
@@ -37,6 +32,7 @@ Ao abrir, o app mostra o dia de hoje, pronto para começar a próxima aula.
 
 ## Alunos e pacotes
 
+- No topo há o botão "Esconder valores", que troca o valor recebido por ••• até um toque, para quando o iPad está à vista do aluno. A escolha fica guardada no aparelho. *(1a)*
 - A tela mostra todo aluno ativo em cartões com barra de progresso do pacote: nome, "Aula X de Y",
   validade, pagamento e próxima aula. Os mensalistas também, sem barra. *(1a)*
 - A próxima aula aparece no cartão a partir da fase 1b. *(1b)*
