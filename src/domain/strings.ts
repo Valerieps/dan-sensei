@@ -405,5 +405,9 @@ export const strings = {
     removeOf: (name: string) => `Remover ${name} do grupo`,
     removeConfirm: (name: string) => `Remover ${name} do grupo? O acesso acaba na hora. Para voltar, é só convidar de novo.`,
     empty: 'Só você por aqui. Convide alguém!',
+    myName: 'Meu nome',
+    saveName: 'Salvar nome',
+    nameSaved: 'Nome salvo.',
+    nameInvalid: 'O nome precisa ter de 1 a 40 letras.',
   },
 } as const;
