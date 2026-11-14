@@ -430,3 +430,72 @@ input[aria-invalid='true'] {
 textarea {
   resize: vertical;
 }
+
+/* Packages */
+
+.row.tight,
+.stack.tight {
+  gap: var(--space-1);
+  margin-bottom: 0;
+}
+
+.row.spread {
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+
+.progress {
+  height: var(--size-progress);
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--color-brand);
+}
+
+.progress-fill.urgent {
+  background: var(--color-danger);
+}
+
+.package-card {
+  display: block;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.package-card.urgent {
+  border-color: var(--color-danger);
+}
+
+.urgent-label {
+  color: var(--color-danger);
+  font-weight: var(--font-weight-strong);
+}
+
+.month-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.month-numbers .number {
+  display: block;
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-strong);
+}
+
+.empty-state {
+  padding: var(--space-4) 0;
+}
+
+.statement-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+}

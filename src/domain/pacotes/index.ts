@@ -1,5 +1,6 @@
 // Pure package rules, shared by the server and the screens. No database, network or React.
 export * from './datas';
+export * from './formatacao';
 export * from './desconto';
 export * from './mensalidade';
 export * from './pagamento';
