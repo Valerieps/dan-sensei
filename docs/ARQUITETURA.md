@@ -57,10 +57,40 @@ app (celular) ──POST /api/query|command──► Worker ──RPC──► G
 | `sessions` | `token_hash`, `member_id`, `expires_at` | Só o SHA-256 do token; o cron apaga as vencidas |
 | `invites` | `email`, `invited_by`, `state` (`pending`, `accepted`, `revoked`) | Um por e-mail |
 
+Tabelas planejadas (só o desenho; cada migração vem com a sua feature):
+
+| Tabela | Campos principais | Fase | Observação |
+| --- | --- | --- | --- |
+| `students` | `id`, `name`, `phone`, `birth_date`, `height_cm`, `emergency_contact`, `status`, `billing` (`package`, `monthly`), `notes` | 1a | Aluno; não é membro e nunca faz login |
+| `student_addresses` | `id`, `student_id`, `label`, `address`, `is_default` | 1a | |
+| `plans` | `id`, `name`, `classes`, `price_cents`, `validity_days`, `active` | 1a | Os quatro de fábrica entram na migração |
+| `packages` | `id`, `holder_id`, `participant_id`, `plan_id`, cópia de `classes`/`price_cents`/`validity_days`, `transferred_in`, `used_before_app`, `first_class_on`, `closed_at`, `closed_note` | 1a | Saldo e vencimento nunca são gravados: calculados de `classes` e das aulas |
+| `package_pauses` | `id`, `package_id`, `starts_on`, `ends_on`, `reason`, `global_pause_id` | 1a | Pausa geral (`global_pause_id`) não conta nos 30 dias |
+| `global_pauses` | `id`, `starts_on`, `ends_on` | 1a | "Pausar todos os pacotes" |
+| `payments` | `id`, `package_id`, `paid_on`, `amount_cents`, `method` (`pix`, `cash`, `card`) | 1a | |
+| `monthly_fees` | `id`, `student_id`, `amount_cents`, `due_day` | 1a | Um por mensalista |
+| `monthly_payments` | `id`, `student_id`, `month`, `paid_on`, `amount_cents`, `method` | 1a | |
+| `classes` | `id`, `starts_at`, `duration_min`, `address`, `status`, `rescheduled_from`, `recurrence_id`, `confirmed_at`, `finished_at` | 1a | Na 1a só aulas registradas à mão; a agenda gera as demais na 1b |
+| `class_students` | `class_id`, `student_id`, `package_id`, `charge` (`consumes`, `waived`), `pse` | 1a | Liga cada aluno da aula ao pacote que ela consome (ou nenhum) |
+| `recurrences` | `id`, `student_ids`, `weekday`, `time`, `starts_on`, `ends_on` | 1b | Horário fixo |
+| `message_log` | `id`, `student_id`, `kind`, `opened_at` | 1a | Mensagem aberta no WhatsApp (ADR-008) |
+| `exercises` | `id`, `name`, `aliases`, `primary_groups`, `secondary_groups`, `tags`, `measure`, `load_step`, `equipment`, `media_url` | 1c | |
+| `programs`, `workouts`, `prescribed_exercises` | programa → treinos → exercícios prescritos com ordem, séries, faixa, carga, descanso, método, grupo de bi-set | 1c | Editar não muda aulas passadas |
+| `performed_sets` | `id`, `class_id`, `student_id`, `exercise_id`, `order`, `reps`, `load_g`, `seconds`, `meters`, `client_command_id` | 1c | `client_command_id` torna o reenvio offline idempotente (ADR-009) |
+| `health_alerts`, `parq_answers`, `consents` | alerta e observação; respostas e data; termo assinado (imagem da assinatura) e data | 1c | Dados sensíveis (`docs/SEGURANCA.md`) |
+
+**Datas e fuso:** todas as datas de negócio (validade, vencimento da mensalidade, "amanhã", semana
+de segunda a domingo) são calculadas no fuso `America/Sao_Paulo`. Instantes (`starts_at`,
+`paid_on` com hora) ficam em UTC no banco.
+
+**Dinheiro:** sempre em centavos inteiros (`*_cents`), nunca em número de ponto flutuante.
+
 ## Fluxo de eventos
 
-<Se o app tem histórico de eventos (um feed, transições de estado): quais tipos existem, quem grava,
-quem lê. Todo evento é gravado na mesma transação do comando que o causa.>
+O app não tem um histórico de eventos próprio: a situação de cada aula (`classes.status` e
+`class_students.charge`) e os pagamentos já são o histórico do pacote. A aula sem internet da fase
+1c envia uma fila de comandos ao voltar a conexão (ADR-009); cada comando é gravado na mesma
+transação que aplica o seu efeito.
 
 ## Migrações
 
