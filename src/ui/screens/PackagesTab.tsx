@@ -6,6 +6,7 @@ import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
 import { Button, ButtonLink } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { PackageProgress } from '../components/PackageProgress';
 import { Link } from '../router';
@@ -21,7 +22,7 @@ export function PackagesTab({ student }: { student: StudentView }) {
   const orphans = useQuery('lessonsWithoutPackage', { studentId: student.id }, TOPICS);
 
   if (student.billing === 'monthly') return <EmptyState>{t.monthly}</EmptyState>;
-  if (!packages.data) return packages.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!packages.data) return packages.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
 
   const live = packages.data.filter((p) => p.status !== 'encerrado');
   const closed = packages.data.filter((p) => p.status === 'encerrado');
@@ -168,7 +169,7 @@ function Statement({ id }: { id: string }) {
   const [failed, setFailed] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
-  if (!statement.data) return statement.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!statement.data) return statement.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
   const { summary, lessons, payments, pauses } = statement.data;
 
   async function remove(classId: string, date: string) {

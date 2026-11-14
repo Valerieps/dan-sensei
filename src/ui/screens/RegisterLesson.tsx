@@ -6,6 +6,7 @@ import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { SelectField } from '../components/SelectField';
 import { Link } from '../router';
@@ -40,7 +41,7 @@ export function RegisterLesson({ studentId = '' }: { studentId?: string }) {
   const [busy, setBusy] = useState(false);
   const firstPackages = useQuery('studentPackages', { studentId: first }, ['packages', 'payments', 'classes']);
 
-  if (!students.data) return students.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!students.data) return students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
   const eligible = students.data.filter((s) => s.billing === 'package');
   if (eligible.length === 0) {
     return (

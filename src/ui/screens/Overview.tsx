@@ -5,6 +5,7 @@ import { formatarData, formatarReais } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { PackageProgress } from '../components/PackageProgress';
 import { Link } from '../router';
@@ -68,7 +69,7 @@ export function Overview() {
         </Link>
       </div>
 
-      {overview.error && !data && <Notice tone="error">{strings.genericError}</Notice>}
+      {!data && (overview.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />)}
 
       {data && (
         <div className="card">

@@ -4,6 +4,7 @@ import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
 import { Field } from '../components/Field';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { Link, navigate } from '../router';
 import { useQuery } from '../use-query';
@@ -21,7 +22,7 @@ export function PausePackage({ packageId }: { packageId: string }) {
   const [busy, setBusy] = useState(false);
 
   if (statement.error === 'not_found') return <Notice tone="error">{strings.genericError}</Notice>;
-  if (!statement.data) return statement.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!statement.data) return statement.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
 
   const { summary, pauses } = statement.data;
   const back = `/alunos/${summary.holderId}/pacotes`;

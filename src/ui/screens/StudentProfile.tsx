@@ -4,6 +4,7 @@ import { initials, NOTES_MAX_LENGTH } from '../../domain/alunos/student';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { Link, navigate } from '../router';
 import { useQuery } from '../use-query';
@@ -41,7 +42,7 @@ export function StudentProfile({ id, tab }: { id: string; tab: ProfileTab }) {
       </section>
     );
   }
-  if (!student.data) return student.error ? <Notice tone="error">{strings.genericError}</Notice> : null;
+  if (!student.data) return student.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
 
   const data = student.data;
   return (
@@ -55,6 +56,7 @@ export function StudentProfile({ id, tab }: { id: string; tab: ProfileTab }) {
           <span className="muted small">
             {strings.students.billing[data.billing]} · {strings.students.status[data.status]}
           </span>
+          <HeaderPackage student={data} />
         </div>
       </header>
       <nav className="row tabs" aria-label={strings.students.tabs.label}>
@@ -69,6 +71,19 @@ export function StudentProfile({ id, tab }: { id: string; tab: ProfileTab }) {
       {tab === 'monthly' && <MonthlyTab student={data} />}
       {tab === 'notes' && <Notes student={data} />}
     </section>
+  );
+}
+
+/** The header's package line: the plan, the lessons used and the status. */
+function HeaderPackage({ student }: { student: StudentView }) {
+  const packages = useQuery('studentPackages', { studentId: student.id }, ['packages', 'classes']);
+  if (student.billing === 'monthly') return null;
+  const current = packages.data?.find((p) => p.status !== 'encerrado');
+  if (!current) return null;
+  return (
+    <p className="small strong">
+      {current.planName} · {strings.packages.card.lessonOf(current.used, current.total)} · {strings.packages.status[current.status]}
+    </p>
   );
 }
 
