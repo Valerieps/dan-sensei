@@ -12,12 +12,9 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Tela de planos (editar valores e criar planos) | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; falta a tela. Pacotes e aulas à mão já têm tela |
-| Pausas de pacote e "pausar todos" | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas. O saldo e a renovação com transferência já têm tela |
-| Registrar, editar e apagar pagamentos depois da venda | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto. O pagamento informado ao criar o pacote já funciona; falta a tela do pagamento avulso |
 | Mensalistas e mensalidades | 1a | `spec/mensalistas.md` | |
 | Extrato e renovação pelo WhatsApp | 1a | `spec/whatsapp.md` | ADR-008 |
-| Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, só com Nota sobre aluno e Novo aluno; entram Registrar pagamento, Nova aula e Registrar mensalidade |
+| Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, com Registrar pagamento, Nota sobre aluno e Novo aluno; entram Nova aula e Registrar mensalidade |
 | Exportação completa dos dados | 1a | `spec/termo-e-lgpd.md` | |
 | Horários fixos, aulas agendadas e grade do dia | 1b | `spec/agenda.md` | |
 | Remarcação e regras de cancelamento | 1b | `spec/agenda.md` | |
