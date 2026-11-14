@@ -12,12 +12,12 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Planos e pacotes, com aula dada e falta registradas à mão | 1a | `spec/pacotes-e-pagamentos.md` | |
-| Saldo, renovação com transferência e pausas (inclusive "pausar todos") | 1a | `spec/pacotes-e-pagamentos.md` | |
-| Pagamentos | 1a | `spec/pacotes-e-pagamentos.md` | |
-| Pacote da dupla (titular e participante) | 1a | `spec/pacotes-e-pagamentos.md` | |
+| Planos e pacotes, com aula dada e falta registradas à mão | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas |
+| Saldo, renovação com transferência e pausas (inclusive "pausar todos") | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas |
+| Pagamentos | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas |
+| Pacote da dupla (titular e participante) | 1a | `spec/pacotes-e-pagamentos.md` | Servidor pronto; faltam as telas |
 | Mensalistas e mensalidades | 1a | `spec/mensalistas.md` | |
-| Saldo inicial | 1a | `spec/pacotes-e-pagamentos.md` | Necessário no primeiro dia de uso |
+| Saldo inicial | 1a | `spec/pacotes-e-pagamentos.md` | Necessário no primeiro dia de uso. Servidor pronto; falta a tela |
 | Tela Alunos e pacotes (cartões) e abas do perfil | 1a | `spec/telas-de-gestao.md` | A lista de alunos e o perfil (abas Cadastro e Notas) existem; faltam os cartões com barra de progresso, os números do mês e a aba Pacotes e pagamentos |
 | Extrato e renovação pelo WhatsApp | 1a | `spec/whatsapp.md` | ADR-008 |
 | Botão + completo no celular | 1a | `spec/telas-de-gestao.md` | Menu lateral, barra de baixo e + existem, só com Nota sobre aluno e Novo aluno; entram Registrar pagamento, Nova aula e Registrar mensalidade |
@@ -63,6 +63,10 @@ O que ainda não está pronto.
 - [ ] Pausa: os dois dias das pontas contam; esgotado vale mais que vencido; aula em pacote vencido
   fica "sem pacote"; dupla sem pacote em comum pergunta de qual descontar
   (`spec/pacotes-e-pagamentos.md`).
+- [ ] Pacotes: o total a pagar é aulas × valor por aula (as transferidas não entram); registro à mão só
+  com data, nunca futura; "pausar todos" vale também para pacotes vendidos depois; "renovações
+  previstas" são os alunos nos níveis 2 e 3 de urgência, e "quanto recebi" é a soma dos pagamentos do
+  mês (`spec/pacotes-e-pagamentos.md`, `spec/telas-de-gestao.md`).
 - [ ] Mensalidade pendente conta os meses depois do último mês pago; sem nenhum mês pago, só o mês
   atual (`spec/mensalistas.md`).
 - [ ] O aluno não tem foto, só iniciais (`spec/alunos.md`).

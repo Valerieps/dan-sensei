@@ -30,6 +30,8 @@ O saldo e a validade de cada pacote sempre corretos, sem depender da minha memó
 
 - Quando escolho um plano para o aluno, o app preenche o total de aulas, o valor e a validade. Eu
   posso mudar qualquer um deles. *(1a)*
+- O valor do plano é o preço de uma aula; o total do pacote é aulas × valor por aula. As aulas
+  transferidas não aumentam o que o aluno paga. *(1a)*
 - O pacote guarda uma cópia dos valores do plano. Mudar o preço de um plano não muda pacotes já
   vendidos. *(1a)*
 - A validade conta a partir da primeira aula, não do pagamento. O pacote nasce como **aguardando
@@ -55,6 +57,8 @@ O aluno pode cancelar sem perder a aula com pelo menos 24 h de antecedência.
 
 - Antes da agenda existir, eu registro no pacote uma aula dada ou uma falta, com a data. *(1a)*
   Por quê: a fase 1a precisa controlar o saldo sozinha; a partir da 1b, a agenda faz isso.
+- Registro à mão: informo só a data (não a hora), nunca uma data futura. Se errei, apago a aula e
+  registro de novo; o saldo se acerta sozinho. *(1a)*
 - As regras de cancelamento com e sem 24 h estão em `agenda.md`. *(1b)*
 
 ## Saldo
@@ -91,6 +95,8 @@ O aluno pode cancelar sem perder a aula com pelo menos 24 h de antecedência.
 - O dia de início e o dia de fim da pausa contam como pausados. Dia pausado só adia a validade a
   partir da primeira aula, e um dia coberto por duas pausas conta uma vez. Dia de pausa própria
   que já está numa "pausar todos" também não conta nos 30 dias. *(1a)*
+- "Pausar todos" vale para todo pacote, inclusive os vendidos depois; adia a validade só a partir da
+  primeira aula de cada pacote. *(1a)*
 - Posso passar dos 30 dias, por exemplo numa lesão longa, mas aí o app pede que eu escreva o motivo.
   *(1a)*
 - "Pausar todos os pacotes" pausa os pacotes de todos os alunos pelo período que eu informar, para

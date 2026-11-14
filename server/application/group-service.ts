@@ -1,6 +1,7 @@
 // The single entry to the group's data. The Durable Object calls it; every method is synchronous,
 // so a command runs alone and inside one transaction (ADR-004).
 import type { ApiResult, CommandName, Commands, QueryName, Queries, Topic } from '../../src/application/api-contract';
+import { deleteClass, lessonsWithoutPackage, linkClassToPackage, registerClass } from './classes';
 import { failure, QueryError, type CommandResult, type Context } from './context';
 import { createInvite, listInvites, revokeInvite } from './invites';
 import {
@@ -16,6 +17,9 @@ import {
   type Member,
   type SignInResult,
 } from './members';
+import { createGlobalPause, createPackage, getPackage, packagesOverview, pausePackage, removeGlobalPause, removePackagePause, renewalPreview, studentPackages } from './packages';
+import { createPayment, deletePayment, updatePayment } from './payments';
+import { createPlan, listPlans, updatePlan } from './plans';
 import type { Clock, IdGenerator, Sql } from './ports';
 import { migrate } from './schema';
 import { createStudent, getStudent, listStudents, setStudentNotes, setStudentStatus, updateStudent } from './students';
@@ -31,6 +35,12 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   invites: (ctx, actor) => listInvites(ctx, actor),
   students: listStudents,
   student: getStudent,
+  plans: listPlans,
+  packagesOverview,
+  package: getPackage,
+  studentPackages,
+  renewalPreview,
+  lessonsWithoutPackage,
 };
 
 /** Every command the API runs; each checks the actor's role itself. */
@@ -44,6 +54,19 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'student.update': updateStudent,
   'student.setStatus': setStudentStatus,
   'student.setNotes': setStudentNotes,
+  'plan.create': createPlan,
+  'plan.update': updatePlan,
+  'package.create': createPackage,
+  'package.pause': pausePackage,
+  'package.removePause': removePackagePause,
+  'pause.createGlobal': createGlobalPause,
+  'pause.removeGlobal': removeGlobalPause,
+  'payment.create': createPayment,
+  'payment.update': updatePayment,
+  'payment.delete': deletePayment,
+  'class.register': registerClass,
+  'class.linkToPackage': linkClassToPackage,
+  'class.delete': deleteClass,
 };
 
 export class GroupService {
