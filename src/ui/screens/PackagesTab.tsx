@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import type { ClassWithoutPackage, PackageSummary, StudentView } from '../../application/api-contract';
-import { formatarData, formatarReais } from '../../domain/pacotes';
+import { linkDoWhatsApp, montarMensagemDoExtrato, precisaDeRenovacao, type DadosDoExtrato } from '../../domain/mensagens/extrato';
+import { dataEmSaoPaulo, formatarData, formatarReais } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
-import { Button } from '../components/Button';
+import { Button, ButtonLink } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Notice } from '../components/Notice';
 import { PackageProgress } from '../components/PackageProgress';
@@ -58,6 +59,7 @@ export function PackagesTab({ student }: { student: StudentView }) {
               {t.pausePackage}
             </Link>
           </div>
+          <StatementMessage student={student} pkg={pkg} />
           <Statement id={pkg.id} />
         </div>
       ))}
@@ -89,6 +91,53 @@ function PackageHeader({ pkg }: { pkg: PackageSummary }) {
       <p className="muted small">
         {pkg.participantName ? t.participant(pkg.participantName) : t.holder(pkg.holderName)} · {formatarReais(pkg.totalCents)}
       </p>
+    </div>
+  );
+}
+
+/** The statement as a wa.me link, for the holder only (docs/spec/whatsapp.md, ADR-008). */
+function StatementMessage({ student, pkg }: { student: StudentView; pkg: PackageSummary }) {
+  const { backend } = useServices();
+  const t = strings.packages.tab;
+  const settings = useQuery('messageSettings', {}, ['messages']);
+  if (pkg.status === 'aguardando-inicio') return null;
+  if (pkg.holderId !== student.id) return <p className="muted small">{t.statementOnlyHolder(pkg.holderName)}</p>;
+  if (!settings.data) return null;
+
+  const hoje = dataEmSaoPaulo(new Date());
+  const dados: DadosDoExtrato = {
+    nome: student.name.split(' ')[0] ?? student.name,
+    usadas: pkg.used,
+    novas: pkg.classes,
+    transferidas: pkg.transferredIn,
+    restantes: pkg.remaining,
+    validoAte: pkg.dueOn,
+    valorDoProximoCentavos: pkg.totalCents,
+    avulso: pkg.classes === 1,
+    encerradoPorUso: pkg.status === 'vencido' || pkg.status === 'esgotado',
+  };
+  const modelos = { chavePix: settings.data.pixKey, extrato: settings.data.statementTemplate, renovacao: settings.data.renewalTemplate };
+  const link = linkDoWhatsApp(student.phone, montarMensagemDoExtrato(dados, modelos, hoje));
+  const renewal = precisaDeRenovacao(dados, hoje);
+
+  return (
+    <div className="stack">
+      {renewal && settings.data.pixKey === '' && <Notice tone="error">{t.statementNoPix}</Notice>}
+      {link === null ? (
+        <Notice tone="error">{t.statementNoPhone}</Notice>
+      ) : (
+        <div className="row">
+          <ButtonLink
+            variant="secondary"
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => void backend.command('message.markOpened', { studentId: student.id, kind: 'statement' })}
+          >
+            {t.sendStatement}
+          </ButtonLink>
+        </div>
+      )}
     </div>
   );
 }

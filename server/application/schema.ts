@@ -153,6 +153,22 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
       UNIQUE (student_id, month)
     )`,
   ],
+  // 5: the trainer's message settings and the log of messages opened in WhatsApp
+  // (docs/spec/whatsapp.md, ADR-008). The log says "opened", never "sent".
+  [
+    `CREATE TABLE settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )`,
+    `CREATE TABLE message_log (
+      id TEXT PRIMARY KEY,
+      student_id TEXT NOT NULL REFERENCES students(id),
+      kind TEXT NOT NULL,
+      opened_at TEXT NOT NULL,
+      opened_by TEXT REFERENCES members(id)
+    )`,
+    `CREATE INDEX message_log_student ON message_log(student_id, kind)`,
+  ],
 ];
 
 export function migrate(sql: Sql): void {

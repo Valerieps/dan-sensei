@@ -37,4 +37,5 @@ dados.
 ## Cópia e exclusão
 
 - Quando o aluno pede, o app gera a cópia dos dados dele, ou apaga os dados dele. *(1c)*
-- Eu exporto todos os dados (planilha e arquivos) a qualquer momento. *(1a)*
+- Eu exporto todos os dados a qualquer momento, em Configurações: um arquivo `.zip` com uma
+  planilha (CSV) por tabela. Os arquivos (laudos e fotos) entram quando existirem. *(1a)*

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { UrgencyItem } from '../../application/api-contract';
 import { formatPhone, initials } from '../../domain/alunos/student';
-import { formatarReais } from '../../domain/pacotes';
+import { formatarData, formatarReais } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
@@ -43,6 +43,7 @@ export function Overview() {
   const overview = useQuery('packagesOverview', {}, ['packages', 'payments', 'students', 'classes', 'monthly']);
   const [hidden, setHidden] = useState(readHidden);
   const [showInactive, setShowInactive] = useState(false);
+  const pending = useQuery('pendingStatements', {}, ['messages', 'classes', 'packages', 'students']);
   const inactive = useQuery('students', { includeInactive: true }, ['students']);
   const o = strings.packages.overview;
 
@@ -87,6 +88,25 @@ export function Overview() {
               <span className="number">{data.expectedRenewals}</span>
             </p>
           </div>
+        </div>
+      )}
+
+      {pending.data && pending.data.length > 0 && (
+        <div className="card stack">
+          <h2>{o.pendingStatements}</h2>
+          <p className="muted small">{o.pendingStatementsHint}</p>
+          <ul className="list">
+            {pending.data.map((p) => (
+              <li key={p.studentId} className="statement-line">
+                <span className="grow">
+                  <span className="strong">{p.name}</span> <span className="muted small">· {o.lastLesson(formatarData(p.lastLessonOn))}</span>
+                </span>
+                <Link className="button secondary" to={`/alunos/${p.studentId}/pacotes`}>
+                  {strings.packages.tab.sendStatement}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

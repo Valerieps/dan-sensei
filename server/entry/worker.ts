@@ -127,6 +127,16 @@ async function api(request: Request, env: Env, url: URL): Promise<Response> {
 
   if (path === '/api/auth/dev' && devSignInAllowed(env.DEV_SIGN_IN, url)) return devSignIn(request, env);
 
+  if (path === '/api/export') {
+    if (!hash) return json({ error: 'unauthenticated' }, 401);
+    const data = await group(env).exportData(hash);
+    if (!data) return json({ error: 'forbidden' }, 403);
+    const name = `dan-sensei-dados-${new Date().toISOString().slice(0, 10)}.zip`;
+    return new Response(data, {
+      headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="${name}"` },
+    });
+  }
+
   const match = /^\/api\/(query|command)\/([a-zA-Z.]+)$/.exec(path);
   if (!match) return json({ error: 'not_found' }, 404);
   if (!hash) return json({ error: 'unauthenticated' }, 401);

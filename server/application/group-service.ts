@@ -3,6 +3,8 @@
 import type { ApiResult, CommandName, Commands, QueryName, Queries, Topic } from '../../src/application/api-contract';
 import { deleteClass, lessonsWithoutPackage, linkClassToPackage, registerClass } from './classes';
 import { failure, QueryError, type CommandResult, type Context } from './context';
+import { exportAll } from './export';
+import { markMessageOpened, messageSettings, pendingStatements, setMessageSettings } from './messages';
 import { createInvite, listInvites, revokeInvite } from './invites';
 import {
   listMembers,
@@ -13,6 +15,7 @@ import {
   setRoles,
   signIn,
   signOut,
+  signOutEverywhere,
   type GoogleProfile,
   type Member,
   type SignInResult,
@@ -21,6 +24,7 @@ import { createGlobalPause, createPackage, getPackage, packagesOverview, pausePa
 import { deleteMonthlyPayment, monthlyOf, registerMonthlyPayment, setMonthlyFee, setupMonthly } from './monthly';
 import { createPayment, deletePayment, updatePayment } from './payments';
 import { createPlan, listPlans, updatePlan } from './plans';
+import { isAdmin } from '../../src/domain/group/roles';
 import type { Clock, IdGenerator, Sql } from './ports';
 import { migrate } from './schema';
 import { createStudent, getStudent, listStudents, setStudentNotes, setStudentStatus, updateStudent } from './students';
@@ -43,6 +47,8 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   renewalPreview,
   lessonsWithoutPackage,
   monthly: monthlyOf,
+  messageSettings: (ctx) => messageSettings(ctx),
+  pendingStatements: (ctx) => pendingStatements(ctx),
 };
 
 /** Every command the API runs; each checks the actor's role itself. */
@@ -73,6 +79,9 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'monthly.setFee': setMonthlyFee,
   'monthly.registerPayment': registerMonthlyPayment,
   'monthly.deletePayment': deleteMonthlyPayment,
+  'settings.setMessages': setMessageSettings,
+  'message.markOpened': markMessageOpened,
+  'session.signOutAll': signOutEverywhere,
 };
 
 export class GroupService {
@@ -114,6 +123,12 @@ export class GroupService {
     const handler = Object.hasOwn(COMMANDS, name) ? COMMANDS[name as CommandName] : undefined;
     if (!handler) return failure('not_found');
     return this.ctx.sql.transaction(() => handler(this.ctx, actor, asInput(input)));
+  }
+
+  /** Every table as CSV in one zip; null unless the session belongs to an admin. */
+  exportData(sessionHash: string): Uint8Array | null {
+    const actor = this.memberForSession(sessionHash);
+    return actor && isAdmin(actor) ? exportAll(this.ctx) : null;
   }
 
   /**
