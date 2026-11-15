@@ -46,13 +46,6 @@ export function Agenda({ mode, date: rawDate }: { mode: 'day' | 'week'; date?: s
 
   return (
     <section>
-      <div className="row">
-        <h1 className="grow">{a.title}</h1>
-        <Link className="button" to={`/agenda/nova/${date}`}>
-          {a.newClass}
-        </Link>
-      </div>
-
       <nav className="row tabs" aria-label={a.views}>
         <Link to={`/agenda/${date}`} aria-current={mode === 'day' ? 'page' : undefined}>
           {a.day}

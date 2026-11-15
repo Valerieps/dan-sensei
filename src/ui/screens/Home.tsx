@@ -41,14 +41,13 @@ export function Home() {
   return (
     <section>
       <div className="row spread">
-        <h1 className="grow">{t.title}</h1>
+        <p className="muted grow">{t.today(formatarData(data.today))}</p>
         {data.tomorrow.length > 0 && (
           <Button variant="secondary" aria-expanded={confirming} onClick={() => setConfirming(!confirming)}>
             {t.confirmButton}
           </Button>
         )}
       </div>
-      <p className="muted">{t.today(formatarData(data.today))}</p>
 
       {confirming && <ConfirmTomorrow lessons={data.tomorrow} students={studentById} onChanged={home.reload} />}
 

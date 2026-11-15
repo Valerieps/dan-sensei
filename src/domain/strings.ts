@@ -36,25 +36,35 @@ export const strings = {
 
   nav: {
     main: 'Navegação principal',
-    home: 'Início',
-    students: 'Alunos e pacotes',
+    home: 'Hoje',
+    students: 'Alunos',
     members: 'Membros',
     invites: 'Convites',
     signOut: 'Sair',
-    add: 'Adicionar',
-    close: 'Fechar',
+    add: 'Novo',
     addNote: 'Nota sobre aluno',
     addStudent: 'Novo aluno',
     addPayment: 'Registrar pagamento',
-    addLesson: 'Registrar aula',
     addMonthlyPayment: 'Registrar mensalidade',
     settings: 'Configurações',
     agenda: 'Agenda',
     addClass: 'Nova aula',
+    search: 'Buscar',
+    showSidebar: 'Mostrar barra lateral',
+    hideSidebar: 'Esconder barra lateral',
+    tabs: 'Abas',
+    sync: {
+      online: 'Sincronizado',
+      connecting: 'Conectando…',
+      offline: 'Sem conexão',
+    },
+    searchTitle: 'Buscar aluno',
+    searchLabel: 'Nome do aluno',
+    searchEmpty: 'Nenhum aluno com esse nome.',
   },
 
   home: {
-    title: 'Início',
+    title: 'Hoje',
     today: (date: string) => `Hoje, ${date}`,
     loadFailed: 'Não consegui carregar o dia.',
     timeline: 'Aulas de hoje',
@@ -202,7 +212,7 @@ export const strings = {
   },
 
   students: {
-    title: 'Alunos e pacotes',
+    title: 'Alunos',
     newTitle: 'Novo aluno',
     empty: 'Nenhum aluno ainda. Cadastre o primeiro!',
     showInactive: 'Mostrar inativos',
@@ -477,6 +487,7 @@ export const strings = {
 
   settings: {
     title: 'Configurações',
+    account: 'Grupo e conta',
     pauseAll: {
       title: 'Pausar todos os pacotes',
       hint: 'Para minhas férias, doença ou dias sem aula. Vale para todo pacote, inclusive os vendidos depois, e não conta nos 30 dias de nenhum aluno.',
