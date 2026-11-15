@@ -23,11 +23,16 @@ export function Belt({ used, total, urgent = false, label }: { used: number; tot
   );
 }
 
+/** The validity line of a package: when it starts, ends or ended. */
+export function validityText(pkg: PackageSummary): string {
+  const c = strings.packages.card;
+  return pkg.dueOn === null ? c.awaitingStart : pkg.status === 'vencido' ? c.expiredOn(formatarData(pkg.dueOn)) : c.dueOn(formatarData(pkg.dueOn));
+}
+
 /** The facts of a package that a card shows: the belt, lessons, validity and payment. */
 export function PackageProgress({ pkg, urgent = false }: { pkg: PackageSummary; urgent?: boolean }) {
   const c = strings.packages.card;
-  const validity =
-    pkg.dueOn === null ? c.awaitingStart : pkg.status === 'vencido' ? c.expiredOn(formatarData(pkg.dueOn)) : c.dueOn(formatarData(pkg.dueOn));
+  const validity = validityText(pkg);
   return (
     <div className="stack tight">
       <Belt used={pkg.used} total={pkg.total} urgent={urgent} label={c.progressLabel(pkg.used, pkg.total)} />

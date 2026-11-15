@@ -4,13 +4,19 @@ import { diaDaSemana } from '../../domain/agenda';
 import { formatPhone, initials } from '../../domain/alunos/student';
 import { formatarData, formatarReais } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
-import { Button } from '../components/Button';
+import { Badge, type BadgeTone } from '../components/Badge';
+import { ButtonLink } from '../components/Button';
+import { SegmentedControl, Switch } from '../components/Controls';
 import { EmptyState } from '../components/EmptyState';
+import { ListContent, ListRow, ListSection } from '../components/GroupedList';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
-import { PackageProgress } from '../components/PackageProgress';
-import { Link } from '../router';
+import { Belt, validityText } from '../components/PackageProgress';
+import { Sheet } from '../components/Sheet';
+import { StudentCard } from '../components/StudentCard';
+import { navigate } from '../router';
 import { useQuery } from '../use-query';
+import { cardDestination, cardMenu, FILTERS, filterItems, type StudentFilter } from './student-cards';
 
 const HIDE_KEY = 'dan-sensei.hide-values';
 
@@ -40,165 +46,175 @@ export function urgencyLabel(item: UrgencyItem): string | null {
   return labels.ending;
 }
 
-/** "Alunos": every student as a card, most urgent first, with the month's numbers on top. */
+/** "Alunos": the month's numbers, then every student as a card, most urgent first. */
 export function Overview() {
   const overview = useQuery('packagesOverview', {}, ['packages', 'payments', 'students', 'classes', 'monthly']);
   const [hidden, setHidden] = useState(readHidden);
-  const [showInactive, setShowInactive] = useState(false);
+  const [filter, setFilter] = useState<StudentFilter>('all');
+  const [menu, setMenu] = useState<UrgencyItem>();
   const pending = useQuery('pendingStatements', {}, ['messages', 'classes', 'packages', 'students']);
   const agenda = useQuery('agendaHome', {}, ['classes', 'packages', 'students']);
   const inactive = useQuery('students', { includeInactive: true }, ['students']);
   const o = strings.packages.overview;
 
-  function toggleHidden() {
-    saveHidden(!hidden);
-    setHidden(!hidden);
+  function toggleHidden(next: boolean) {
+    saveHidden(next);
+    setHidden(next);
   }
 
   const data = overview.data;
   const [year, month] = data ? data.month.split('-') : ['', ''];
-  const inactiveStudents = showInactive ? (inactive.data ?? []).filter((s) => s.status === 'inactive') : [];
+  const shown = data ? filterItems(data.items, filter) : [];
+  const inactiveStudents = (inactive.data ?? []).filter((s) => s.status === 'inactive');
 
   return (
     <section>
       <div className="row">
-        <Link className="button secondary" to="/aulas/registrar">
+        <ButtonLink variant="secondary" to="/aulas/registrar">
           {o.registerLesson}
-        </Link>
+        </ButtonLink>
       </div>
 
       {!data && (overview.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />)}
 
       {data && (
-        <div className="card">
-          <div className="row spread">
-            <h2>{o.month(`${month}/${year}`)}</h2>
-            <Button variant="secondary" aria-pressed={hidden} onClick={toggleHidden}>
-              {hidden ? o.showValues : o.hideValues}
-            </Button>
-          </div>
-          <div className="month-numbers">
-            <p>
-              <span className="muted small">{o.received}</span>
-              <span className="number">{hidden ? o.hidden : formatarReais(data.receivedCents)}</span>
-            </p>
-            <p>
-              <span className="muted small">{o.renewals}</span>
-              <span className="number">{data.expectedRenewals}</span>
-            </p>
-          </div>
-        </div>
+        <ListSection header={o.month(`${month}/${year}`)}>
+          <ListRow title={o.received} value={hidden ? o.hidden : formatarReais(data.receivedCents)} />
+          <ListRow title={o.renewals} value={data.expectedRenewals} />
+          <ListContent>
+            <Switch label={o.hideValues} checked={hidden} onChange={toggleHidden} />
+          </ListContent>
+        </ListSection>
       )}
 
       {pending.data && pending.data.length > 0 && (
-        <div className="card stack">
-          <h2>{o.pendingStatements}</h2>
-          <p className="muted small">{o.pendingStatementsHint}</p>
-          <ul className="list">
-            {pending.data.map((p) => (
-              <li key={p.studentId} className="statement-line">
-                <span className="grow">
-                  <span className="strong">{p.name}</span> <span className="muted small">· {o.lastLesson(formatarData(p.lastLessonOn))}</span>
-                </span>
-                <Link className="button secondary" to={`/alunos/${p.studentId}/pacotes`}>
-                  {strings.packages.tab.sendStatement}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ListSection header={o.pendingStatements} footer={o.pendingStatementsHint}>
+          {pending.data.map((p) => (
+            <ListRow
+              key={p.studentId}
+              title={p.name}
+              subtitle={o.lastLesson(formatarData(p.lastLessonOn))}
+              value={strings.packages.tab.sendStatement}
+              onClick={() => navigate(`/alunos/${p.studentId}/pacotes`)}
+            />
+          ))}
+        </ListSection>
       )}
 
-      {data?.items.length === 0 && (
+      {data && (
+        <SegmentedControl label={o.filterLabel} options={FILTERS.map((value) => ({ value, label: o.filters[value] }))} value={filter} onChange={setFilter} />
+      )}
+
+      {data?.items.length === 0 && filter !== 'inactive' && (
         <EmptyState
           action={
-            <Link className="button" to="/alunos/novo">
+            <ButtonLink to="/alunos/novo">
               {strings.students.newTitle}
-            </Link>
+            </ButtonLink>
           }
         >
           {o.empty}
         </EmptyState>
       )}
+      {data && data.items.length > 0 && shown.length === 0 && filter !== 'inactive' && <p className="muted">{o.noMatch}</p>}
 
-      <ul className="list">
-        {data?.items.map((item) => (
-          <li key={item.studentId}>
-            <StudentCard item={item} forecast={agenda.data?.forecastWarnings.find((w) => w.packageId === item.package?.id)?.message} />
-          </li>
-        ))}
-      </ul>
-
-      <label className="row">
-        <input type="checkbox" checked={showInactive} onChange={(e) => setShowInactive(e.target.checked)} />
-        {strings.students.showInactive}
-      </label>
-      {inactiveStudents.length > 0 && (
-        <>
-          <h2>{o.inactiveTitle}</h2>
-          <ul className="list">
-            {inactiveStudents.map((student) => (
-              <li key={student.id}>
-                <Link className="card row student-row" to={`/alunos/${student.id}`}>
-                  <span className="initials" aria-hidden="true">
-                    {initials(student.name)}
-                  </span>
-                  <span className="grow">
-                    <span className="strong">{student.name}</span>
-                    <br />
-                    <span className="muted small">{formatPhone(student.phone)}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </>
+      {filter !== 'inactive' && (
+        <ul className="student-grid">
+          {shown.map((item) => (
+            <li key={item.studentId}>
+              <StudentCardOf item={item} forecast={agenda.data?.forecastWarnings.find((w) => w.packageId === item.package?.id)?.message} onMenu={() => setMenu(item)} />
+            </li>
+          ))}
+        </ul>
       )}
+
+      {filter === 'inactive' &&
+        (inactiveStudents.length === 0 ? (
+          <p className="muted">{o.inactiveEmpty}</p>
+        ) : (
+          <ListSection header={o.inactiveTitle}>
+            {inactiveStudents.map((student) => (
+              <ListRow
+                key={student.id}
+                title={student.name}
+                subtitle={formatPhone(student.phone)}
+                onClick={() => navigate(`/alunos/${student.id}`)}
+                trailing={<Badge>{strings.students.status.inactive}</Badge>}
+              />
+            ))}
+          </ListSection>
+        ))}
+
+      {menu && <StudentMenu item={menu} onClose={() => setMenu(undefined)} />}
     </section>
   );
 }
 
-function StudentCard({ item, forecast }: { item: UrgencyItem; forecast?: string }) {
+/** The context menu of a card: each action is there only when it makes sense for the student. */
+function StudentMenu({ item, onClose }: { item: UrgencyItem; onClose: () => void }) {
+  const m = strings.packages.overview.menu;
+  const destinations = cardMenu(item);
+  const go = (path: string) => {
+    onClose();
+    navigate(path);
+  };
+  return (
+    <Sheet title={item.name} onClose={onClose}>
+      <ListSection>
+        {destinations.reschedule && <ListRow title={m.reschedule} action onClick={() => go(destinations.reschedule!)} />}
+        {destinations.registerPayment && <ListRow title={m.registerPayment} action onClick={() => go(destinations.registerPayment!)} />}
+        {destinations.sendStatement && <ListRow title={m.sendStatement} action onClick={() => go(destinations.sendStatement!)} />}
+        <ListRow title={m.profile} onClick={() => go(`/alunos/${item.studentId}`)} />
+      </ListSection>
+    </Sheet>
+  );
+}
+
+/** The state on the right of the card: why it is red, or whether the money is in. */
+function stateBadge(item: UrgencyItem): { tone: BadgeTone; text: string } | null {
   const c = strings.packages.card;
   const label = urgencyLabel(item);
+  if (label) return { tone: 'danger', text: label };
+  if (item.billing === 'monthly') return { tone: 'brand', text: c.paid };
+  if (!item.package) return null;
+  return item.package.paymentStatus === 'paid' ? { tone: 'brand', text: c.paid } : { tone: 'danger', text: c.pending };
+}
+
+function StudentCardOf({ item, forecast, onMenu }: { item: UrgencyItem; forecast?: string; onMenu: () => void }) {
+  const c = strings.packages.card;
   const pkg = item.package;
-  const destination =
-    item.billing === 'monthly'
-      ? `/alunos/${item.studentId}/mensalidades`
-      : pkg
-        ? `/alunos/${item.studentId}/pacotes`
-        : `/alunos/${item.studentId}/pacotes/novo`;
+  const badge = stateBadge(item);
+  const next = item.nextClass
+    ? c.nextClass(`${strings.agenda.weekdaysShort[diaDaSemana(item.nextClass.date)]}, ${formatarData(item.nextClass.date).slice(0, 5)} às ${item.nextClass.time}`)
+    : c.noNextClass;
   return (
-    <Link className={item.highlighted ? 'card package-card urgent' : 'card package-card'} to={destination}>
-      <div className="row spread">
-        <span className="row tight">
-          <span className="initials" aria-hidden="true">
-            {initials(item.name)}
-          </span>
-          <span className="strong">{item.name}</span>
-        </span>
-        {label && <span className="urgent-label">{label}</span>}
-      </div>
-      {item.billing === 'monthly' && <p className="muted">{c.monthly}</p>}
-      {item.pendingMonths.length > 0 && <p className="small">{c.monthlyPendingMonths(item.pendingMonths)}</p>}
-      {item.billing !== 'monthly' && !pkg && <p className="muted">{c.noPackage}</p>}
+    <StudentCard
+      href={cardDestination(item)}
+      initials={initials(item.name)}
+      name={item.name}
+      subtitle={next}
+      badge={badge && <Badge tone={badge.tone}>{badge.text}</Badge>}
+      onMenu={onMenu}
+    >
+      {item.billing === 'monthly' && <span className="muted">{c.monthly}</span>}
+      {item.pendingMonths.length > 0 && <span className="small">{c.monthlyPendingMonths(item.pendingMonths)}</span>}
+      {item.billing !== 'monthly' && !pkg && <span className="muted">{c.noPackage}</span>}
       {pkg && (
         <>
-          {item.asParticipant && <p className="muted small">{c.pair}</p>}
-          <PackageProgress pkg={pkg} urgent={item.highlighted} />
+          {item.asParticipant && <span className="muted small">{c.pair}</span>}
+          <Belt used={pkg.used} total={pkg.total} urgent={item.highlighted} label={c.progressLabel(pkg.used, pkg.total)} />
+          <span className="student-card-line">
+            <span className="strong">{pkg.used > 0 ? c.lessonOf(pkg.used, pkg.total) : c.noLessonYet(pkg.total)}</span>
+            <span className="muted small">{validityText(pkg)}</span>
+          </span>
         </>
       )}
-      {item.nextClass ? (
-        <p className="small">{c.nextClass(`${strings.agenda.weekdaysShort[diaDaSemana(item.nextClass.date)]}, ${formatarData(item.nextClass.date).slice(0, 5)} às ${item.nextClass.time}`)}</p>
-      ) : (
-        <p className="muted small">{c.noNextClass}</p>
-      )}
       {forecast && (
-        <p className="small strong forecast">
+        <span className="small strong">
           {strings.agenda.forecastTitle}: {forecast}
-        </p>
+        </span>
       )}
-      {item.lessonsWithoutPackage > 0 && <p className="small">{c.withoutPackage(item.lessonsWithoutPackage)}</p>}
-    </Link>
+      {item.lessonsWithoutPackage > 0 && <span className="small">{c.withoutPackage(item.lessonsWithoutPackage)}</span>}
+    </StudentCard>
   );
 }

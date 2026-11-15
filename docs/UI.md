@@ -74,8 +74,9 @@ Tudo em `src/ui/components/`; use antes de escrever CSS novo.
 | `Icon` | Ícones no estilo SF Symbols; `filled` nas abas; sem `label` fica escondido do leitor de tela |
 | `Sheet` | O painel: sobe de baixo no celular (alça, altura média e grande, fecha ao deslizar), abre no centro no iPad; × e ✓ no cabeçalho; foco preso e Esc fecha |
 | `ConfirmDialog` | Confirmação de ação destrutiva; o foco começa em Cancelar |
-| `GroupedList`, `ListSection`, `ListRow` | Lista agrupada: título, subtítulo, valor, ícone, seta; a seção tem cabeçalho e rodapé |
+| `GroupedList`, `ListSection`, `ListRow`, `ListContent` | Lista agrupada: título, subtítulo, valor, ícone, seta; a seção tem cabeçalho e rodapé; `ListContent` guarda um formulário ou texto livre numa linha |
 | `SegmentedControl`, `Switch`, `Stepper` | Controle segmentado (grupo de rádio), interruptor (`role="switch"`) e − / + |
+| `StudentCard` | O cartão do aluno: iniciais, nome, próxima aula, selo e a faixa; toque abre o perfil, toque longo e o botão "⋯" abrem o menu de contexto |
 | `Badge` | O selo em cápsula: neutro, `brand`, `danger` ou `health` (este sempre com o escudo) |
 | `PackageProgress`, `Belt` | A faixa do pacote: um gomo por aula, barra contínua acima de 20 |
 | `Field`, `SelectField` | Campo preenchido, sem borda, com rótulo sempre visível e erro ligado ao campo |

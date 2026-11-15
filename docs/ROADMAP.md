@@ -11,7 +11,7 @@ O que ainda não está pronto.
 
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
-| Padrão Apple nas telas das fases 1a e 1b (os componentes já existem em `src/ui/components/`): navegação, Hoje, Agenda, Alunos, perfil, painéis | 1a, 1b | `spec/telas-de-gestao.md` | Sessões A3 a A7 de `rascunhos/plano-padrao-apple-e-fase-1c.md` |
+| Padrão Apple nas telas das fases 1a e 1b (os componentes já existem em `src/ui/components/`): painéis e formulários | 1a, 1b | `spec/telas-de-gestao.md` | Sessões A6 e A7 de `rascunhos/plano-padrao-apple-e-fase-1c.md` |
 | Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | A fase 1c segue as sessões C1 a C9 do mesmo plano |
 | Programas, treinos e montagem em cartões | 1c | `spec/treinos-e-exercicios.md` | |
 | Modo Ao Vivo individual, cronômetro e registro das séries | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7) |
@@ -40,6 +40,10 @@ O que ainda não está pronto.
 - Tempo de deslocamento, recibos e vídeos próprios — fase 3.
 
 ## Revisar as lacunas que o agente decidiu
+
+- [ ] Alunos: os filtros são Todos, Atenção, Mensalistas e Inativos; o menu de contexto do cartão
+  tem Remarcar (leva à Agenda no dia da próxima aula), Registrar pagamento e Mandar extrato (leva
+  à aba Pacotes), e some a ação que não se aplica (`spec/telas-de-gestao.md`).
 
 - [ ] Fases 1a, 1b e 1c: a ordem e o que entra em cada uma (`SPEC.md`).
 - [ ] Na fase 1a, antes da agenda, aula dada e falta são registradas à mão no pacote
@@ -77,7 +81,7 @@ O que ainda não está pronto.
   próprios (`spec/termo-e-lgpd.md`).
 - [ ] Limites do cadastro do aluno: telefone com 10 a 13 números, altura de 50 a 250 cm, até 5
   endereços, notas de até 5.000 letras (`spec/alunos.md`).
-- [ ] Alunos e pacotes: o cartão mostra "Aula X de Y" com X igual às aulas usadas; a opção "esconder valores" esconde só o recebido do mês e fica guardada no aparelho; mensalistas aparecem sem barra; inativos ficam atrás de "Mostrar inativos" (`spec/telas-de-gestao.md`).
+- [ ] Alunos e pacotes: o cartão mostra "Aula X de Y" com X igual às aulas usadas; a opção "esconder valores" esconde só o recebido do mês e fica guardada no aparelho; mensalistas aparecem sem barra; inativos ficam no filtro "Inativos" do controle segmentado (`spec/telas-de-gestao.md`).
 - [ ] Menu +: antes da agenda, "Nova aula" é a tela "Registrar aula" (segunda opção, depois de Registrar pagamento); o perfil mostra no cabeçalho o plano, "Aula X de Y" e a situação do pacote atual (`spec/telas-de-gestao.md`).
 - [ ] Agenda (servidor): as aulas dos horários fixos são geradas 8 semanas à frente, no comando e no
   cron (ADR-010); remarcar "esta e as seguintes" troca o horário fixo a partir daquela aula; aula

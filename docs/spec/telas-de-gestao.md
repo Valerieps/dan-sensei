@@ -52,7 +52,7 @@ Ao abrir, o app mostra o dia de hoje, pronto para começar a próxima aula.
 
 ## Alunos
 
-- No topo há o botão "Esconder valores", que troca o valor recebido por ••• até um toque, para quando o iPad está à vista do aluno. A escolha fica guardada no aparelho. *(1a)*
+- No topo há o interruptor "Esconder valores", que troca o valor recebido por •••, para quando o iPad está à vista do aluno. A escolha fica guardada no aparelho. *(1a)*
 - A tela mostra todo aluno ativo em cartões com barra de progresso do pacote: nome, "Aula X de Y",
   validade, pagamento e próxima aula. Os mensalistas também, sem barra. *(1a)*
 - A próxima aula aparece no cartão a partir da fase 1b. *(1b)*
@@ -62,6 +62,14 @@ Ao abrir, o app mostra o dia de hoje, pronto para começar a próxima aula.
   3. Menos de 4 aulas restantes ou validade em menos de 7 dias, com destaque em vermelho.
   4. Os demais, pela próxima aula.
 - O pacote Avulso e os mensalistas não recebem destaque de saldo e validade. *(1a)*
+- Um controle segmentado filtra os cartões: Todos, Atenção (os que estão em destaque), Mensalistas e
+  Inativos. Os inativos aparecem numa lista, sem cartão. *(1a)*
+- Tocar no cartão abre o perfil. Tocar e segurar abre o menu de contexto, com Remarcar (a próxima
+  aula do aluno, na Agenda), Registrar pagamento e Mandar extrato (a aba Pacotes, onde está o link
+  do WhatsApp); a ação que não faz sentido some, e o cartão tem um botão "⋯" que abre o mesmo menu
+  para quem não consegue segurar. *(1a)*
+  Por quê: tocar e segurar é o gesto do iOS para ações rápidas sobre um item, e o botão garante que
+  a função também chegue por teclado e leitor de tela.
 - No topo, os números do mês: quanto recebi (a soma dos pagamentos com data no mês) e as renovações
   previstas (alunos com pacote vencido, esgotado, com menos de 4 aulas ou vencendo em menos de 7
   dias; Avulso e mensalistas ficam fora). *(1a)*

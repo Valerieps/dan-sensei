@@ -5,10 +5,11 @@ import { formatarData, formatarReais, lerReais, reaisParaTexto } from '../../dom
 import { canManageGroup } from '../../domain/group/roles';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
+import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
-import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
-import { ListRow, ListSection } from '../components/GroupedList';
+import { Switch } from '../components/Controls';
+import { ListContent, ListRow, ListSection } from '../components/GroupedList';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { useQuery } from '../use-query';
@@ -81,34 +82,35 @@ function PauseAll() {
   }
 
   return (
-    <div className="card stack">
-      <h2>{t.title}</h2>
-      <p className="muted">{t.hint}</p>
-      <form className="stack" onSubmit={submit} noValidate>
-        <div className="row end">
-          <Field className="grow" label={t.startsOn} type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} error={invalid ? t.error : null} />
-          <Field className="grow" label={t.endsOn} type="date" min={startsOn || undefined} value={endsOn} onChange={(e) => setEndsOn(e.target.value)} />
-        </div>
-        {failed && <Notice tone="error">{strings.genericError}</Notice>}
-        <div className="row">
-          <Button type="submit" disabled={busy}>{t.submit}</Button>
-        </div>
+    <>
+      <form onSubmit={submit} noValidate>
+        <ListSection header={t.title} footer={t.hint}>
+          <ListContent>
+            <div className="stack">
+              <div className="row end">
+                <Field className="grow" label={t.startsOn} type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} error={invalid ? t.error : null} />
+                <Field className="grow" label={t.endsOn} type="date" min={startsOn || undefined} value={endsOn} onChange={(e) => setEndsOn(e.target.value)} />
+              </div>
+              {failed && <Notice tone="error">{strings.genericError}</Notice>}
+              <div className="row">
+                <Button type="submit" disabled={busy}>
+                  {t.submit}
+                </Button>
+              </div>
+            </div>
+          </ListContent>
+        </ListSection>
       </form>
-      <h3>{t.active}</h3>
-      {overview.data && overview.data.globalPauses.length === 0 && <p className="muted small">{t.none}</p>}
-      <ul className="list">
+      <ListSection header={t.active} footer={overview.data && overview.data.globalPauses.length === 0 ? t.none : undefined}>
         {(overview.data?.globalPauses ?? []).map((pause) => (
-          <li key={pause.id} className="statement-line">
-            <span className="grow">
-              {formatarData(pause.startsOn)} a {formatarData(pause.endsOn)}
-            </span>
-            <Button variant="secondary-danger" onClick={() => void remove(pause.id)}>
-              {t.remove}
-            </Button>
-          </li>
+          <ListRow
+            key={pause.id}
+            title={`${formatarData(pause.startsOn)} a ${formatarData(pause.endsOn)}`}
+            swipeActions={[{ label: t.remove, tone: 'danger', onClick: () => void remove(pause.id) }]}
+          />
         ))}
-      </ul>
-    </div>
+      </ListSection>
+    </>
   );
 }
 
@@ -118,37 +120,33 @@ function Plans() {
   const [editing, setEditing] = useState<string | 'new' | null>(null);
 
   return (
-    <div className="card stack">
-      <div className="row spread">
-        <h2>{t.title}</h2>
-        {editing !== 'new' && <Button variant="secondary" onClick={() => setEditing('new')}>{t.new}</Button>}
-      </div>
-      <p className="muted">{t.hint}</p>
-      {editing === 'new' && <PlanForm onDone={() => setEditing(null)} />}
-      {plans.data && plans.data.length === 0 && editing !== 'new' && <EmptyState>{t.empty}</EmptyState>}
+    <>
       {plans.error && <Notice tone="error">{strings.genericError}</Notice>}
-      <ul className="list">
-        {(plans.data ?? []).map((plan) => (
-          <li key={plan.id} className="stack">
-            {editing === plan.id ? (
+      <ListSection header={t.title} footer={plans.data && plans.data.length === 0 && editing !== 'new' ? t.empty : t.hint}>
+        {(plans.data ?? []).map((plan) =>
+          editing === plan.id ? (
+            <ListContent key={plan.id}>
               <PlanForm plan={plan} onDone={() => setEditing(null)} />
-            ) : (
-              <div className="statement-line">
-                <span className="grow">
-                  <span className="strong">{plan.name}</span>
-                  {!plan.active && <span className="muted small"> · {t.inactive}</span>}
-                  <br />
-                  <span className="muted small">{t.summary(plan.classes, formatarReais(plan.priceCents), formatarReais(plan.classes * plan.priceCents), plan.validityDays)}</span>
-                </span>
-                <Button variant="secondary" onClick={() => setEditing(plan.id)}>
-                  {t.edit}
-                </Button>
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
+            </ListContent>
+          ) : (
+            <ListRow
+              key={plan.id}
+              title={plan.name}
+              subtitle={t.summary(plan.classes, formatarReais(plan.priceCents), formatarReais(plan.classes * plan.priceCents), plan.validityDays)}
+              trailing={plan.active ? undefined : <Badge>{t.inactive}</Badge>}
+              onClick={() => setEditing(plan.id)}
+            />
+          ),
+        )}
+        {editing === 'new' ? (
+          <ListContent>
+            <PlanForm onDone={() => setEditing(null)} />
+          </ListContent>
+        ) : (
+          <ListRow title={t.new} action onClick={() => setEditing('new')} />
+        )}
+      </ListSection>
+    </>
   );
 }
 
@@ -175,28 +173,34 @@ function Messages() {
   }
 
   return (
-    <form className="card stack" onSubmit={submit} noValidate>
-      <h2>{t.title}</h2>
-      <p className="muted">{t.hint}</p>
-      <Field label={t.pixKey} value={current.pixKey} maxLength={CHAVE_PIX_MAX} onChange={(e) => change({ pixKey: e.target.value })} />
-      <label className="field">
-        <span className="field-label">{t.statementTemplate}</span>
-        <textarea rows={3} value={current.statementTemplate} maxLength={MODELO_MAX} onChange={(e) => change({ statementTemplate: e.target.value })} />
-        <span className="muted small">{t.statementHelp}</span>
-      </label>
-      <label className="field">
-        <span className="field-label">{t.renewalTemplate}</span>
-        <textarea rows={3} value={current.renewalTemplate} maxLength={MODELO_MAX} onChange={(e) => change({ renewalTemplate: e.target.value })} />
-        <span className="muted small">{t.renewalHelp}</span>
-      </label>
-      {status === 'failed' && <Notice tone="error">{strings.genericError}</Notice>}
-      {status === 'saved' && <p className="small strong">{t.saved}</p>}
-      <div className="row">
-        <Button type="submit" disabled={status === 'saving'}>{t.save}</Button>
-        <Button variant="secondary" onClick={() => change({ statementTemplate: MODELOS_PADRAO.extrato, renewalTemplate: MODELOS_PADRAO.renovacao })}>
-          {t.restore}
-        </Button>
-      </div>
+    <form onSubmit={submit} noValidate>
+      <ListSection header={t.title} footer={t.hint}>
+        <ListContent>
+          <div className="stack">
+            <Field label={t.pixKey} value={current.pixKey} maxLength={CHAVE_PIX_MAX} onChange={(e) => change({ pixKey: e.target.value })} />
+            <label className="field">
+              <span className="field-label">{t.statementTemplate}</span>
+              <textarea rows={3} value={current.statementTemplate} maxLength={MODELO_MAX} onChange={(e) => change({ statementTemplate: e.target.value })} />
+              <span className="muted small">{t.statementHelp}</span>
+            </label>
+            <label className="field">
+              <span className="field-label">{t.renewalTemplate}</span>
+              <textarea rows={3} value={current.renewalTemplate} maxLength={MODELO_MAX} onChange={(e) => change({ renewalTemplate: e.target.value })} />
+              <span className="muted small">{t.renewalHelp}</span>
+            </label>
+            {status === 'failed' && <Notice tone="error">{strings.genericError}</Notice>}
+            {status === 'saved' && <p className="small strong">{t.saved}</p>}
+            <div className="row">
+              <Button type="submit" disabled={status === 'saving'}>
+                {t.save}
+              </Button>
+              <Button variant="secondary" onClick={() => change({ statementTemplate: MODELOS_PADRAO.extrato, renewalTemplate: MODELOS_PADRAO.renovacao })}>
+                {t.restore}
+              </Button>
+            </div>
+          </div>
+        </ListContent>
+      </ListSection>
     </form>
   );
 }
@@ -224,17 +228,12 @@ function Export() {
   }
 
   return (
-    <div className="card stack">
-      <h2>{t.title}</h2>
-      <p className="muted">{t.hint}</p>
+    <>
       {status === 'failed' && <Notice tone="error">{strings.genericError}</Notice>}
-      {status === 'done' && <p className="small strong">{t.done}</p>}
-      <div className="row">
-        <Button variant="secondary" onClick={() => void download()} disabled={status === 'busy'}>
-          {t.button}
-        </Button>
-      </div>
-    </div>
+      <ListSection header={t.title} footer={status === 'done' ? t.done : t.hint}>
+        <ListRow title={t.button} action onClick={() => void download()} />
+      </ListSection>
+    </>
   );
 }
 
@@ -261,22 +260,14 @@ function Devices() {
   }
 
   return (
-    <div className="card stack">
-      <h2>{t.title}</h2>
-      <p className="muted">{t.hint}</p>
+    <>
       {failed && <Notice tone="error">{strings.genericError}</Notice>}
-      {done && <p className="small strong">{done}</p>}
-      <ul className="list">
+      <ListSection header={t.title} footer={done ?? t.hint}>
         {(members.data ?? []).map((member) => (
-          <li key={member.id} className="statement-line">
-            <span className="grow strong">{member.name}</span>
-            <Button variant="secondary-danger" aria-label={t.signOutAllOf(member.name)} onClick={() => void signOutAll(member.id, member.name)}>
-              {t.signOutAll}
-            </Button>
-          </li>
+          <ListRow key={member.id} title={member.name} value={t.signOutAll} onClick={() => void signOutAll(member.id, member.name)} />
         ))}
-      </ul>
-    </div>
+      </ListSection>
+    </>
   );
 }
 
@@ -330,10 +321,7 @@ function PlanForm({ plan, onDone }: { plan?: PlanView; onDone: () => void }) {
         <Field className="grow" label={t.validity} type="number" inputMode="numeric" value={validity} onChange={(e) => setValidity(e.target.value)} error={error('validity')} />
       </div>
       {plan && (
-        <label className="row">
-          <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
-          {t.active}
-        </label>
+        <Switch label={t.active} checked={active} onChange={setActive} />
       )}
       {failed && <Notice tone="error">{strings.genericError}</Notice>}
       <div className="row">
