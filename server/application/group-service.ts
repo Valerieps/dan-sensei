@@ -6,6 +6,7 @@ import { deleteClass, lessonsWithoutPackage, linkClassToPackage, registerClass }
 import { failure, QueryError, type CommandResult, type Context } from './context';
 import { exportAll } from './export';
 import { createExercise, exerciseChoicesQuery, exerciseTags, exerciseWarnings, getExercise, listExercises, setExerciseArchived, updateExercise } from './exercises';
+import { createCondition, removeAlert, saveAnamnesis, saveParq, setAlert, signConsent, studentHealth } from './health';
 import { markMessageOpened, messageSettings, pendingStatements, setMessageSettings } from './messages';
 import { createInvite, listInvites, revokeInvite } from './invites';
 import {
@@ -58,6 +59,7 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   invites: (ctx, actor) => listInvites(ctx, actor),
   students: listStudents,
   student: getStudent,
+  studentHealth,
   plans: listPlans,
   packagesOverview,
   package: getPackage,
@@ -93,6 +95,12 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'student.update': updateStudent,
   'student.setStatus': setStudentStatus,
   'student.setNotes': setStudentNotes,
+  'consent.sign': signConsent,
+  'parq.save': saveParq,
+  'anamnesis.save': saveAnamnesis,
+  'alert.set': setAlert,
+  'alert.remove': removeAlert,
+  'condition.create': createCondition,
   'plan.create': createPlan,
   'plan.update': updatePlan,
   'package.create': createPackage,

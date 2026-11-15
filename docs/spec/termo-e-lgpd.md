@@ -20,11 +20,16 @@ dados.
 - O termo autoriza guardar dados de saúde e de treino e diz que o aluno pode pedir uma cópia dos
   dados ou a exclusão. *(1c)*
 - Sem termo assinado, o app não guarda anamnese nem alertas de saúde do aluno. *(1c)*
+- O termo tem uma versão. Cada assinatura guarda a versão que o aluno leu; quando o texto muda, a versão
+  sobe e o app pede nova assinatura, mas a anterior continua valendo até lá. *(1c)*
+- O aluno só assina depois de rolar o texto até o fim. *(1c)*
 
 ## PAR-Q
 
 - Logo depois do termo, o aluno responde o PAR-Q numa lista, no iPad. O app guarda as respostas e a
-  data. *(1c)*
+  data. Sem o termo assinado, o app não guarda o PAR-Q. *(1c)*
+- Se alguma resposta for "sim", o app avisa que o aluno precisa de liberação médica antes de treinar
+  forte. *(1c)*
 
 ## Dados sensíveis
 

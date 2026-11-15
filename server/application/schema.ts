@@ -267,6 +267,52 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
     )`,
     `CREATE INDEX prescribed_workout ON prescribed_exercises(workout_id, sort)`,
   ],
+  // 9: consent, PAR-Q, anamnesis and health alerts (docs/spec/termo-e-lgpd.md, alunos.md). Sensitive
+  // data: nothing here is stored for a student without a signed term (checked by the use cases).
+  // Each signature keeps the term's version and the member who collected it. The condition list is
+  // the one the trainer edits; an alert points to one and carries its own note.
+  [
+    `CREATE TABLE consents (
+      id TEXT PRIMARY KEY,
+      student_id TEXT NOT NULL REFERENCES students(id),
+      version INTEGER NOT NULL,
+      signature TEXT NOT NULL,
+      signed_at TEXT NOT NULL,
+      collected_by TEXT REFERENCES members(id)
+    )`,
+    `CREATE INDEX consents_student ON consents(student_id, signed_at)`,
+    `CREATE TABLE parq_responses (
+      id TEXT PRIMARY KEY,
+      student_id TEXT NOT NULL REFERENCES students(id),
+      answers TEXT NOT NULL,
+      answered_at TEXT NOT NULL
+    )`,
+    `CREATE INDEX parq_student ON parq_responses(student_id, answered_at)`,
+    `CREATE TABLE anamneses (
+      student_id TEXT PRIMARY KEY REFERENCES students(id),
+      main_goal TEXT NOT NULL DEFAULT '',
+      secondary_goals TEXT NOT NULL DEFAULT '[]',
+      updated_at TEXT NOT NULL
+    )`,
+    `CREATE TABLE health_conditions (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      name_key TEXT NOT NULL UNIQUE,
+      archived INTEGER NOT NULL DEFAULT 0
+    )`,
+    `INSERT INTO health_conditions (id, name, name_key) VALUES
+      ('cond-1', 'Diabetes', 'diabetes'), ('cond-2', 'Cardiopatia', 'cardiopatia'), ('cond-3', 'Hipertensão', 'hipertensao'),
+      ('cond-4', 'Hérnia de disco', 'hernia de disco'), ('cond-5', 'Dor no joelho', 'dor no joelho'),
+      ('cond-6', 'Dor no ombro', 'dor no ombro'), ('cond-7', 'Gestante', 'gestante'), ('cond-8', 'Asma', 'asma')`,
+    `CREATE TABLE student_alerts (
+      id TEXT PRIMARY KEY,
+      student_id TEXT NOT NULL REFERENCES students(id),
+      condition_id TEXT NOT NULL REFERENCES health_conditions(id),
+      note TEXT NOT NULL DEFAULT '',
+      created_at TEXT NOT NULL,
+      UNIQUE (student_id, condition_id)
+    )`,
+  ],
 ];
 
 export function migrate(sql: Sql): void {
