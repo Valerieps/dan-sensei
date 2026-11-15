@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from 'react';
 import { Icon, type IconName } from './Icon';
+import { SwipeActions, type SwipeAction } from './SwipeActions';
 
 /** The iOS "inset grouped" list: rows on a rounded surface, separated by hairlines (docs/UI.md). */
 export function GroupedList({ children, label }: { children: ReactNode; label?: string }) {
@@ -26,10 +27,12 @@ type ListRowProps = {
   action?: boolean;
   /** Anything else on the right of the value, such as a badge or a switch. */
   trailing?: ReactNode;
+  /** Buttons that appear when the row is swiped to the left (and are reachable by keyboard). */
+  swipeActions?: readonly SwipeAction[];
 };
 
 /** One row of a `GroupedList`, at least 44 pt tall. */
-export function ListRow({ title, subtitle, value, icon, chevron, href, onClick, action = false, trailing }: ListRowProps) {
+export function ListRow({ title, subtitle, value, icon, chevron, href, onClick, action = false, trailing, swipeActions }: ListRowProps) {
   const interactive = href !== undefined || onClick !== undefined;
   const content = (
     <>
@@ -43,25 +46,23 @@ export function ListRow({ title, subtitle, value, icon, chevron, href, onClick, 
       {(chevron ?? (interactive && !action)) && <Icon name="chevron-right" />}
     </>
   );
-  return (
-    <li className="list-row">
-      {href !== undefined ? (
-        <a className="list-row-body" href={href}>
-          {content}
-        </a>
-      ) : onClick !== undefined ? (
-        <button type="button" className="list-row-body" onClick={onClick}>
-          {content}
-        </button>
-      ) : (
-        <div className="list-row-body">{content}</div>
-      )}
-    </li>
-  );
+  const body =
+    href !== undefined ? (
+      <a className="list-row-body" href={href}>
+        {content}
+      </a>
+    ) : onClick !== undefined ? (
+      <button type="button" className="list-row-body" onClick={onClick}>
+        {content}
+      </button>
+    ) : (
+      <div className="list-row-body">{content}</div>
+    );
+  return <li className="list-row">{swipeActions && swipeActions.length > 0 ? <SwipeActions actions={swipeActions}>{body}</SwipeActions> : body}</li>;
 }
 
 /** A `GroupedList` with its small header above (caption, in capitals) and its explanation below. */
-export function ListSection({ header, footer, children }: { header?: string; footer?: string; children: ReactNode }) {
+export function ListSection({ header, footer, children }: { header?: ReactNode; footer?: string; children: ReactNode }) {
   const headerId = useId();
   return (
     <section className="list-section" aria-labelledby={header ? headerId : undefined}>

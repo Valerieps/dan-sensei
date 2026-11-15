@@ -721,10 +721,14 @@ textarea {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: var(--border-width) dashed var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   color: var(--color-text-muted);
   font-size: var(--font-size-caption);
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 var(--size-hatch-gap),
+    var(--color-surface-2) var(--size-hatch-gap) calc(var(--size-hatch-gap) + var(--size-hatch-line))
+  );
 }
 
 .class-block {
@@ -736,7 +740,7 @@ textarea {
   overflow: hidden;
   border: var(--border-width) solid var(--color-border);
   border-left: var(--size-class-bar) solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--color-surface);
   pointer-events: auto;
 }
@@ -784,51 +788,22 @@ textarea {
   user-select: none;
 }
 
-.class-block.scheduled,
-.week-class.scheduled {
+.class-block.scheduled {
   border-left-color: var(--color-class-scheduled);
 }
 
-.class-block.given,
-.week-class.given {
+.class-block.given {
   border-left-color: var(--color-class-given);
 }
 
-.class-block.missed,
-.week-class.missed {
+.class-block.missed {
   border-left-color: var(--color-class-missed);
   border-left-style: double;
 }
 
-.class-block.cancelled,
-.week-class.cancelled {
+.class-block.cancelled {
   color: var(--color-text-muted);
   border-left-style: dashed;
-}
-
-.week-day h3 {
-  margin-top: 0;
-}
-
-.week-day.today {
-  border-color: var(--color-brand);
-}
-
-.week-class {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  width: 100%;
-  min-height: var(--size-touch);
-  padding: var(--space-1) var(--space-3);
-  border: var(--border-width) solid var(--color-border);
-  border-left: var(--size-class-bar) solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
 }
 
 .sheet-backdrop {
@@ -855,30 +830,192 @@ textarea {
   margin: var(--space-2) 0 0;
 }
 
-/* Início: the day as a timeline (docs/spec/telas-de-gestao.md) */
+/* Hoje: the day as a timeline of cards (docs/spec/telas-de-gestao.md) */
 .timeline {
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-6);
   padding: 0;
   list-style: none;
 }
 
-.timeline-item.featured {
-  border-color: var(--color-brand);
-  border-width: var(--border-width-strong);
+.timeline-entry {
+  display: grid;
+  grid-template-columns: var(--size-hour-label) 1fr;
+  gap: var(--space-3);
+  align-items: start;
 }
 
-.timeline-item.unconfirmed {
-  border-left-width: var(--border-width-strong);
-  border-left-color: var(--color-brand);
+.timeline-time {
+  padding-top: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  font-variant-numeric: tabular-nums;
 }
 
-.timeline-gap {
-  padding: var(--space-1) var(--space-4);
+.tl-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
 }
 
-.monthly-question {
+.tl-card.featured {
+  padding: var(--space-5);
+  gap: var(--space-3);
+  box-shadow: inset 0 0 0 var(--border-width-strong) var(--color-brand);
+}
+
+.tl-card.past .tl-name {
+  color: var(--color-text-muted);
+}
+
+.tl-card button.tl-main {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tl-tag {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-strong);
+}
+
+.tl-name {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-strong);
+}
+
+.tl-card.featured .tl-name {
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+}
+
+.tl-sub {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+}
+
+.tl-start {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.tl-start .segmented {
+  flex: 1;
+}
+
+.tl-question {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
   padding-top: var(--space-2);
   border-top: var(--border-width) solid var(--color-border);
+}
+
+.list-row-trailing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+/* Free time: a hatched stripe with the time written, an empty space on purpose, not a hole */
+.free-slot {
+  display: flex;
+  align-items: center;
+  min-height: var(--size-free-slot);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-small);
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 var(--size-hatch-gap),
+    var(--color-surface-2) var(--size-hatch-gap) calc(var(--size-hatch-gap) + var(--size-hatch-line))
+  );
+}
+
+/* Swipe actions: the buttons sit behind the row and are revealed by sliding it to the left */
+.swipe {
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline .swipe {
+  border-radius: var(--radius-card);
+}
+
+.class-block .swipe {
+  flex: 1;
+  min-width: 0;
+}
+
+.class-block .swipe,
+.class-block .swipe-content,
+.class-block .class-main {
+  height: 100%;
+}
+
+.class-block .class-main {
+  width: 100%;
+}
+
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+}
+
+.swipe-action {
+  width: var(--size-swipe-action);
+  border: 0;
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  font: inherit;
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-strong);
+  cursor: pointer;
+}
+
+.swipe-action.danger {
+  background: var(--color-danger);
+  color: var(--color-on-danger);
+}
+
+.swipe-action:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus);
+  outline-offset: calc(-1 * var(--focus-ring-width));
+}
+
+.swipe-content {
+  --swipe-offset: 0;
+  position: relative;
+  background: var(--color-surface);
+  /* A finger moving sideways swipes the row; moving up or down still scrolls the page. */
+  touch-action: pan-y;
+  transform: translateX(calc(var(--swipe-offset) * var(--unit-px)));
+  transition: transform var(--duration-base) var(--easing);
+}
+
+.swipe-content.dragging {
+  transition: none;
 }
 
 /* Panel (Sheet): rises from the bottom on the phone, opens in the center on the iPad */
