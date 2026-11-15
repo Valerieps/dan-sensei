@@ -11,7 +11,7 @@ O que ainda não está pronto.
 
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
-| Padrão Apple nas telas das fases 1a e 1b: componentes, navegação, Hoje, Agenda, Alunos, perfil, painéis | 1a, 1b | `spec/telas-de-gestao.md` | Sessões A2 a A7 de `rascunhos/plano-padrao-apple-e-fase-1c.md` |
+| Padrão Apple nas telas das fases 1a e 1b (os componentes já existem em `src/ui/components/`): navegação, Hoje, Agenda, Alunos, perfil, painéis | 1a, 1b | `spec/telas-de-gestao.md` | Sessões A3 a A7 de `rascunhos/plano-padrao-apple-e-fase-1c.md` |
 | Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | A fase 1c segue as sessões C1 a C9 do mesmo plano |
 | Programas, treinos e montagem em cartões | 1c | `spec/treinos-e-exercicios.md` | |
 | Modo Ao Vivo individual, cronômetro e registro das séries | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7) |

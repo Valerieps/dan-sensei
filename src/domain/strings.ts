@@ -9,6 +9,14 @@ export const strings = {
   loading: 'Carregando…',
   retry: 'Tentar de novo',
   cancel: 'Cancelar',
+  save: 'Salvar',
+  /** The grabber of a panel: screen readers announce it, and it closes the panel on activation. */
+  closePanel: 'Fechar painel',
+  /** The stepper's buttons: "Diminuir Carga". */
+  decrease: (what: string) => `Diminuir ${what}`,
+  increase: (what: string) => `Aumentar ${what}`,
+  /** The badge of a health alert has an icon; this is the icon's name for screen readers. */
+  healthAlert: 'Alerta de saúde',
   back: 'Voltar',
   forbidden: 'Você não tem permissão para isso.',
   offline: 'Sem conexão. Mostrando o último estado carregado.',
