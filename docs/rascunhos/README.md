@@ -9,5 +9,4 @@ Quando a tela de um rascunho fica pronta, o rascunho é apagado: o código passa
 
 | Rascunho | Status |
 | --- | --- |
-| [plano-fases-1a-1b.md](plano-fases-1a-1b.md) | Plano das sessões das fases 1a e 1b; a S12 ficou para a A1 do plano seguinte, que apaga este |
 | [plano-padrao-apple-e-fase-1c.md](plano-padrao-apple-e-fase-1c.md) | Plano das sessões do padrão Apple e da fase 1c, para o orquestrador em Sonnet; sai na C9 |
