@@ -32,6 +32,7 @@ const STATUS: Record<ApiError, number> = {
   invalid: 400,
   conflict: 409,
   last_admin: 409,
+  consent_required: 409,
   unavailable: 503,
 };
 

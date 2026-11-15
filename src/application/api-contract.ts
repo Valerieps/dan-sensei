@@ -49,6 +49,39 @@ export interface StudentView {
   readonly billing: Billing;
   readonly notes: string;
   readonly addresses: readonly AddressView[];
+  /** The term the student signed last; null until signed. The signature itself never leaves the server. */
+  readonly consent: ConsentView | null;
+  /** Health alerts, always empty without a signed term. They show on the profile, Hoje and the cards. */
+  readonly healthAlerts: readonly HealthAlertView[];
+}
+
+export interface ConsentView {
+  readonly version: number;
+  readonly signedAt: string;
+}
+
+export interface HealthAlertView {
+  readonly id: string;
+  readonly conditionId: string;
+  /** The condition's name. */
+  readonly label: string;
+  readonly note: string;
+}
+
+export interface HealthConditionView {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface StudentHealth {
+  readonly consent: ConsentView | null;
+  /** The last PAR-Q: one yes/no per question. */
+  readonly parq: { readonly answers: readonly boolean[]; readonly answeredAt: string } | null;
+  readonly mainGoal: string;
+  readonly secondaryGoals: readonly string[];
+  readonly alerts: readonly HealthAlertView[];
+  /** The list the alerts are picked from. */
+  readonly conditions: readonly HealthConditionView[];
 }
 
 /** The fields of the registration form; `addresses` with an `id` keep that address. */
@@ -537,6 +570,8 @@ export interface Queries {
   /** Every student that is not inactive, by name; `includeInactive` adds the inactive ones. */
   students: { input: { includeInactive?: boolean }; output: StudentView[] };
   student: { input: { id: string }; output: StudentView };
+  /** Consent, PAR-Q, objectives, alerts and the condition list of one student (docs/spec/termo-e-lgpd.md). */
+  studentHealth: { input: { studentId: string }; output: StudentHealth };
   members: { input: Record<string, never>; output: MemberListItem[] };
   /** Admins only. */
   invites: { input: Record<string, never>; output: InviteView[] };
@@ -594,6 +629,16 @@ export interface Commands {
   'student.update': { input: StudentFormInput & { id: string }; output: StudentView };
   'student.setStatus': { input: { id: string; status: StudentStatus }; output: StudentView };
   'student.setNotes': { input: { id: string; notes: string }; output: StudentView };
+  /** The student signs the term on the iPad: `signature` is a PNG data URL, `version` the term's version. */
+  'consent.sign': { input: { studentId: string; version: number; signature: string }; output: ConsentView };
+  /** Needs a signed term (`consent_required`). One answer per question. */
+  'parq.save': { input: { studentId: string; answers: readonly boolean[] }; output: null };
+  /** The main goal and up to three secondary ones. Needs a signed term. */
+  'anamnesis.save': { input: { studentId: string; main: string; secondary: readonly string[] }; output: null };
+  /** Marks (or edits the note of) an alert. Needs a signed term. */
+  'alert.set': { input: { studentId: string; conditionId: string; note?: string }; output: HealthAlertView };
+  'alert.remove': { input: { studentId: string; conditionId: string }; output: null };
+  'condition.create': { input: { name: string }; output: HealthConditionView };
   'plan.create': { input: PlanInput; output: PlanView };
   'plan.update': { input: PlanInput & { id: string; active?: boolean }; output: PlanView };
   /**
@@ -686,6 +731,6 @@ export interface LiveMessage {
   readonly topics: readonly Topic[];
 }
 
-export type ApiError = 'unauthenticated' | 'forbidden' | 'not_found' | 'invalid' | 'conflict' | 'last_admin' | 'unavailable';
+export type ApiError = 'unauthenticated' | 'forbidden' | 'not_found' | 'invalid' | 'conflict' | 'last_admin' | 'consent_required' | 'unavailable';
 
 export type ApiResult<T> = { readonly ok: true; readonly value: T } | { readonly ok: false; readonly error: ApiError };

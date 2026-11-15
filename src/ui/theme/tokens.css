@@ -141,6 +141,8 @@
   --size-sheet-large: 92vh;
   /* The form sheet on the iPad. */
   --size-sheet-width: 540px;
+  --size-signature: 200px;
+  --size-term-text: 40vh;
   --size-dialog: 280px;
   --size-switch-width: 51px;
   --size-switch-height: 31px;

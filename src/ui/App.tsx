@@ -95,9 +95,9 @@ function Screen({ me }: { me: MeView }) {
   if (packageForm) return <PackageForm key={path} studentId={packageForm[1]} startingBalance={packageForm[2] === 'saldo-inicial'} />;
   const workouts = /^\/alunos\/([^/]+)\/treinos(?:\/([^/]+))?\/?$/.exec(path);
   if (workouts) return <StudentProfile key={workouts[1]} id={workouts[1]} tab="workouts" workoutId={workouts[2]} />;
-  const profile = /^\/alunos\/([^/]+)(\/notas|\/pacotes|\/mensalidades)?\/?$/.exec(path);
+  const profile = /^\/alunos\/([^/]+)(\/notas|\/pacotes|\/mensalidades|\/saude)?\/?$/.exec(path);
   if (profile) {
-    const tabs = { '/notas': 'notes', '/pacotes': 'packages', '/mensalidades': 'monthly' } as const;
+    const tabs = { '/notas': 'notes', '/pacotes': 'packages', '/mensalidades': 'monthly', '/saude': 'health' } as const;
     const tab = tabs[profile[2] as keyof typeof tabs] ?? 'registration';
     return <StudentProfile key={profile[1]} id={profile[1]} tab={tab} />;
   }

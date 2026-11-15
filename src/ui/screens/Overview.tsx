@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { UrgencyItem } from '../../application/api-contract';
+import type { HealthAlertView, UrgencyItem } from '../../application/api-contract';
 import { diaDaSemana } from '../../domain/agenda';
 import { formatPhone, initials } from '../../domain/alunos/student';
 import { formatarData, formatarReais } from '../../domain/pacotes';
@@ -13,6 +13,7 @@ import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { Belt, validityText } from '../components/PackageProgress';
 import { Sheet } from '../components/Sheet';
+import { HealthAlerts } from '../components/HealthAlerts';
 import { StudentCard } from '../components/StudentCard';
 import { navigate } from '../router';
 import { useQuery } from '../use-query';
@@ -65,6 +66,7 @@ export function Overview() {
   const data = overview.data;
   const [year, month] = data ? data.month.split('-') : ['', ''];
   const shown = data ? filterItems(data.items, filter) : [];
+  const alertsById = new Map((inactive.data ?? []).map((s) => [s.id, s.healthAlerts]));
   const inactiveStudents = (inactive.data ?? []).filter((s) => s.status === 'inactive');
 
   return (
@@ -122,7 +124,7 @@ export function Overview() {
         <ul className="student-grid">
           {shown.map((item) => (
             <li key={item.studentId}>
-              <StudentCardOf item={item} forecast={agenda.data?.forecastWarnings.find((w) => w.packageId === item.package?.id)?.message} onMenu={() => setMenu(item)} />
+              <StudentCardOf item={item} alerts={alertsById.get(item.studentId) ?? []} forecast={agenda.data?.forecastWarnings.find((w) => w.packageId === item.package?.id)?.message} onMenu={() => setMenu(item)} />
             </li>
           ))}
         </ul>
@@ -180,7 +182,7 @@ function stateBadge(item: UrgencyItem): { tone: BadgeTone; text: string } | null
   return item.package.paymentStatus === 'paid' ? { tone: 'brand', text: c.paid } : { tone: 'danger', text: c.pending };
 }
 
-function StudentCardOf({ item, forecast, onMenu }: { item: UrgencyItem; forecast?: string; onMenu: () => void }) {
+function StudentCardOf({ item, alerts, forecast, onMenu }: { item: UrgencyItem; alerts: readonly HealthAlertView[]; forecast?: string; onMenu: () => void }) {
   const c = strings.packages.card;
   const pkg = item.package;
   const badge = stateBadge(item);
@@ -196,6 +198,7 @@ function StudentCardOf({ item, forecast, onMenu }: { item: UrgencyItem; forecast
       badge={badge && <Badge tone={badge.tone}>{badge.text}</Badge>}
       onMenu={onMenu}
     >
+      <HealthAlerts alerts={alerts} />
       {item.billing === 'monthly' && <span className="muted">{c.monthly}</span>}
       {item.pendingMonths.length > 0 && <span className="small">{c.monthlyPendingMonths(item.pendingMonths)}</span>}
       {item.billing !== 'monthly' && !pkg && <span className="muted">{c.noPackage}</span>}

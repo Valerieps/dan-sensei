@@ -7,18 +7,20 @@ import { Button } from "../components/Button";
 import { ConfirmDialog } from "../components/ConfirmDialog";
 import { SegmentedControl } from "../components/Controls";
 import { ListContent, ListRow, ListSection } from "../components/GroupedList";
+import { HealthAlerts } from "../components/HealthAlerts";
 import { Loading } from "../components/Loading";
 import { Notice } from "../components/Notice";
 import { RouteSheet } from "../components/RouteSheet";
 import { Link, navigate } from "../router";
 import { useQuery } from "../use-query";
+import { HealthTab } from "./HealthTab";
 import { MonthlyTab } from "./MonthlyTab";
 import { PackagesTab } from "./PackagesTab";
 import { StudentForm, STUDENT_FORM_ID } from "./StudentForm";
 import { WorkoutsTab } from "./WorkoutsTab";
 
 /** Tabs of the profile. Later sessions add Histórico here. */
-export type ProfileTab = "registration" | "packages" | "monthly" | "workouts" | "notes";
+export type ProfileTab = "registration" | "packages" | "monthly" | "workouts" | "health" | "notes";
 
 const TABS: { tab: ProfileTab; label: string; path: (id: string) => string }[] =
   [
@@ -41,6 +43,11 @@ const TABS: { tab: ProfileTab; label: string; path: (id: string) => string }[] =
       tab: "workouts",
       label: strings.students.tabs.workouts,
       path: (id) => `/alunos/${id}/treinos`,
+    },
+    {
+      tab: "health",
+      label: strings.students.tabs.health,
+      path: (id) => `/alunos/${id}/saude`,
     },
     {
       tab: "notes",
@@ -91,6 +98,7 @@ export function StudentProfile({ id, tab, workoutId }: { id: string; tab: Profil
                 {strings.students.status[data.status]}
               </span>
               <HeaderPackage student={data} />
+              <HealthAlerts alerts={data.healthAlerts} />
             </div>
           </header>
         </ListContent>
@@ -107,6 +115,7 @@ export function StudentProfile({ id, tab, workoutId }: { id: string; tab: Profil
       {tab === "packages" && <PackagesTab student={data} />}
       {tab === "monthly" && <MonthlyTab student={data} />}
       {tab === "workouts" && <WorkoutsTab student={data} workoutId={workoutId} />}
+      {tab === "health" && <HealthTab student={data} />}
       {tab === "notes" && <Notes student={data} />}
     </section>
   );

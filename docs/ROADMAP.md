@@ -16,8 +16,6 @@ O que ainda não está pronto.
 | Aula em dupla com dois cronômetros e sons por aluno | 1c | `spec/aula-ao-vivo.md` | |
 | PSE, carga da aula e volume | 1c | `spec/aula-ao-vivo.md` | |
 | Resumo da aula pelo WhatsApp | 1c | `spec/whatsapp.md` | |
-| Anamnese e alertas de saúde | 1c | `spec/alunos.md` | |
-| Termo e PAR-Q | 1c | `spec/termo-e-lgpd.md` | Parte do rascunho de contrato do Dan |
 | Aula sem internet | 1c | `spec/aula-ao-vivo.md` | ADR-009 |
 | Aula simples no celular | 1c | `spec/aula-ao-vivo.md` | |
 
@@ -61,6 +59,7 @@ O que ainda não está pronto.
   (`spec/mensalistas.md`).
 - [ ] O aluno não tem foto, só iniciais (`spec/alunos.md`).
 - [ ] Sem termo assinado, o app não guarda anamnese nem alertas de saúde (`spec/termo-e-lgpd.md`).
+- [ ] Termo e saúde: o texto do termo no app é um rascunho até o Dan aprovar o dele; o termo vale em qualquer versão já assinada (uma versão nova só pede nova assinatura); o PAR-Q também exige o termo; a lista de condições começa com oito e eu acrescento outras na hora de marcar o alerta; um "sim" no PAR-Q mostra o aviso de liberação médica; a cópia e a exclusão dos dados do aluno seguem para depois (`spec/termo-e-lgpd.md`, `spec/alunos.md`).
 - [ ] A cor da aula na agenda mostra a situação, não o aluno (`spec/agenda.md`).
 - [ ] Agenda (telas): a grade do dia vai das 6h às 22h e cresce se há aula fora disso; arrasto pela
   alça da aula (a aula em si rola a página), em passos de 15 min, e soltar abre a confirmação de

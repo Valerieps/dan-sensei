@@ -1574,3 +1574,36 @@ button.list-row-body:active {
   flex-wrap: wrap;
   gap: var(--space-4);
 }
+
+/* Health: alerts, the term and the signature (docs/spec/termo-e-lgpd.md) */
+
+.health-alerts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.term-text {
+  max-height: var(--size-term-text);
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-surface-2);
+}
+
+.signature-pad {
+  display: block;
+  width: 100%;
+  height: var(--size-signature);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: var(--border-width) solid var(--color-border);
+  touch-action: none;
+}
+
+.parq-question {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

@@ -2,6 +2,7 @@
 import type { AddressView, StudentView } from '../../src/application/api-contract';
 import { isStudentStatus, normalizeNotes, normalizeStudentInput, type StudentStatus } from '../../src/domain/alunos/student';
 import { failure, nowIso, QueryError, type CommandResult, type Context } from './context';
+import { alertsByStudent, alertsOf, consentOf, consentsByStudent } from './health';
 import type { Member } from './members';
 
 interface StudentRow {
@@ -24,7 +25,7 @@ interface AddressRow {
   is_default: number;
 }
 
-function toView(row: StudentRow, addresses: readonly AddressRow[]): StudentView {
+function toView(row: StudentRow, addresses: readonly AddressRow[], health: Pick<StudentView, 'consent' | 'healthAlerts'>): StudentView {
   return {
     id: row.id,
     name: row.name,
@@ -38,13 +39,15 @@ function toView(row: StudentRow, addresses: readonly AddressRow[]): StudentView 
     addresses: addresses
       .filter((a) => a.student_id === row.id)
       .map((a): AddressView => ({ id: a.id, label: a.label, address: a.address, isDefault: a.is_default === 1 })),
+    ...health,
   };
 }
 
 function loadStudent(ctx: Context, id: string): StudentView | null {
   const [row] = ctx.sql.all<StudentRow>('SELECT * FROM students WHERE id = ?', id);
   if (!row) return null;
-  return toView(row, ctx.sql.all<AddressRow>('SELECT * FROM student_addresses WHERE student_id = ? ORDER BY is_default DESC, rowid', id));
+  const addresses = ctx.sql.all<AddressRow>('SELECT * FROM student_addresses WHERE student_id = ? ORDER BY is_default DESC, rowid', id);
+  return toView(row, addresses, { consent: consentOf(ctx, id), healthAlerts: alertsOf(ctx, id) });
 }
 
 export function listStudents(ctx: Context, _actor: Member, input: { includeInactive?: unknown }): StudentView[] {
@@ -52,7 +55,9 @@ export function listStudents(ctx: Context, _actor: Member, input: { includeInact
     input.includeInactive === true ? 'SELECT * FROM students ORDER BY name COLLATE NOCASE' : "SELECT * FROM students WHERE status <> 'inactive' ORDER BY name COLLATE NOCASE",
   );
   const addresses = ctx.sql.all<AddressRow>('SELECT * FROM student_addresses ORDER BY is_default DESC, rowid');
-  return rows.map((row) => toView(row, addresses));
+  const consents = consentsByStudent(ctx);
+  const alerts = alertsByStudent(ctx);
+  return rows.map((row) => toView(row, addresses, { consent: consents.get(row.id) ?? null, healthAlerts: alerts.get(row.id) ?? [] }));
 }
 
 export function getStudent(ctx: Context, _actor: Member, input: { id?: unknown }): StudentView | QueryError {

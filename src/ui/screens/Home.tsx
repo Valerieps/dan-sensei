@@ -11,6 +11,7 @@ import { Button, ButtonLink } from '../components/Button';
 import { classNames, classStatusText, lessonSwipeActions } from '../components/class-text';
 import { SegmentedControl } from '../components/Controls';
 import { ListRow, ListSection } from '../components/GroupedList';
+import { HealthAlerts } from '../components/HealthAlerts';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { SwipeActions } from '../components/SwipeActions';
@@ -197,6 +198,9 @@ function LessonCard({ lesson, today, featured, current, due, students, pix, fore
         {featured && lesson.confirmed && <Badge tone="brand">{strings.agenda.confirmed}</Badge>}
         {unconfirmed && <Badge>{t.notConfirmed}</Badge>}
       </div>
+      {lesson.students.map((s) => (
+        <HealthAlerts key={s.id} alerts={students.get(s.id)?.healthAlerts ?? []} />
+      ))}
       {forecast.map((message) => (
         <p key={message} className="tl-sub forecast">
           {t.forecast}: {message}
