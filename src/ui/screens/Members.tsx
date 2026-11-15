@@ -9,6 +9,7 @@ import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Field } from '../components/Field';
 import { ListContent, ListRow, ListSection } from '../components/GroupedList';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { useConfirm } from '../components/use-confirm';
 import { useQuery } from '../use-query';
@@ -96,7 +97,7 @@ export function Members({ me }: { me: MeView }) {
     <section>
       <h1>{strings.members.title}</h1>
       <MyName me={me} />
-      {members.error && !members.data && <Notice tone="error">{strings.genericError}</Notice>}
+      {!members.data && (members.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />)}
       {error && <Notice tone="error">{error}</Notice>}
       <ListSection header={strings.members.title} footer={members.data?.length === 1 ? strings.members.empty : undefined}>
         {members.data?.map((member) => (

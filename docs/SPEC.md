@@ -31,8 +31,8 @@ Cada fase precisa ser usável sozinha. Cada regra em `spec/` diz de que fase val
 
 | Fase | O que entra |
 | --- | --- |
-| 1a | Alunos e pacotes: cadastro, planos, pacotes, registro de aula dada ou falta, saldo, renovação, pausas, pagamentos, mensalistas, saldo inicial, a tela Alunos e pacotes e o extrato pelo WhatsApp |
-| 1b | Agenda: horários fixos, remarcação, regras de cancelamento, previsão de validade, Início com a linha do tempo do dia, confirmação de aulas e o lembrete de mensalidade |
+| 1a | Alunos e pacotes: cadastro, planos, pacotes, registro de aula dada ou falta, saldo, renovação, pausas, pagamentos, mensalistas, saldo inicial, a aba Alunos e o extrato pelo WhatsApp |
+| 1b | Agenda: horários fixos, remarcação, regras de cancelamento, previsão de validade, a aba Hoje com a linha do tempo do dia, confirmação de aulas e o lembrete de mensalidade |
 | 1c | Aula: biblioteca de exercícios, treinos, Modo Ao Vivo (individual e em dupla), cronômetro, PSE, resumo pelo WhatsApp, anamnese e alertas de saúde, termo e PAR-Q, aula sem internet e a aula simples no celular |
 | 2 | Avaliação física, mapa de calor, gráficos de volume, fotos comparativas, treino para o aluno treinar sozinho, código de acesso ou Touch ID, notificações, relatório de recebimentos |
 | 3 | Tempo de deslocamento na agenda, recibos, vídeos próprios de execução |
@@ -54,7 +54,7 @@ automático de mensagens pelo WhatsApp.
 | [spec/pacotes-e-pagamentos.md](spec/pacotes-e-pagamentos.md) | Planos, pacotes, saldo, faltas, renovação, pausas, pagamentos, dupla e saldo inicial |
 | [spec/mensalistas.md](spec/mensalistas.md) | Alunos que pagam mensalidade |
 | [spec/agenda.md](spec/agenda.md) | Horários fixos, aulas agendadas, remarcação, cancelamento e confirmação |
-| [spec/telas-de-gestao.md](spec/telas-de-gestao.md) | Início, Alunos e pacotes, perfil do aluno e o celular |
+| [spec/telas-de-gestao.md](spec/telas-de-gestao.md) | Hoje, Alunos, perfil do aluno e o celular |
 | [spec/treinos-e-exercicios.md](spec/treinos-e-exercicios.md) | Biblioteca de exercícios, programas, treinos e prescrição |
 | [spec/aula-ao-vivo.md](spec/aula-ao-vivo.md) | Modo Ao Vivo, dupla, cronômetro, registro das séries, PSE e volume |
 | [spec/whatsapp.md](spec/whatsapp.md) | Mensagens prontas: extrato, resumo, renovação, confirmação e lembrete |

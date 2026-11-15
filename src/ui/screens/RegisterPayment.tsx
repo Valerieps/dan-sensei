@@ -3,14 +3,14 @@ import type { PackageSummary, PaymentMethod, PaymentView } from '../../applicati
 import { dataEmSaoPaulo, formatarReais, lerReais, reaisParaTexto } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
-import { Button } from '../components/Button';
+import { Button, ButtonLink } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { ChoiceField, RouteSheet } from '../components/RouteSheet';
 import { SelectField } from '../components/SelectField';
-import { Link, navigate } from '../router';
+import { navigate } from '../router';
 import { useQuery } from '../use-query';
 
 const TOPICS = ['packages', 'payments'] as const;
@@ -139,7 +139,7 @@ export function RegisterPayment({ studentId = '', packageId = '', behind }: { st
   if (!students.data) return sheet(students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />);
   const eligible = students.data.filter((s) => s.billing === 'package');
   if (eligible.length === 0) {
-    return sheet(<EmptyState action={<Link className="button" to="/alunos/novo">{strings.students.newTitle}</Link>}>{t.noStudents}</EmptyState>);
+    return sheet(<EmptyState action={<ButtonLink to="/alunos/novo">{strings.students.newTitle}</ButtonLink>}>{t.noStudents}</EmptyState>);
   }
 
   const live: PackageSummary[] = student && packages.data ? packages.data.filter((p) => p.status !== 'encerrado') : [];
@@ -175,7 +175,7 @@ export function RegisterPayment({ studentId = '', packageId = '', behind }: { st
       </SelectField>
 
       {student && packages.data && live.length === 0 && (
-        <EmptyState action={<Link className="button" to={`/alunos/${student}/pacotes/novo`}>{strings.packages.tab.newPackage}</Link>}>{t.noPackage}</EmptyState>
+        <EmptyState action={<ButtonLink to={`/alunos/${student}/pacotes/novo`}>{strings.packages.tab.newPackage}</ButtonLink>}>{t.noPackage}</EmptyState>
       )}
 
       {selected && (

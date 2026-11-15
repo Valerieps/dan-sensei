@@ -77,7 +77,7 @@ Ao abrir, o app mostra o dia de hoje, pronto para começar a próxima aula.
 ## Perfil do aluno
 
 - O perfil tem um cabeçalho (nome, iniciais, alertas de saúde, pacote) e abas: cadastro, pacotes e
-  pagamentos, notas, e depois treinos e histórico. *(1a)*
+  pagamentos, mensalidades, notas, e depois treinos e histórico. *(1a)*
 
 ## Celular
 

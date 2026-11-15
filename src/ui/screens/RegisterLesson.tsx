@@ -6,10 +6,10 @@ import { useServices } from '../backend-context';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
 import { Loading } from '../components/Loading';
+import { ButtonLink } from '../components/Button';
 import { Notice } from '../components/Notice';
 import { ChoiceField, RouteSheet } from '../components/RouteSheet';
 import { SelectField } from '../components/SelectField';
-import { Link } from '../router';
 import { useQuery } from '../use-query';
 
 const NONE = 'none';
@@ -52,7 +52,7 @@ export function RegisterLesson({ studentId = '', behind }: { studentId?: string;
   if (!students.data) return sheet(students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />);
   const eligible = students.data.filter((s) => s.billing === 'package');
   if (eligible.length === 0) {
-    return sheet(<EmptyState action={<Link className="button" to="/alunos/novo">{strings.students.newTitle}</Link>}>{t.noStudents}</EmptyState>);
+    return sheet(<EmptyState action={<ButtonLink to="/alunos/novo">{strings.students.newTitle}</ButtonLink>}>{t.noStudents}</EmptyState>);
   }
 
   const today = dataEmSaoPaulo(new Date());
