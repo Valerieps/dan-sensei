@@ -3,7 +3,7 @@ import { diaDaSemana, DURACAO_MAXIMA_MIN } from '../../domain/agenda';
 import { dataEmSaoPaulo } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
-import { Button } from '../components/Button';
+import { Button, ButtonLink } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
 import { Loading } from '../components/Loading';
@@ -11,7 +11,7 @@ import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Notice } from '../components/Notice';
 import { ChoiceField, RouteSheet } from '../components/RouteSheet';
 import { SelectField } from '../components/SelectField';
-import { Link, navigate } from '../router';
+import { navigate } from '../router';
 import { useQuery } from '../use-query';
 
 type Kind = 'oneOff' | 'fixed';
@@ -46,7 +46,7 @@ export function NewClass({ date: initialDate, time: initialTime, behind }: { dat
   if (!students.data) return sheet(students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />);
   const eligible = students.data.filter((s) => s.status !== 'inactive');
   if (eligible.length === 0) {
-    return sheet(<EmptyState action={<Link className="button" to="/alunos/novo">{strings.students.newTitle}</Link>}>{f.noStudents}</EmptyState>);
+    return sheet(<EmptyState action={<ButtonLink to="/alunos/novo">{strings.students.newTitle}</ButtonLink>}>{f.noStudents}</EmptyState>);
   }
 
   const student = eligible.find((s) => s.id === first);

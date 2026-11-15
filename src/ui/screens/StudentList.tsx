@@ -3,6 +3,7 @@ import { strings } from '../../domain/strings';
 import { ButtonLink } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { ListRow, ListSection } from '../components/GroupedList';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { useQuery } from '../use-query';
 
@@ -12,7 +13,7 @@ export function StudentList() {
   return (
     <section>
       <h1>{strings.students.pickForNote}</h1>
-      {students.error && !students.data && <Notice tone="error">{strings.genericError}</Notice>}
+      {!students.data && (students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />)}
       {students.data?.length === 0 && (
         <EmptyState
           action={

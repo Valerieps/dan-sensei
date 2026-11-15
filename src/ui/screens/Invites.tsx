@@ -6,6 +6,7 @@ import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Field } from '../components/Field';
 import { ListContent, ListRow, ListSection } from '../components/GroupedList';
+import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { useQuery } from '../use-query';
 
@@ -71,6 +72,7 @@ export function Invites() {
         </ListSection>
       </form>
       {error && <Notice tone="error">{error}</Notice>}
+      {!invites.data && (invites.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />)}
       <ListSection header={strings.invites.title} footer={invites.data?.length === 0 ? strings.invites.empty : undefined}>
         {invites.data?.map((invite) => (
           <ListRow

@@ -15,6 +15,7 @@ import {
 import { dataEmSaoPaulo, formatarData, somarDias } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { Badge } from '../components/Badge';
+import { ButtonLink } from '../components/Button';
 import { classNames, classStatusText, classTone, lessonSwipeActions } from '../components/class-text';
 import { SegmentedControl } from '../components/Controls';
 import { EmptyState } from '../components/EmptyState';
@@ -63,16 +64,16 @@ export function Agenda({ mode, date: rawDate }: { mode: 'day' | 'week'; date?: s
       />
 
       <div className="row agenda-nav">
-        <Link className="button secondary" to={`${base}/${somarDias(date, -step)}`} aria-label={mode === 'day' ? a.previousDay : a.previousWeek}>
+        <ButtonLink variant="secondary" to={`${base}/${somarDias(date, -step)}`} aria-label={mode === 'day' ? a.previousDay : a.previousWeek}>
           <Icon name="chevron-left" />
-        </Link>
+        </ButtonLink>
         <h2 className="grow agenda-label">{label}</h2>
-        <Link className="button secondary" to={`${base}/${today}`}>
+        <ButtonLink variant="secondary" to={`${base}/${today}`}>
           {a.today}
-        </Link>
-        <Link className="button secondary" to={`${base}/${somarDias(date, step)}`} aria-label={mode === 'day' ? a.nextDay : a.nextWeek}>
+        </ButtonLink>
+        <ButtonLink variant="secondary" to={`${base}/${somarDias(date, step)}`} aria-label={mode === 'day' ? a.nextDay : a.nextWeek}>
           <Icon name="chevron-right" />
-        </Link>
+        </ButtonLink>
       </div>
 
       {!current.data && (current.error ? <Notice tone="error">{a.loadFailed}</Notice> : <Loading />)}

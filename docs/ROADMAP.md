@@ -11,7 +11,6 @@ O que ainda não está pronto.
 
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
-| Padrão Apple nas telas das fases 1a e 1b (os componentes já existem em `src/ui/components/`): fechamento (revisão visual no navegador) | 1a, 1b | `spec/telas-de-gestao.md` | Sessão A7 de `rascunhos/plano-padrao-apple-e-fase-1c.md` |
 | Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | A fase 1c segue as sessões C1 a C9 do mesmo plano |
 | Programas, treinos e montagem em cartões | 1c | `spec/treinos-e-exercicios.md` | |
 | Modo Ao Vivo individual, cronômetro e registro das séries | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7) |
@@ -23,18 +22,13 @@ O que ainda não está pronto.
 | Aula sem internet | 1c | `spec/aula-ao-vivo.md` | ADR-009 |
 | Aula simples no celular | 1c | `spec/aula-ao-vivo.md` | |
 
-## O código ainda não segue o spec
-
-- As telas ainda usam os componentes antigos; o spec pede os painéis e as listas agrupadas do iOS
-  (`spec/telas-de-gestao.md`, ADR-011).
-
 ## Adiado
 
 - Avaliação física, fotos comparativas, mapa de calor e gráficos de volume — fase 2; não bloqueiam a
   aula e os gráficos precisam de semanas de dados.
 - Código de acesso ou Touch ID para abrir o app — fase 2; na fase 1 bastam o Google e o bloqueio do
   iPad.
-- Notificações com o app fechado — fase 2; a fase 1b avisa no Início.
+- Notificações com o app fechado — fase 2; a fase 1b avisa em Hoje.
 - Treino para o aluno treinar sozinho — fase 2.
 - Relatório mensal de recebimentos — fase 2; o Dan não declara pelo carnê-leão hoje.
 - Tempo de deslocamento, recibos e vídeos próprios — fase 3.
@@ -70,7 +64,7 @@ O que ainda não está pronto.
   "remarcar" com "só esta" ou "esta e as seguintes"; a alternativa sem arrastar é tocar na aula,
   escolher dia e hora e remarcar (3 toques) ou as setas do teclado na alça; aula cancelada ou
   remarcada não conta como ocupada nos intervalos; a previsão aparece no cartão do aluno em
-  "Alunos e pacotes" (`spec/agenda.md`).
+  "Alunos" (`spec/agenda.md`).
 - [ ] WhatsApp: o extrato e a renovação saem numa só mensagem (a renovação é um parágrafo no fim);
   o valor do parágrafo é o total do pacote atual; o plano Avulso nunca recebe o parágrafo; a data
   aparece como dia/mês; o extrato fica "para enviar" até eu abrir a mensagem depois da última aula
@@ -81,7 +75,7 @@ O que ainda não está pronto.
   próprios (`spec/termo-e-lgpd.md`).
 - [ ] Limites do cadastro do aluno: telefone com 10 a 13 números, altura de 50 a 250 cm, até 5
   endereços, notas de até 5.000 letras (`spec/alunos.md`).
-- [ ] Alunos e pacotes: o cartão mostra "Aula X de Y" com X igual às aulas usadas; a opção "esconder valores" esconde só o recebido do mês e fica guardada no aparelho; mensalistas aparecem sem barra; inativos ficam no filtro "Inativos" do controle segmentado (`spec/telas-de-gestao.md`).
+- [ ] Alunos: o cartão mostra "Aula X de Y" com X igual às aulas usadas; a opção "esconder valores" esconde só o recebido do mês e fica guardada no aparelho; mensalistas aparecem sem barra; inativos ficam no filtro "Inativos" do controle segmentado (`spec/telas-de-gestao.md`).
 - [ ] Menu +: antes da agenda, "Nova aula" é a tela "Registrar aula" (segunda opção, depois de Registrar pagamento); o perfil mostra no cabeçalho o plano, "Aula X de Y" e a situação do pacote atual (`spec/telas-de-gestao.md`).
 - [ ] Agenda (servidor): as aulas dos horários fixos são geradas 8 semanas à frente, no comando e no
   cron (ADR-010); remarcar "esta e as seguintes" troca o horário fixo a partir daquela aula; aula
@@ -93,7 +87,7 @@ O que ainda não está pronto.
   Modo Ao Vivo só chega na 1c, a aula em destaque tem "Marcar como dada" no lugar de "Iniciar aula".
   O texto da confirmação e do lembrete de mensalidade é fixo (não há modelo editável nas
   configurações); eu edito no WhatsApp antes de enviar. "Quem não confirmou" é quem recebeu a
-  mensagem aberta no WhatsApp e ainda não confirmou: a aula fica em destaque no dia. O Início
+  mensagem aberta no WhatsApp e ainda não confirmou: a aula fica em destaque no dia. A aba Hoje
   pergunta da mensalidade só no dia do vencimento; depois dele a pendência aparece em "Precisa de
-  atenção" e no cartão de cada aula do aluno. O cartão de Alunos e pacotes mostra a próxima aula
+  atenção" e no cartão de cada aula do aluno. O cartão de Alunos mostra a próxima aula
   agendada, ou "Sem próxima aula agendada" (`spec/agenda.md`, `spec/mensalistas.md`).
