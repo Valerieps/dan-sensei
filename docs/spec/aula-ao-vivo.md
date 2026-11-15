@@ -84,10 +84,34 @@ celular e outro no relógio.
 - O mapa de calor (uma silhueta que acende conforme as séries do dia em cada grupo) fica para a fase
   2. Ele mostra grupos trabalhados, não fadiga. *(2)*
 
+## Como o servidor guarda a aula *(1c)*
+
+- A aula aberta é a aula do dia já iniciada e ainda não encerrada. Posso sair e voltar: o app
+  lista as abertas e reconstrói a tela pelo servidor. Só encerrar desconta do pacote, uma vez, pelas
+  regras de `pacotes-e-pagamentos.md`.
+- Cada aluno tem o plano da aula: uma cópia do treino (ou da última aula) feita ao iniciar. Mudar o
+  treino depois não altera uma aula já iniciada. Na aula livre o plano começa vazio.
+- Ao iniciar do treino ou repetindo a última, a carga sugerida de cada exercício é a última que o
+  aluno usou nele; sem histórico, a prescrita. A "carga anterior" é a mesma conta, sem contar a aula
+  de agora.
+- Um toque registra a série como prescrita: as repetições do começo da faixa (8 em "8 a 12") e a
+  carga sugerida. Dá para ajustar, corrigir e apagar séries, também depois do encerramento.
+  Por quê: a faixa é o que o aluno precisa alcançar; se foi além, eu ajusto com o +.
+- Em bi-set, tri-set e circuito o app alterna uma série de cada exercício até completar todos; os
+  outros exercícios seguem a ordem do treino.
+- Encerrar guarda a duração (do início ao fim) e a PSE de cada aluno. "Encerrar agora" encerra sem
+  PSE; ela pode ser dada depois. Se mais de um pacote serve, a aula fecha "sem pacote" e eu vinculo
+  depois (`pacotes-e-pagamentos.md`), porque a aula sem internet não consegue perguntar na hora.
+- Corrigir uma aula encerrada: mudar a duração, abonar a aula (ela deixa de descontar) ou descontar
+  de outro pacote. A carga da aula e o volume se recalculam sozinhos.
+
 ## Sem internet e sem iPad
 
 - A aula inteira funciona sem internet: tudo é gravado no aparelho na hora e enviado quando a
   conexão volta. *(1c)*
+- Cada ação entra numa fila no aparelho e vai ao servidor em ordem, com o horário em que aconteceu;
+  o servidor aplica cada uma uma vez só, então reenviar não duplica nada. Uma ação que o servidor
+  recusa (o aluno foi removido, por exemplo) fica na lista de recusadas para eu ver. *(1c)*
 - Se eu chegar sem o iPad, ou com ele descarregado, o celular abre uma aula simples: lista de
   exercícios, registro das séries e cronômetro. *(1c)*
   Por quê: sem registro, a aula não desconta do pacote e o saldo fica errado.

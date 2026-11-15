@@ -313,6 +313,54 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
       UNIQUE (student_id, condition_id)
     )`,
   ],
+  // 10: the live class (docs/spec/aula-ao-vivo.md). A class is "open" from started_at to finished_at;
+  // finishing is what draws it from the package. `class_plan` is the class's own copy of what to do
+  // (editing a workout never reaches it); `performed_sets` is what was done and does not point to the
+  // plan's workout. `client_commands` makes a resend from the offline queue harmless (ADR-009).
+  [
+    `ALTER TABLE classes ADD COLUMN started_at TEXT`,
+    `ALTER TABLE classes ADD COLUMN finished_at TEXT`,
+    `ALTER TABLE classes ADD COLUMN actual_min INTEGER`,
+    `ALTER TABLE class_students ADD COLUMN pse INTEGER`,
+    `CREATE TABLE class_plan (
+      id TEXT PRIMARY KEY,
+      class_id TEXT NOT NULL REFERENCES classes(id),
+      student_id TEXT NOT NULL REFERENCES students(id),
+      exercise_id TEXT NOT NULL REFERENCES exercises(id),
+      sort INTEGER NOT NULL,
+      sets INTEGER NOT NULL,
+      reps_min INTEGER NOT NULL,
+      reps_max INTEGER NOT NULL,
+      load_g INTEGER,
+      rest_s INTEGER NOT NULL,
+      notes TEXT NOT NULL DEFAULT '',
+      group_key TEXT,
+      group_kind TEXT
+    )`,
+    `CREATE INDEX class_plan_class ON class_plan(class_id, student_id, sort)`,
+    `CREATE TABLE performed_sets (
+      id TEXT PRIMARY KEY,
+      class_id TEXT NOT NULL REFERENCES classes(id),
+      student_id TEXT NOT NULL REFERENCES students(id),
+      plan_id TEXT NOT NULL REFERENCES class_plan(id),
+      exercise_id TEXT NOT NULL REFERENCES exercises(id),
+      "order" INTEGER NOT NULL,
+      reps INTEGER,
+      load_g INTEGER,
+      seconds INTEGER,
+      meters INTEGER,
+      client_command_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE INDEX performed_sets_student ON performed_sets(student_id, exercise_id)`,
+    `CREATE INDEX performed_sets_class ON performed_sets(class_id, student_id)`,
+    `CREATE TABLE client_commands (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      result TEXT NOT NULL,
+      applied_at TEXT NOT NULL
+    )`,
+  ],
 ];
 
 export function migrate(sql: Sql): void {

@@ -26,3 +26,24 @@ moving parts. Keeping the server as the only writer keeps the invariants of `doc
 **Alternatives:** Full offline-first with a synced local database (CRDT or a sync engine): far more
 code and dependencies for one maintainer, and it would move the business rules to the client.
 Online-only classes: breaks the spec and loses classes when the Wi-Fi drops.
+
+## Update (phase 1c, server and queue)
+
+- **Queue:** `src/application/live-queue.ts` over a `QueueStore` (IndexedDB in
+  `src/infrastructure/indexeddb-queue-store.ts`, one record with `pending` and `refused`). `enqueue`
+  saves to the device before it returns; `flush` sends in order, one call at a time, saving after each
+  answer. `unavailable` and `unauthenticated` stop the send and keep the command; any other error moves
+  it to `refused` and the send goes on.
+- **Idempotency:** every `live.*` command carries `clientCommandId`; the `Group` stores it with the
+  answer (`client_commands`) in the same transaction, and a resend gets the stored answer with
+  `changed: []`. The id of a set is its command id, and plan ids are derived
+  (`<classId>:<studentId>:<n>`), so a command queued offline can refer to what an earlier queued
+  command creates.
+- **Time:** each command carries `at`, the device's time; the server believes it when it is not in the
+  future and not older than a week, so a class sent later keeps its real start, end and duration.
+- **Local copy:** `src/application/live-local.ts` applies the same commands to the same view
+  (`startLocal`, `applyLocal`), using the rules of `src/domain/aula`. The server's answer replaces it.
+- **Conflicts:** commands touch different things (a set has its own id), so the "last edit of each
+  field wins" rule only matters for `live.editSet`, where the order of the queue decides.
+- Still to do in the app: wiring the queue to the screens, the cache before the class, the service
+  worker, the Screen Wake Lock and the audio unlock (`docs/ROADMAP.md`).
