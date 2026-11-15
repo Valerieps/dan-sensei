@@ -1,5 +1,6 @@
 // The Worker: serves the app's files, the API under /api, the live connection and the cron
 // (ADR-004). Everything about the group is delegated to the Group Durable Object.
+import { WorkerEntrypoint } from 'cloudflare:workers';
 import type { ApiError, ApiResult } from '../../src/application/api-contract';
 import { SESSION_DAYS, type GoogleProfile } from '../application/members';
 import { clearCookie, LOGIN_COOKIE, readCookie, SESSION_COOKIE, setCookie } from '../infrastructure/cookies';
@@ -160,7 +161,19 @@ export default {
     return env.ASSETS.fetch(request);
   },
 
-  async scheduled(_controller, env, _ctx): Promise<void> {
-    await group(env).tick();
+  async scheduled(_controller, env, ctx): Promise<void> {
+    await runCron(env, ctx);
   },
 } satisfies ExportedHandler<Env>;
+
+/** The cron body, shared by the Worker's own `scheduled` and the central cron's RPC call. */
+export async function runCron(env: Env, _ctx: ExecutionContext): Promise<void> {
+  await group(env).tick();
+}
+
+/** Named entrypoint that `cron-central` calls through a service binding. */
+export class Cron extends WorkerEntrypoint<Env> {
+  async tick(): Promise<void> {
+    await runCron(this.env, this.ctx);
+  }
+}
