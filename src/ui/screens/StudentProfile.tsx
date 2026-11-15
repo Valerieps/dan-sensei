@@ -15,9 +15,10 @@ import { useQuery } from "../use-query";
 import { MonthlyTab } from "./MonthlyTab";
 import { PackagesTab } from "./PackagesTab";
 import { StudentForm, STUDENT_FORM_ID } from "./StudentForm";
+import { WorkoutsTab } from "./WorkoutsTab";
 
-/** Tabs of the profile. Later sessions add Treinos and Histórico here. */
-export type ProfileTab = "registration" | "packages" | "monthly" | "notes";
+/** Tabs of the profile. Later sessions add Histórico here. */
+export type ProfileTab = "registration" | "packages" | "monthly" | "workouts" | "notes";
 
 const TABS: { tab: ProfileTab; label: string; path: (id: string) => string }[] =
   [
@@ -37,6 +38,11 @@ const TABS: { tab: ProfileTab; label: string; path: (id: string) => string }[] =
       path: (id) => `/alunos/${id}/mensalidades`,
     },
     {
+      tab: "workouts",
+      label: strings.students.tabs.workouts,
+      path: (id) => `/alunos/${id}/treinos`,
+    },
+    {
       tab: "notes",
       label: strings.students.tabs.notes,
       path: (id) => `/alunos/${id}/notas`,
@@ -51,7 +57,7 @@ export function NewStudent({ behind }: { behind?: ReactNode }) {
   );
 }
 
-export function StudentProfile({ id, tab }: { id: string; tab: ProfileTab }) {
+export function StudentProfile({ id, tab, workoutId }: { id: string; tab: ProfileTab; workoutId?: string }) {
   const student = useQuery("student", { id }, ["students"]);
 
   if (student.error === "not_found") {
@@ -100,6 +106,7 @@ export function StudentProfile({ id, tab }: { id: string; tab: ProfileTab }) {
       {tab === "registration" && <Registration student={data} />}
       {tab === "packages" && <PackagesTab student={data} />}
       {tab === "monthly" && <MonthlyTab student={data} />}
+      {tab === "workouts" && <WorkoutsTab student={data} workoutId={workoutId} />}
       {tab === "notes" && <Notes student={data} />}
     </section>
   );

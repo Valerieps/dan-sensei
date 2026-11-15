@@ -1,19 +1,22 @@
 // Where each URL belongs in the app's navigation (docs/spec/telas-de-gestao.md, "Navegação").
 import type { IconName } from './components/Icon';
 
-export type TabId = 'today' | 'agenda' | 'students';
+export type TabId = 'today' | 'agenda' | 'students' | 'exercises';
 
 export interface Tab {
   readonly id: TabId;
   readonly path: string;
   readonly icon: IconName;
+  /** Left out of the phone's tab bar: the library is worked on the iPad (docs/spec/treinos-e-exercicios.md). */
+  readonly padOnly?: boolean;
 }
 
-/** The tabs, in order. Exercícios joins on the iPad in phase 1c (C2). */
+/** The tabs, in order. */
 export const TABS: readonly Tab[] = [
   { id: 'today', path: '/', icon: 'today' },
   { id: 'agenda', path: '/agenda', icon: 'calendar' },
   { id: 'students', path: '/alunos', icon: 'students' },
+  { id: 'exercises', path: '/exercicios', icon: 'exercises', padOnly: true },
 ];
 
 const AGENDA_VIEW = /^\/agenda(?:\/semana)?(?:\/\d{4}-\d{2}-\d{2})?\/?$/;
@@ -23,6 +26,7 @@ const STUDENTS_AREA = /^\/(?:alunos|aulas|pagamentos|mensalidades|pacotes)(?:\/|
 export function tabOf(path: string): TabId | null {
   if (path === '/') return 'today';
   if (path.startsWith('/agenda')) return 'agenda';
+  if (path === '/exercicios' || path.startsWith('/exercicios/')) return 'exercises';
   if (STUDENTS_AREA.test(path)) return 'students';
   return null;
 }
@@ -32,6 +36,7 @@ export function largeTitleTab(path: string): TabId | null {
   if (path === '/') return 'today';
   if (AGENDA_VIEW.test(path)) return 'agenda';
   if (path === '/alunos' || path === '/alunos/') return 'students';
+  if (path === '/exercicios' || path === '/exercicios/') return 'exercises';
   return null;
 }
 

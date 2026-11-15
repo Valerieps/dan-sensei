@@ -1383,3 +1383,194 @@ button.list-row-body:active {
   width: 100%;
   padding: var(--space-3) var(--space-4);
 }
+
+/* Exercícios and workouts (phase 1c) */
+
+/* The Exercícios tab is for the iPad: the phone's tab bar does not carry it. */
+.tab-bar,
+.tab-bar.bottom {
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  grid-template-columns: none;
+}
+
+@media (max-width: 699px) {
+  .tab-bar a.pad-only {
+    display: none;
+  }
+}
+
+.content.wide {
+  max-width: var(--size-content-wide);
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-touch);
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--color-fill);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--font-size-small);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.chip[aria-pressed='true'],
+.chip[aria-current='page'],
+.chip.picked {
+  background: var(--color-brand);
+  color: var(--color-on-brand);
+  font-weight: var(--font-weight-strong);
+}
+
+.chip:active {
+  opacity: var(--opacity-pressed);
+}
+
+.chip-count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-caption);
+}
+
+.muscle-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.muscle-field .chip-row {
+  margin-top: var(--space-2);
+}
+
+.detail-title {
+  margin: 0;
+  font-size: var(--font-size-title);
+}
+
+.split {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.split-list,
+.split-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Narrow screens show the list, or the detail once an exercise is open. */
+.split.has-detail .split-list,
+.split:not(.has-detail) .split-detail {
+  display: none;
+}
+
+@media (min-width: 700px) {
+  .split {
+    grid-template-columns: minmax(var(--size-card-min), 1fr) 2fr;
+    align-items: start;
+  }
+
+  .split.has-detail .split-list,
+  .split:not(.has-detail) .split-detail {
+    display: flex;
+  }
+
+  .split-back {
+    display: none;
+  }
+}
+
+.workout-cards,
+.workout-block-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A bi-set, tri-set or circuit: its cards sit together beside one band. */
+.workout-block.grouped {
+  padding-left: var(--space-3);
+  border-left: var(--size-class-bar) solid var(--color-brand);
+  border-radius: var(--radius-sm);
+}
+
+.workout-group-label {
+  display: block;
+  margin-bottom: var(--space-1);
+  color: var(--color-brand);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-strong);
+  text-transform: uppercase;
+}
+
+.workout-card {
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.workout-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--size-touch);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.workout-card-head .list-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.workout-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
+}
+
+.workout-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.control-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.control-label {
+  font-weight: var(--font-weight-strong);
+}
+
+.control-steppers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}

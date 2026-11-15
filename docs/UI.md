@@ -76,6 +76,7 @@ Tudo em `src/ui/components/`; use antes de escrever CSS novo.
 | `ConfirmDialog` | Confirmação de ação destrutiva; o foco começa em Cancelar |
 | `GroupedList`, `ListSection`, `ListRow`, `ListContent` | Lista agrupada: título, subtítulo, valor, ícone, seta; a seção tem cabeçalho e rodapé; `ListContent` guarda um formulário ou texto livre numa linha |
 | `SegmentedControl`, `Switch`, `Stepper` | Controle segmentado (grupo de rádio), interruptor (`role="switch"`) e − / + |
+| `Chip`, `MuscleGroupField`, `ExercisePicker` | O chip é a cápsula que liga e desliga (grupo muscular, tag); o campo de grupos escolhe vários por região; o seletor é a árvore de grupos (grupo, depois outro que trabalha junto, e a lista de exercícios), que o Modo Ao Vivo reusa |
 | `StudentCard` | O cartão do aluno: iniciais, nome, próxima aula, selo e a faixa; toque abre o perfil, toque longo e o botão "⋯" abrem o menu de contexto |
 | `Badge` | O selo em cápsula: neutro, `brand`, `danger` ou `health` (este sempre com o escudo) |
 | `PackageProgress`, `Belt` | A faixa do pacote: um gomo por aula, barra contínua acima de 20 |

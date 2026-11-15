@@ -19,6 +19,7 @@ const DRAWINGS = {
   'chevron-right': { stroke: <path d="M9 5l7 7-7 7" /> },
   'chevron-left': { stroke: <path d="M15 5l-7 7 7 7" /> },
   'chevron-down': { stroke: <path d="M5 9l7 7 7-7" /> },
+  'chevron-up': { stroke: <path d="M5 15l7-7 7 7" /> },
   search: {
     stroke: (
       <>
