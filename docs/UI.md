@@ -56,6 +56,33 @@ componente, com prévia e motivo, está no design system (artifact "Dan Sensei",
   que são iguais nos dois temas.
 - **Áreas seguras:** o conteúdo respeita a barra de status e o indicador de início
   (`env(safe-area-inset-*)`).
+- **Tamanho de letra do aparelho (Dynamic Type):** os tamanhos de fonte do `tokens.css` são `rem` do
+  tamanho da raiz. No Safari do iOS e do iPadOS a raiz usa `font: -apple-system-body` e o texto
+  segue o tamanho escolhido nos Ajustes; nos outros navegadores a raiz tem 17px. O `rem` só existe
+  no `tokens.css`: telas e componentes usam `var(--font-size-*)`. O corpo é 1rem, o que mantém o
+  "pelo menos 16px" do teste. Com o texto bem pequeno nos Ajustes, o iOS pode dar zoom ao focar um
+  campo.
+
+### Componentes
+
+Tudo em `src/ui/components/`; use antes de escrever CSS novo.
+
+| Componente | Para quê |
+| --- | --- |
+| `Button`, `ButtonLink` | Cápsula: `primary`, `secondary`, `text`, `danger`; tamanho `normal` ou `large` |
+| `IconButton` | Botão redondo de ícone em vidro (`glass`) ou o ✓ principal (`brand`); sempre com `label` |
+| `Icon` | Ícones no estilo SF Symbols; `filled` nas abas; sem `label` fica escondido do leitor de tela |
+| `Sheet` | O painel: sobe de baixo no celular (alça, altura média e grande, fecha ao deslizar), abre no centro no iPad; × e ✓ no cabeçalho; foco preso e Esc fecha |
+| `ConfirmDialog` | Confirmação de ação destrutiva; o foco começa em Cancelar |
+| `GroupedList`, `ListSection`, `ListRow` | Lista agrupada: título, subtítulo, valor, ícone, seta; a seção tem cabeçalho e rodapé |
+| `SegmentedControl`, `Switch`, `Stepper` | Controle segmentado (grupo de rádio), interruptor (`role="switch"`) e − / + |
+| `Badge` | O selo em cápsula: neutro, `brand`, `danger` ou `health` (este sempre com o escudo) |
+| `PackageProgress`, `Belt` | A faixa do pacote: um gomo por aula, barra contínua acima de 20 |
+| `Field`, `SelectField` | Campo preenchido, sem borda, com rótulo sempre visível e erro ligado ao campo |
+| `Notice`, `EmptyState`, `Loading` | Aviso da tela (sem borda colorida), lista vazia e carregamento |
+
+A lógica que não depende do DOM fica em arquivos `.ts` ao lado (`sheet-logic`, `segmented-logic`,
+`stepper-logic`, `package-belt`) e é a que os testes cobrem.
 
 ## O que a revisão confere
 

@@ -67,14 +67,18 @@
   --font-sans: -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, sans-serif;
   /* SF Pro Rounded for the live class and big numbers, as in Apple's Fitness app. */
   --font-rounded: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif;
-  /* iOS text styles: footnote, subheadline, body, title 2, title 1, large title. 1.125 to 1.5 per step. */
-  --font-size-caption: 13px;
-  --font-size-small: 15px;
-  /* 17px is the iOS body size, and anything at 16px or more keeps iOS from zooming into inputs. */
-  --font-size-body: 17px;
-  --font-size-title: 22px;
-  --font-size-heading: 28px;
-  --font-size-display: 34px;
+  /*
+   * iOS text styles: footnote, subheadline, body, title 2, title 1, large title (13, 15, 17, 22, 28 and
+   * 34 px at the default text size). They are rem of the root size below, so the text follows the
+   * size chosen in the device's settings (Dynamic Type). 1.125 to 1.5 per step.
+   */
+  --font-size-caption: 0.7647rem;
+  --font-size-small: 0.8824rem;
+  /* 1rem is the iOS body size (17px), and anything at 16px or more keeps iOS from zooming into inputs. */
+  --font-size-body: 1rem;
+  --font-size-title: 1.2941rem;
+  --font-size-heading: 1.6471rem;
+  --font-size-display: 2rem;
   --font-weight-regular: 400;
   --font-weight-strong: 600;
   --font-weight-bold: 700;
@@ -122,6 +126,20 @@
   --size-class-bar: 6px;
   --size-grabber-width: 36px;
   --size-grabber-height: 5px;
+  --size-icon: 24px;
+  --size-icon-small: 20px;
+  /* A drag in pixels: the panel sets --drag to a plain number and CSS multiplies it by this. */
+  --unit-px: 1px;
+  --size-sheet-medium: 55vh;
+  --size-sheet-large: 92vh;
+  /* The form sheet on the iPad. */
+  --size-sheet-width: 540px;
+  --size-dialog: 280px;
+  --size-switch-width: 51px;
+  --size-switch-height: 31px;
+  --size-switch-knob: 27px;
+  --size-segment: 32px;
+  --size-progress-gap: 3px;
   --focus-ring-width: 3px;
   --focus-ring-offset: 0px;
   --blur-glass: 24px;
@@ -177,5 +195,17 @@
     --color-live-done: #2c2c2e;
     --color-on-live-done: #ffffff;
     --color-glass-on-live: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* The root text size: 17px, the iOS body size. Where the browser supports it (Safari on iOS and iPadOS), the
+   root takes the text size chosen in the device's settings, and all the rem sizes above follow it. */
+html {
+  font-size: 17px;
+}
+
+@supports (font: -apple-system-body) {
+  html {
+    font: -apple-system-body;
   }
 }

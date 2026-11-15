@@ -42,7 +42,7 @@ UI hard rules from `docs/UI.md`, valid for every change under `src/ui/`
 - Never rename a token or loosen `tokens.test.ts` to make it pass.
 - Font sizes only from the scale; spacing only from `--space-*`.
 - Every text color pair passes WCAG AA in both themes; a new pair goes into the test's list.
-- Use `src/ui/components/` (`Button`, `ButtonLink`, `Field`, `Notice`) before writing new CSS.
+- Use `src/ui/components/` before writing new CSS: `Button`, `ButtonLink`, `IconButton`, `Icon`, `Sheet`, `ConfirmDialog`, `GroupedList`, `ListSection`, `ListRow`, `SegmentedControl`, `Switch`, `Stepper`, `Badge`, `PackageProgress`, `Field`, `SelectField`, `Notice` (the list with their uses is in `docs/UI.md`).
 
 ### Where information lives
 
