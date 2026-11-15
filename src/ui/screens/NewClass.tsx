@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { diaDaSemana, DURACAO_MAXIMA_MIN } from '../../domain/agenda';
 import { dataEmSaoPaulo } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
@@ -7,15 +7,18 @@ import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
 import { Loading } from '../components/Loading';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Notice } from '../components/Notice';
+import { ChoiceField, RouteSheet } from '../components/RouteSheet';
 import { SelectField } from '../components/SelectField';
 import { Link, navigate } from '../router';
 import { useQuery } from '../use-query';
 
 type Kind = 'oneOff' | 'fixed';
+const FORM_ID = 'class-form';
 
 /** "Nova aula": a one-off lesson or a fixed weekly time (docs/spec/agenda.md). */
-export function NewClass({ date: initialDate, time: initialTime }: { date?: string; time?: string }) {
+export function NewClass({ date: initialDate, time: initialTime, behind }: { date?: string; time?: string; behind?: ReactNode }) {
   const { backend } = useServices();
   const f = strings.agenda.form;
   const today = dataEmSaoPaulo(new Date());
@@ -33,16 +36,17 @@ export function NewClass({ date: initialDate, time: initialTime }: { date?: stri
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [savedFixed, setSavedFixed] = useState(false);
+  const [ending, setEnding] = useState<{ id: string; line: string }>();
+  const sheet = (children: ReactNode, saveable = false) => (
+    <RouteSheet title={f.title} back={`/agenda/${initialDate ?? today}`} behind={behind} formId={saveable ? FORM_ID : undefined} busy={busy} saveDisabled={!first}>
+      {children}
+    </RouteSheet>
+  );
 
-  if (!students.data) return students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
+  if (!students.data) return sheet(students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />);
   const eligible = students.data.filter((s) => s.status !== 'inactive');
   if (eligible.length === 0) {
-    return (
-      <section>
-        <h1>{f.title}</h1>
-        <EmptyState action={<Link className="button" to="/alunos/novo">{strings.students.newTitle}</Link>}>{f.noStudents}</EmptyState>
-      </section>
-    );
+    return sheet(<EmptyState action={<Link className="button" to="/alunos/novo">{strings.students.newTitle}</Link>}>{f.noStudents}</EmptyState>);
   }
 
   const student = eligible.find((s) => s.id === first);
@@ -71,28 +75,25 @@ export function NewClass({ date: initialDate, time: initialTime }: { date?: stri
     }
   }
 
-  async function endFixed(id: string, line: string) {
-    if (!window.confirm(f.fixedEndConfirm(line))) return;
+  async function endFixed(id: string) {
+    setEnding(undefined);
     const result = await backend.command('recurrence.end', { id, endsOn: today });
     setFailed(!result.ok);
     if (result.ok) fixedTimes.reload();
   }
 
-  return (
-    <section>
-      <h1>{f.title}</h1>
-      <form className="stack" onSubmit={submit}>
-        <fieldset className="addresses">
-          <legend className="field-label">{f.kind}</legend>
-          <label className="row tight">
-            <input type="radio" name="kind" checked={kind === 'oneOff'} onChange={() => setKind('oneOff')} />
-            {f.oneOff}
-          </label>
-          <label className="row tight">
-            <input type="radio" name="kind" checked={kind === 'fixed'} onChange={() => setKind('fixed')} />
-            {f.fixed}
-          </label>
-        </fieldset>
+  return sheet(
+    <>
+      <form id={FORM_ID} className="stack" onSubmit={submit}>
+        <ChoiceField
+          label={f.kind}
+          options={[
+            { value: 'oneOff', label: f.oneOff },
+            { value: 'fixed', label: f.fixed },
+          ]}
+          value={kind}
+          onChange={setKind}
+        />
 
         <SelectField
           label={f.student}
@@ -154,14 +155,6 @@ export function NewClass({ date: initialDate, time: initialTime }: { date?: stri
 
         {savedFixed && <Notice>{f.savedFixed}</Notice>}
         {failed && <Notice tone="error">{f.failed}</Notice>}
-        <div className="row">
-          <Button type="submit" disabled={busy || !first}>
-            {kind === 'oneOff' ? f.save : f.saveFixed}
-          </Button>
-          <Link className="button secondary" to={`/agenda/${initialDate ?? today}`}>
-            {strings.back}
-          </Link>
-        </div>
       </form>
 
       <h2 className="spaced">{f.fixedTitle}</h2>
@@ -172,13 +165,19 @@ export function NewClass({ date: initialDate, time: initialTime }: { date?: stri
           return (
             <li key={r.id} className="card row">
               <span className="grow">{line}</span>
-              <Button variant="secondary-danger" onClick={() => void endFixed(r.id, line)}>
+              <Button variant="secondary-danger" onClick={() => setEnding({ id: r.id, line })}>
                 {f.fixedEnd}
               </Button>
             </li>
           );
         })}
       </ul>
-    </section>
+      {ending && (
+        <ConfirmDialog title={f.fixedEnd} confirmLabel={f.fixedEnd} onCancel={() => setEnding(undefined)} onConfirm={() => void endFixed(ending.id)}>
+          {f.fixedEndConfirm(ending.line)}
+        </ConfirmDialog>
+      )}
+    </>,
+    true,
   );
 }

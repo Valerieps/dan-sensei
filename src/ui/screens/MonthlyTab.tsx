@@ -9,6 +9,7 @@ import { Field } from '../components/Field';
 import { ListContent, ListRow, ListSection } from '../components/GroupedList';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
+import { useConfirm } from '../components/use-confirm';
 import { useQuery } from '../use-query';
 
 const TOPICS = ['monthly', 'students', 'packages'] as const;
@@ -116,6 +117,7 @@ function Fees({ student, monthly }: { student: StudentView; monthly: MonthlyView
   const t = strings.packages.monthly;
   const [editing, setEditing] = useState(false);
   const [failed, setFailed] = useState(false);
+  const { confirm, dialog } = useConfirm();
 
   async function saveFee(value: { amountCents: number; dueDay: number }) {
     const result = await backend.command('monthly.setFee', { studentId: student.id, amountCents: value.amountCents, dueDay: value.dueDay });
@@ -123,10 +125,12 @@ function Fees({ student, monthly }: { student: StudentView; monthly: MonthlyView
     if (result.ok) setEditing(false);
   }
 
-  async function remove(id: string, month: string, cents: number) {
-    if (!window.confirm(t.deleteConfirm(formatMonth(month), formatarReais(cents)))) return;
-    const result = await backend.command('monthly.deletePayment', { id });
-    setFailed(!result.ok);
+  function remove(id: string, month: string, cents: number) {
+    confirm({
+      title: t.delete,
+      message: t.deleteConfirm(formatMonth(month), formatarReais(cents)),
+      run: async () => setFailed(!(await backend.command('monthly.deletePayment', { id })).ok),
+    });
   }
 
   return (
@@ -166,6 +170,7 @@ function Fees({ student, monthly }: { student: StudentView; monthly: MonthlyView
           />
         ))}
       </ListSection>
+      {dialog}
     </div>
   );
 }

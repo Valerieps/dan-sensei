@@ -12,6 +12,7 @@ import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { PackageProgress } from '../components/PackageProgress';
 import { PaymentEdit } from './RegisterPayment';
+import { useConfirm } from '../components/use-confirm';
 import { useQuery } from '../use-query';
 
 const TOPICS = ['packages', 'payments', 'classes'] as const;
@@ -160,26 +161,33 @@ function Statement({ id }: { id: string }) {
   const statement = useQuery('package', { id }, TOPICS);
   const [failed, setFailed] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const { confirm, dialog } = useConfirm();
 
   if (!statement.data) return statement.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
   const { summary, lessons, payments, pauses } = statement.data;
 
-  async function remove(classId: string, date: string) {
-    if (!window.confirm(t.deleteLessonConfirm(formatarData(date)))) return;
-    const result = await backend.command('class.delete', { classId });
-    setFailed(!result.ok);
+  function remove(classId: string, date: string) {
+    confirm({
+      title: t.deleteLesson,
+      message: t.deleteLessonConfirm(formatarData(date)),
+      run: async () => setFailed(!(await backend.command('class.delete', { classId })).ok),
+    });
   }
 
-  async function removePayment(id: string, date: string, cents: number) {
-    if (!window.confirm(t.deletePaymentConfirm(formatarData(date), formatarReais(cents)))) return;
-    const result = await backend.command('payment.delete', { id });
-    setFailed(!result.ok);
+  function removePayment(id: string, date: string, cents: number) {
+    confirm({
+      title: t.deletePayment,
+      message: t.deletePaymentConfirm(formatarData(date), formatarReais(cents)),
+      run: async () => setFailed(!(await backend.command('payment.delete', { id })).ok),
+    });
   }
 
-  async function removePause(id: string) {
-    if (!window.confirm(t.removePauseConfirm)) return;
-    const result = await backend.command('package.removePause', { id });
-    setFailed(!result.ok);
+  function removePause(id: string) {
+    confirm({
+      title: t.removePause,
+      message: t.removePauseConfirm,
+      run: async () => setFailed(!(await backend.command('package.removePause', { id })).ok),
+    });
   }
 
   const open = summary.status !== 'encerrado';
@@ -239,6 +247,7 @@ function Statement({ id }: { id: string }) {
           ))}
         </ListSection>
       )}
+      {dialog}
     </div>
   );
 }

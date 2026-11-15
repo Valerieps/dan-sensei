@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import type { PackageSummary, PaymentMethod, PaymentView } from '../../application/api-contract';
 import { dataEmSaoPaulo, formatarReais, lerReais, reaisParaTexto } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
@@ -8,11 +8,13 @@ import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
+import { ChoiceField, RouteSheet } from '../components/RouteSheet';
 import { SelectField } from '../components/SelectField';
 import { Link, navigate } from '../router';
 import { useQuery } from '../use-query';
 
 const TOPICS = ['packages', 'payments'] as const;
+const FORM_ID = 'payment-form';
 type PaymentField = keyof typeof strings.packages.payment.errors;
 
 /** The amount, date and method fields, shared by the new payment screen and the correction. */
@@ -24,6 +26,7 @@ export function PaymentFields({
   failed,
   onSubmit,
   onCancel,
+  formId,
 }: {
   initial: { amountCents: number | null; paidOn: string; method: PaymentMethod };
   submitLabel: string;
@@ -33,6 +36,8 @@ export function PaymentFields({
   failed: boolean;
   onSubmit: (payment: { paidOn: string; amountCents: number; method: PaymentMethod }) => void;
   onCancel?: () => void;
+  /** Inside a panel: the panel's ✓ submits this form, so the form has no buttons of its own. */
+  formId?: string;
 }) {
   const t = strings.packages.payment;
   const today = dataEmSaoPaulo(new Date());
@@ -57,30 +62,31 @@ export function PaymentFields({
   const error = (field: PaymentField) => (errors.has(field) ? t.errors[field] : null);
 
   return (
-    <form className="stack" onSubmit={submit} noValidate>
+    <form id={formId} className="stack" onSubmit={submit} noValidate>
       <div className="row end">
         <Field className="grow" label={t.amount} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} error={error('amount')} />
         <Field className="grow" label={t.paidOn} type="date" max={today} value={paidOn} onChange={(e) => setPaidOn(e.target.value)} error={error('paidOn')} />
-        <SelectField className="grow" label={t.method} value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)}>
-          {(Object.keys(strings.packages.tab.method) as PaymentMethod[]).map((m) => (
-            <option key={m} value={m}>
-              {strings.packages.tab.method[m]}
-            </option>
-          ))}
-        </SelectField>
       </div>
+      <ChoiceField
+        label={t.method}
+        options={(Object.keys(strings.packages.tab.method) as PaymentMethod[]).map((m) => ({ value: m, label: strings.packages.tab.method[m] }))}
+        value={method}
+        onChange={setMethod}
+      />
       {over && <Notice>{t.overpay}</Notice>}
       {failed && <Notice tone="error">{strings.genericError}</Notice>}
-      <div className="row">
-        <Button type="submit" disabled={busy}>
-          {submitLabel}
-        </Button>
-        {onCancel && (
-          <Button variant="secondary" onClick={onCancel}>
-            {strings.cancel}
+      {!formId && (
+        <div className="row">
+          <Button type="submit" disabled={busy}>
+            {submitLabel}
           </Button>
-        )}
-      </div>
+          {onCancel && (
+            <Button variant="secondary" onClick={onCancel}>
+              {strings.cancel}
+            </Button>
+          )}
+        </div>
+      )}
     </form>
   );
 }
@@ -113,8 +119,8 @@ export function PaymentEdit({ payment, missingCents, onDone }: { payment: Paymen
   );
 }
 
-/** Registers a payment for a package: from the + button (no student yet) or from a profile. */
-export function RegisterPayment({ studentId = '', packageId = '' }: { studentId?: string; packageId?: string }) {
+/** Registers a payment for a package: from the + button (no student yet) or from a profile. Opens in a panel. */
+export function RegisterPayment({ studentId = '', packageId = '', behind }: { studentId?: string; packageId?: string; behind?: ReactNode }) {
   const { backend } = useServices();
   const t = strings.packages.payment;
   const students = useQuery('students', {}, ['students']);
@@ -123,16 +129,17 @@ export function RegisterPayment({ studentId = '', packageId = '' }: { studentId?
   const packages = useQuery('studentPackages', { studentId: student }, TOPICS);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const back = studentId ? `/alunos/${studentId}/pacotes` : '/';
+  const sheet = (children: ReactNode, saveable = false) => (
+    <RouteSheet title={t.title} back={back} behind={behind} formId={saveable ? FORM_ID : undefined} busy={busy}>
+      {children}
+    </RouteSheet>
+  );
 
-  if (!students.data) return students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
+  if (!students.data) return sheet(students.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />);
   const eligible = students.data.filter((s) => s.billing === 'package');
   if (eligible.length === 0) {
-    return (
-      <section>
-        <h1>{t.title}</h1>
-        <EmptyState action={<Link className="button" to="/alunos/novo">{strings.students.newTitle}</Link>}>{t.noStudents}</EmptyState>
-      </section>
-    );
+    return sheet(<EmptyState action={<Link className="button" to="/alunos/novo">{strings.students.newTitle}</Link>}>{t.noStudents}</EmptyState>);
   }
 
   const live: PackageSummary[] = student && packages.data ? packages.data.filter((p) => p.status !== 'encerrado') : [];
@@ -149,56 +156,55 @@ export function RegisterPayment({ studentId = '', packageId = '' }: { studentId?
     else navigate(`/alunos/${student}/pacotes`);
   }
 
-  return (
-    <section>
-      <h1>{t.title}</h1>
-      <div className="stack">
-        <SelectField
-          label={t.student}
-          value={student}
-          onChange={(e) => {
-            setStudent(e.target.value);
-            setChosen('');
-          }}
-        >
-          <option value="">{t.pickStudent}</option>
-          {eligible.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </SelectField>
+  return sheet(
+    <div className="stack">
+      <SelectField
+        label={t.student}
+        value={student}
+        onChange={(e) => {
+          setStudent(e.target.value);
+          setChosen('');
+        }}
+      >
+        <option value="">{t.pickStudent}</option>
+        {eligible.map((s) => (
+          <option key={s.id} value={s.id}>
+            {s.name}
+          </option>
+        ))}
+      </SelectField>
 
-        {student && packages.data && live.length === 0 && (
-          <EmptyState action={<Link className="button" to={`/alunos/${student}/pacotes/novo`}>{strings.packages.tab.newPackage}</Link>}>{t.noPackage}</EmptyState>
-        )}
+      {student && packages.data && live.length === 0 && (
+        <EmptyState action={<Link className="button" to={`/alunos/${student}/pacotes/novo`}>{strings.packages.tab.newPackage}</Link>}>{t.noPackage}</EmptyState>
+      )}
 
-        {selected && (
-          <>
-            {live.length > 1 && (
-              <SelectField label={t.package} value={selected.id} onChange={(e) => setChosen(e.target.value)}>
-                {live.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.paymentStatus === 'pending' ? t.packageOption(p.planName, formatarReais(p.missingCents)) : t.packagePaid(p.planName)}
-                  </option>
-                ))}
-              </SelectField>
-            )}
-            <p className="strong">
-              {selected.paymentStatus === 'pending' ? strings.packages.tab.missing(formatarReais(selected.missingCents)) : strings.packages.tab.paidAll}
-            </p>
-            <PaymentFields
-              key={selected.id}
-              initial={{ amountCents: selected.missingCents > 0 ? selected.missingCents : null, paidOn: dataEmSaoPaulo(new Date()), method: 'pix' }}
-              submitLabel={t.submit}
-              maxCents={selected.missingCents}
-              busy={busy}
-              failed={failed}
-              onSubmit={(value) => void save(value)}
-            />
-          </>
-        )}
-      </div>
-    </section>
+      {selected && (
+        <>
+          {live.length > 1 && (
+            <SelectField label={t.package} value={selected.id} onChange={(e) => setChosen(e.target.value)}>
+              {live.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.paymentStatus === 'pending' ? t.packageOption(p.planName, formatarReais(p.missingCents)) : t.packagePaid(p.planName)}
+                </option>
+              ))}
+            </SelectField>
+          )}
+          <p className="strong">
+            {selected.paymentStatus === 'pending' ? strings.packages.tab.missing(formatarReais(selected.missingCents)) : strings.packages.tab.paidAll}
+          </p>
+          <PaymentFields
+            key={selected.id}
+            formId={FORM_ID}
+            initial={{ amountCents: selected.missingCents > 0 ? selected.missingCents : null, paidOn: dataEmSaoPaulo(new Date()), method: 'pix' }}
+            submitLabel={t.submit}
+            maxCents={selected.missingCents}
+            busy={busy}
+            failed={failed}
+            onSubmit={(value) => void save(value)}
+          />
+        </>
+      )}
+    </div>,
+    Boolean(selected),
   );
 }
