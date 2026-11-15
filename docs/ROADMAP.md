@@ -12,11 +12,11 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Montagem do treino: datas do programa, renomear a letra do treino e reordenar dentro de um bi-set, tri-set ou circuito | 1c | `spec/treinos-e-exercicios.md` | A montagem em cartões e a biblioteca já existem (C2); o servidor já aceita as datas e o nome |
-| Modo Ao Vivo individual, cronômetro e registro das séries | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7) |
+| Modo Ao Vivo individual, cronômetro e registro das séries (a tela) | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7). O servidor, a cópia local e a fila de comandos já existem (`live.*`, `src/application/live-local.ts`, `live-queue.ts`) |
 | Aula em dupla com dois cronômetros e sons por aluno | 1c | `spec/aula-ao-vivo.md` | |
-| PSE, carga da aula e volume | 1c | `spec/aula-ao-vivo.md` | |
+| Tela de encerramento com a PSE e o gráfico da carga semanal no perfil do aluno | 1c | `spec/aula-ao-vivo.md` | A conta (PSE, carga de Foster, volume, tonelagem, `studentEffort`) já está no servidor |
 | Resumo da aula pelo WhatsApp | 1c | `spec/whatsapp.md` | |
-| Aula sem internet | 1c | `spec/aula-ao-vivo.md` | ADR-009 |
+| Aula sem internet: ligar a fila ao app (IndexedDB, `ServicesProvider`), guardar o que a aula precisa antes de começar, service worker do app, tela acesa e som | 1c | `spec/aula-ao-vivo.md` | ADR-009. A fila e a cópia local já estão testadas; falta a parte do navegador |
 | Aula simples no celular | 1c | `spec/aula-ao-vivo.md` | |
 
 ## Adiado
@@ -31,6 +31,13 @@ O que ainda não está pronto.
 - Tempo de deslocamento, recibos e vídeos próprios — fase 3.
 
 ## Revisar as lacunas que o agente decidiu
+
+- [ ] Aula ao vivo (servidor): um toque registra a série com as repetições do começo da faixa
+  prescrita ("8 a 12" registra 8) e a carga sugerida (a última usada, senão a prescrita); a aula
+  encerrada com mais de um pacote possível fecha "sem pacote" e devolve as opções para vincular
+  depois, porque a fila sem internet não pode perguntar; "encerrar agora" é encerrar sem PSE, que
+  pode vir depois; a série pode ser corrigida mesmo depois da aula encerrada; a aula aberta fica
+  guardada no servidor e só desconta do pacote ao encerrar (`spec/aula-ao-vivo.md`).
 
 - [ ] Exercícios e treinos: a biblioteca vem com uma lista pronta (a proposta do spec); não se apaga
   exercício, só se arquiva; o nome é único; um treino pode ficar fora de programa; bi-set, tri-set e

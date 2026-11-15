@@ -7,6 +7,7 @@ import { failure, QueryError, type CommandResult, type Context } from './context
 import { exportAll } from './export';
 import { createExercise, exerciseChoicesQuery, exerciseTags, exerciseWarnings, getExercise, listExercises, setExerciseArchived, updateExercise } from './exercises';
 import { createCondition, removeAlert, saveAnamnesis, saveParq, setAlert, signConsent, studentHealth } from './health';
+import { addExercise, correctClass, deleteSet, editSet, finishClass, lastClassPlan, liveClass, liveOpen, previousLoads, recordSet, setPse, startClass, studentEffort } from './live';
 import { markMessageOpened, messageSettings, pendingStatements, setMessageSettings } from './messages';
 import { createInvite, listInvites, revokeInvite } from './invites';
 import {
@@ -82,6 +83,11 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   exerciseWarnings: (ctx) => exerciseWarnings(ctx),
   studentTraining,
   workout: getWorkout,
+  liveClass,
+  liveOpen: (ctx) => liveOpen(ctx),
+  previousLoads,
+  lastClassPlan,
+  studentEffort,
 };
 
 /** Every command the API runs; each checks the actor's role itself. */
@@ -144,6 +150,14 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'prescribed.remove': removePrescribed,
   'prescribed.group': groupPrescribed,
   'prescribed.ungroup': ungroupPrescribed,
+  'live.start': startClass,
+  'live.addExercise': addExercise,
+  'live.recordSet': recordSet,
+  'live.editSet': editSet,
+  'live.deleteSet': deleteSet,
+  'live.setPse': setPse,
+  'live.finish': finishClass,
+  'live.correct': correctClass,
   'session.signOutAll': signOutEverywhere,
 };
 
@@ -185,7 +199,24 @@ export class GroupService {
     if (!actor) return failure('unauthenticated');
     const handler = Object.hasOwn(COMMANDS, name) ? COMMANDS[name as CommandName] : undefined;
     if (!handler) return failure('not_found');
-    return this.ctx.sql.transaction(() => handler(this.ctx, actor, asInput(input)));
+    return this.ctx.sql.transaction(() => (name.startsWith('live.') ? this.runOnce(name, handler, actor, asInput(input)) : handler(this.ctx, actor, asInput(input))));
+  }
+
+  /**
+   * A command of the offline queue (ADR-009) applies once: the client's id is stored with the answer,
+   * and a resend gets that answer back with nothing changed. Failures are not stored: a refused
+   * command may be sent again after the cause is fixed.
+   */
+  private runOnce(name: string, handler: Handler<CommandResult<unknown>>, actor: Member, input: Input): CommandResult<unknown> {
+    const id = input.clientCommandId;
+    if (typeof id !== 'string' || id.length < 1 || id.length > 100) return failure('invalid');
+    const [done] = this.ctx.sql.all<{ name: string; result: string }>('SELECT name, result FROM client_commands WHERE id = ?', id);
+    if (done) return done.name === name ? { ok: true, value: JSON.parse(done.result), changed: [] } : failure('conflict');
+    const result = handler(this.ctx, actor, input);
+    if (result.ok) {
+      this.ctx.sql.run('INSERT INTO client_commands (id, name, result, applied_at) VALUES (?, ?, ?, ?)', id, name, JSON.stringify(result.value), this.ctx.clock.now().toISOString());
+    }
+    return result;
   }
 
   /** Every table as CSV in one zip; null unless the session belongs to an admin. */

@@ -565,6 +565,121 @@ export interface PrescriptionPatch {
 }
 
 /** Reads: `POST /api/query/<name>`. They never change anything. */
+// ---- The live class (docs/spec/aula-ao-vivo.md, phase 1c) --------------------------------------
+
+/** Every `live.*` command carries an id the client makes; a resend with the same id is answered, never applied twice (ADR-009). */
+export interface LiveCommandBase {
+  readonly clientCommandId: string;
+  /** When it happened on the device (ISO instant); the queue sets it, so a late send keeps the real times. */
+  readonly at?: string;
+}
+
+export type LiveSource =
+  | { readonly kind: 'workout'; readonly workoutId: string }
+  /** Copies the student's most recent class, or the one in `fromClassId`. */
+  | { readonly kind: 'repeat'; readonly fromClassId?: string }
+  | { readonly kind: 'free' };
+
+export interface LiveEntry {
+  readonly studentId: string;
+  readonly source: LiveSource;
+}
+
+export interface LiveSetView {
+  readonly id: string;
+  readonly planId: string;
+  readonly exerciseId: string;
+  readonly order: number;
+  readonly reps: number | null;
+  readonly loadG: number | null;
+  readonly seconds: number | null;
+  readonly meters: number | null;
+}
+
+/** An exercise of the class's own plan: a copy, so editing the workout never reaches a class. */
+export interface LivePlanItem {
+  /** `<classId>:<studentId>:<n>` when copied at the start; the client's own id when added during the class. */
+  readonly id: string;
+  readonly exercise: ExerciseView;
+  readonly order: number;
+  readonly sets: number;
+  readonly repsMin: number;
+  readonly repsMax: number;
+  /** The load suggested for the next set: the last one the student used, else the prescribed one. */
+  readonly loadG: number | null;
+  readonly restS: number;
+  readonly notes: string;
+  readonly groupId: string | null;
+  readonly groupKind: GroupKind | null;
+  readonly done: number;
+  /** The last load registered for this exercise in an earlier class; calculated, never typed. */
+  readonly previousLoadG: number | null;
+}
+
+export interface LiveStudentView {
+  readonly studentId: string;
+  readonly name: string;
+  readonly healthAlerts: readonly HealthAlertView[];
+  readonly plan: readonly LivePlanItem[];
+  readonly sets: readonly LiveSetView[];
+  /** The plan item to do next (alternates in bi-sets and circuits); null when all is done. */
+  readonly nextPlanId: string | null;
+  readonly pse: number | null;
+  /** PSE × minutes of the class (Foster); null until both are known. */
+  readonly load: number | null;
+  /** Sets per muscle group (primary 1, secondary 0.5). */
+  readonly volume: Readonly<Record<string, number>>;
+  /** Load × repetitions per exercise id, in grams; only exercises that have it. */
+  readonly tonnage: Readonly<Record<string, number>>;
+}
+
+export interface LiveClassView {
+  readonly classId: string;
+  readonly date: string;
+  readonly startedAt: string;
+  readonly finishedAt: string | null;
+  readonly durationMin: number | null;
+  readonly students: readonly LiveStudentView[];
+  readonly packageId: string | null;
+  readonly consumes: boolean;
+}
+
+export interface LiveOpenClass {
+  readonly classId: string;
+  readonly startedAt: string;
+  readonly students: readonly { readonly id: string; readonly name: string }[];
+}
+
+export interface LiveFinishResult {
+  readonly classId: string;
+  readonly durationMin: number;
+  readonly packageId: string | null;
+  readonly withoutPackage: WithoutPackageReason | null;
+  readonly pendingPayment: boolean;
+  /** More than one package fits: the class closed "sem pacote" and the trainer links one (`class.linkToPackage`). */
+  readonly choose: readonly PackageSummary[];
+}
+
+/** The plan of an earlier class, to repeat it. */
+export interface LastClassPlan {
+  readonly classId: string;
+  readonly date: string;
+  readonly exercises: readonly { readonly exerciseId: string; readonly sets: number; readonly repsMin: number; readonly repsMax: number; readonly loadG: number | null; readonly restS: number; readonly groupKey: string | null; readonly groupKind: GroupKind | null }[];
+}
+
+export interface StudentEffort {
+  readonly weeks: readonly { readonly monday: string; readonly total: number; readonly classes: number }[];
+  readonly classes: readonly { readonly classId: string; readonly date: string; readonly durationMin: number; readonly pse: number | null; readonly load: number | null }[];
+}
+
+export interface LiveSetInput {
+  readonly reps?: number | null;
+  readonly loadG?: number | null;
+  readonly seconds?: number | null;
+  readonly meters?: number | null;
+}
+
+
 export interface Queries {
   me: { input: Record<string, never>; output: MeView };
   /** Every student that is not inactive, by name; `includeInactive` adds the inactive ones. */
@@ -614,6 +729,13 @@ export interface Queries {
   /** A student's programs with their workouts, and the workouts outside any program. */
   studentTraining: { input: { studentId: string }; output: StudentTraining };
   workout: { input: { id: string }; output: WorkoutView };
+  liveClass: { input: { classId: string }; output: LiveClassView };
+  /** The classes started and not finished, to come back to. */
+  liveOpen: { input: Record<string, never>; output: LiveOpenClass[] };
+  /** The last load of each exercise the student did, by exercise id: what the app keeps for an offline class. */
+  previousLoads: { input: { studentId: string }; output: Record<string, number> };
+  lastClassPlan: { input: { studentId: string }; output: LastClassPlan | null };
+  studentEffort: { input: { studentId: string }; output: StudentEffort };
 }
 
 /** Writes: `POST /api/command/<name>`. Each runs alone, in one transaction. */
@@ -717,6 +839,23 @@ export interface Commands {
   /** Groups the exercises (and every member of a group they already belong to) side by side: the kind follows the size. */
   'prescribed.group': { input: { ids: string[]; kind: GroupKind }; output: WorkoutView };
   'prescribed.ungroup': { input: { groupId: string }; output: WorkoutView };
+  /**
+   * Starts the class: from a scheduled one (`classId`) or a new one (`newClassId`, made by the client so it works
+   * offline). Each student starts from a workout, the last class or empty. Plan ids are `<classId>:<studentId>:<n>`.
+   */
+  'live.start': { input: LiveCommandBase & { classId?: string; newClassId?: string; entries: LiveEntry[] }; output: LiveClassView };
+  /** Adds an exercise to the student's plan mid-class; `planId` is made by the client. */
+  'live.addExercise': { input: LiveCommandBase & { classId: string; studentId: string; planId: string; exerciseId: string }; output: LiveClassView };
+  /** One tap: the set as prescribed unless a field is given (+ and −). The set's id is the `clientCommandId`. */
+  'live.recordSet': { input: LiveCommandBase & LiveSetInput & { classId: string; studentId: string; planId: string }; output: LiveClassView };
+  'live.editSet': { input: LiveCommandBase & LiveSetInput & { setId: string }; output: LiveClassView };
+  'live.deleteSet': { input: LiveCommandBase & { setId: string }; output: LiveClassView };
+  /** Effort of the class, 0 to 10; also after the class ended. */
+  'live.setPse': { input: LiveCommandBase & { classId: string; studentId: string; pse: number }; output: LiveClassView };
+  /** Ends the class and draws it from the package. Without `pse` it is "encerrar agora": the PSE comes later. */
+  'live.finish': { input: LiveCommandBase & { classId: string; pse?: Record<string, number>; packageId?: string | null }; output: LiveFinishResult };
+  /** Fixes an ended class: its duration, whether it consumes, and which package. */
+  'live.correct': { input: LiveCommandBase & { classId: string; durationMin?: number; consumes?: boolean; packageId?: string | null }; output: LiveFinishResult };
   'session.signOutAll': { input: { memberId?: string }; output: null };
 }
 
