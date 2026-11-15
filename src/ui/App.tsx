@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import type { MeView } from '../application/api-contract';
 import { canManageGroup } from '../domain/group/roles';
 import { strings } from '../domain/strings';
 import { useLiveStatus, useServices } from './backend-context';
 import { Button } from './components/Button';
 import { Notice } from './components/Notice';
-import { Link, navigate, usePath } from './router';
+import { usePath } from './router';
+import { Shell } from './Shell';
 import { Agenda } from './screens/Agenda';
 import { Home } from './screens/Home';
 import { NewClass } from './screens/NewClass';
@@ -23,9 +24,9 @@ import { StudentList } from './screens/StudentList';
 import { NewStudent, StudentProfile } from './screens/StudentProfile';
 import { useQuery } from './use-query';
 
-/** The app's shell: side menu on the wide screen, bottom bar and + button on the phone (docs/spec/telas-de-gestao.md). */
+/** Signs in, then puts the screen inside the shell (tab bar, toolbar, large title). */
 export function App() {
-  const { backend, live } = useServices();
+  const { live } = useServices();
   const me = useQuery('me', {}, ['me']);
   const signedIn = me.data !== undefined && me.error !== 'unauthenticated';
 
@@ -46,94 +47,11 @@ export function App() {
   }
   if (!signedIn) return <SignIn />;
 
-  async function signOut() {
-    await backend.signOut();
-    navigate('/', { replace: true });
-    me.reload();
-  }
-
   return (
-    <div className="shell">
-      <Navigation me={me.data} onSignOut={() => void signOut()} />
-      <main className="content">
-        <OfflineNotice />
-        <Screen me={me.data} />
-      </main>
-      <AddMenu />
-    </div>
-  );
-}
-
-function Navigation({ me, onSignOut }: { me: MeView; onSignOut: () => void }) {
-  const path = usePath();
-  const entries = [
-    { path: '/', label: strings.nav.home, current: path === '/' },
-    { path: '/alunos', label: strings.nav.students, current: path.startsWith('/alunos') || path.startsWith('/aulas') || path.startsWith('/pagamentos') || path.startsWith('/mensalidades') || path.startsWith('/pacotes') || path === '/nota-aluno' },
-    { path: '/agenda', label: strings.nav.agenda, current: path.startsWith('/agenda') },
-    { path: '/configuracoes', label: strings.nav.settings, current: path === '/configuracoes' },
-    { path: '/membros', label: strings.nav.members, current: path === '/membros' },
-    ...(canManageGroup(me) ? [{ path: '/convites', label: strings.nav.invites, current: path === '/convites' }] : []),
-  ];
-  return (
-    <nav className="nav" aria-label={strings.nav.main}>
-      <span className="nav-brand">{strings.appName}</span>
-      {entries.map((entry) => (
-        <Link key={entry.path} to={entry.path} aria-current={entry.current ? 'page' : undefined}>
-          {entry.label}
-        </Link>
-      ))}
-      <Button variant="secondary" className="nav-sign-out" onClick={onSignOut}>
-        {strings.nav.signOut}
-      </Button>
-    </nav>
-  );
-}
-
-/** The phone's + button. Only the actions that exist so far; the others join as their screens do. */
-function AddMenu() {
-  const [open, setOpen] = useState(false);
-  const path = usePath();
-  useEffect(() => setOpen(false), [path]);
-  return (
-    <div className="add-menu">
-      {open && (
-        <ul className="list add-menu-items">
-          <li>
-            <Link className="button secondary" to="/pagamentos/registrar">
-              {strings.nav.addPayment}
-            </Link>
-          </li>
-          <li>
-            <Link className="button secondary" to="/agenda/nova">
-              {strings.nav.addClass}
-            </Link>
-          </li>
-          <li>
-            <Link className="button secondary" to="/aulas/registrar">
-              {strings.nav.addLesson}
-            </Link>
-          </li>
-          <li>
-            <Link className="button secondary" to="/nota-aluno">
-              {strings.nav.addNote}
-            </Link>
-          </li>
-          <li>
-            <Link className="button secondary" to="/alunos/novo">
-              {strings.nav.addStudent}
-            </Link>
-          </li>
-          <li>
-            <Link className="button secondary" to="/mensalidades/registrar">
-              {strings.nav.addMonthlyPayment}
-            </Link>
-          </li>
-        </ul>
-      )}
-      <Button className="add-button" aria-expanded={open} aria-label={open ? strings.nav.close : strings.nav.add} onClick={() => setOpen(!open)}>
-        {open ? '×' : '+'}
-      </Button>
-    </div>
+    <Shell>
+      <OfflineNotice />
+      <Screen me={me.data} />
+    </Shell>
   );
 }
 

@@ -2,11 +2,13 @@ import { useState, type FormEvent } from 'react';
 import type { PlanView } from '../../application/api-contract';
 import { CHAVE_PIX_MAX, MODELOS_PADRAO, MODELO_MAX } from '../../domain/mensagens/extrato';
 import { formatarData, formatarReais, lerReais, reaisParaTexto } from '../../domain/pacotes';
+import { canManageGroup } from '../../domain/group/roles';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
+import { ListRow, ListSection } from '../components/GroupedList';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { useQuery } from '../use-query';
@@ -19,12 +21,30 @@ export function Settings() {
   return (
     <section className="stack">
       <h1>{strings.settings.title}</h1>
+      <Account />
       <PauseAll />
       <Plans />
       <Messages />
       <Export />
       <Devices />
     </section>
+  );
+}
+
+/** Where the group and the sign-out live now that the tab bar has no room for them. */
+function Account() {
+  const { backend } = useServices();
+  const me = useQuery('me', {}, ['me']);
+  async function signOut() {
+    await backend.signOut();
+    window.location.assign('/');
+  }
+  return (
+    <ListSection header={strings.settings.account}>
+      <ListRow title={strings.nav.members} href="/membros" />
+      {me.data && canManageGroup(me.data) && <ListRow title={strings.nav.invites} href="/convites" />}
+      <ListRow title={strings.nav.signOut} action onClick={() => void signOut()} />
+    </ListSection>
   );
 }
 

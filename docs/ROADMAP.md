@@ -25,9 +25,8 @@ O que ainda não está pronto.
 
 ## O código ainda não segue o spec
 
-- As telas ainda usam o menu lateral, a barra com + no meio e os componentes antigos; o spec pede a
-  barra de abas, a barra de ferramentas e os painéis do iOS (`spec/telas-de-gestao.md`, ADR-011).
-- O código ainda chama a aba Hoje de "Início" e a aba Alunos de "Alunos e pacotes" (`strings.ts`).
+- As telas ainda usam os componentes antigos; o spec pede os painéis e as listas agrupadas do iOS
+  (`spec/telas-de-gestao.md`, ADR-011).
 
 ## Adiado
 
@@ -86,7 +85,7 @@ O que ainda não está pronto.
   abonar" (o app manda a decisão de novo); cancelamento feito por mim nunca cobra; marcar como dada
   só vale até hoje; aluno inativo não gera aulas novas; o aviso de previsão usa os horários fixos
   além das 8 semanas (`spec/agenda.md`).
-- [ ] Início (1b): o Início é a primeira tela (`/`) e Alunos e pacotes passou para `/alunos`. Como o
+- [ ] Hoje (1b): a aba Hoje é a primeira tela (`/`) e a aba Alunos fica em `/alunos`. Como o
   Modo Ao Vivo só chega na 1c, a aula em destaque tem "Marcar como dada" no lugar de "Iniciar aula".
   O texto da confirmação e do lembrete de mensalidade é fixo (não há modelo editável nas
   configurações); eu edito no WhatsApp antes de enviar. "Quem não confirmou" é quem recebeu a

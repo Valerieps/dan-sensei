@@ -40,7 +40,7 @@ export function urgencyLabel(item: UrgencyItem): string | null {
   return labels.ending;
 }
 
-/** "Alunos e pacotes": every student as a card, most urgent first, with the month's numbers on top. */
+/** "Alunos": every student as a card, most urgent first, with the month's numbers on top. */
 export function Overview() {
   const overview = useQuery('packagesOverview', {}, ['packages', 'payments', 'students', 'classes', 'monthly']);
   const [hidden, setHidden] = useState(readHidden);
@@ -62,12 +62,8 @@ export function Overview() {
   return (
     <section>
       <div className="row">
-        <h1 className="grow">{strings.students.title}</h1>
         <Link className="button secondary" to="/aulas/registrar">
           {o.registerLesson}
-        </Link>
-        <Link className="button" to="/alunos/novo">
-          {strings.students.newTitle}
         </Link>
       </div>
 

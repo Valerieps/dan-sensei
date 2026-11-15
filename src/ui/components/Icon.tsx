@@ -45,6 +45,14 @@ const DRAWINGS = {
       </>
     ),
   },
+  sidebar: {
+    stroke: (
+      <>
+        <rect x="3" y="4.5" width="18" height="15" rx="3.5" />
+        <path d="M9.5 4.5v15M5.5 8.5h1.5M5.5 11.5h1.5" />
+      </>
+    ),
+  },
   trash: { stroke: <path d="M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13" /> },
   shield: { stroke: <path d={SHIELD} />, filled: <path d={SHIELD} fill="currentColor" /> },
   today: { stroke: <path d={HOUSE} />, filled: <path d={HOUSE} fill="currentColor" /> },
