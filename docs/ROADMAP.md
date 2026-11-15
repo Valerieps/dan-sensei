@@ -11,8 +11,7 @@ O que ainda não está pronto.
 
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
-| Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | A fase 1c segue as sessões C1 a C9 do mesmo plano |
-| Programas, treinos e montagem em cartões | 1c | `spec/treinos-e-exercicios.md` | |
+| Telas da biblioteca de exercícios, da árvore de grupos e da montagem do treino em cartões | 1c | `spec/treinos-e-exercicios.md` | O servidor já responde a tudo (consultas `exercises`, `exerciseChoices`, `studentTraining`; comandos `exercise.*`, `program.*`, `workout.*`, `prescribed.*`); faltam as telas (sessão C2). A fase 1c segue as sessões C1 a C9 do mesmo plano |
 | Modo Ao Vivo individual, cronômetro e registro das séries | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7) |
 | Aula em dupla com dois cronômetros e sons por aluno | 1c | `spec/aula-ao-vivo.md` | |
 | PSE, carga da aula e volume | 1c | `spec/aula-ao-vivo.md` | |
@@ -35,6 +34,10 @@ O que ainda não está pronto.
 
 ## Revisar as lacunas que o agente decidiu
 
+- [ ] Exercícios e treinos: a biblioteca vem com uma lista pronta (a proposta do spec); não se apaga
+  exercício, só se arquiva; o nome é único; um treino pode ficar fora de programa; bi-set, tri-set e
+  circuito seguem a quantidade de exercícios; a faixa vale em segundos ou metros nos exercícios de
+  tempo e distância; padrão de 3 × 8–12 com 60 s de descanso (`spec/treinos-e-exercicios.md`).
 - [ ] Alunos: os filtros são Todos, Atenção, Mensalistas e Inativos; o menu de contexto do cartão
   tem Remarcar (leva à Agenda no dia da próxima aula), Registrar pagamento e Mandar extrato (leva
   à aba Pacotes), e some a ação que não se aplica (`spec/telas-de-gestao.md`).

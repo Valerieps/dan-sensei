@@ -27,6 +27,7 @@ Um termo, um sentido. Estes nomes valem para os textos da interface e para as do
 - **Membro:** quem entrou no grupo com um convite. (`spec/acesso-e-membros.md`)
 - **Mensalista:** aluno antigo que paga mensalidade fixa, sem pacote. (`spec/mensalistas.md`)
 - **Modo Ao Vivo:** a tela cheia que conduz a aula no iPad. (`spec/aula-ao-vivo.md`)
+- **Grupo (de exercícios):** exercícios feitos lado a lado num treino: bi-set, tri-set ou circuito. (`spec/treinos-e-exercicios.md`)
 - **Pacote:** aulas compradas por um aluno, com validade; tem titular e, na dupla, participante. (`spec/pacotes-e-pagamentos.md`)
 - **PAR-Q:** questionário de prontidão para atividade física, respondido na primeira aula. (`spec/termo-e-lgpd.md`)
 - **Pausa:** período em que a validade de um pacote para de correr. (`spec/pacotes-e-pagamentos.md`)

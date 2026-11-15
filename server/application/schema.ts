@@ -1,5 +1,6 @@
 // The group's database (docs/ARQUITETURA.md). Migrations run in order, once each, when the
 // Durable Object starts. Never edit a migration that has shipped: add the next one.
+import { seedStatements } from './exercise-seed';
 import type { Sql } from './ports';
 
 export const MIGRATIONS: readonly (readonly string[])[] = [
@@ -201,6 +202,70 @@ export const MIGRATIONS: readonly (readonly string[])[] = [
     // When the trainer opened the confirmation in WhatsApp; a lesson asked but not confirmed is
     // highlighted on its day (docs/spec/agenda.md, Confirmação).
     `ALTER TABLE classes ADD COLUMN confirmation_asked_at TEXT`,
+  ],
+  // 8: the exercise library, programs, workouts and prescribed exercises (docs/spec/treinos-e-exercicios.md).
+  // Group lists are JSON arrays of ids. `name_key` is the name without case or accents: one exercise
+  // per name. Loads are in grams. A workout belongs to a student and, optionally, to a program.
+  // Past classes copy what was done (performed_sets, phase 1c), so editing or deleting a workout
+  // never reaches them.
+  [
+    `CREATE TABLE exercises (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      name_key TEXT NOT NULL UNIQUE,
+      aliases TEXT NOT NULL DEFAULT '[]',
+      primary_groups TEXT NOT NULL DEFAULT '[]',
+      secondary_groups TEXT NOT NULL DEFAULT '[]',
+      tags TEXT NOT NULL DEFAULT '[]',
+      measure TEXT NOT NULL DEFAULT 'load_reps',
+      load_step_g INTEGER NOT NULL DEFAULT 2500,
+      equipment TEXT,
+      media_url TEXT,
+      archived INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    )`,
+    ...seedStatements('2026-11-15T00:00:00.000Z'),
+    `CREATE TABLE programs (
+      id TEXT PRIMARY KEY,
+      student_id TEXT NOT NULL REFERENCES students(id),
+      name TEXT NOT NULL,
+      starts_on TEXT,
+      ends_on TEXT,
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE INDEX programs_student ON programs(student_id)`,
+    `CREATE TABLE workouts (
+      id TEXT PRIMARY KEY,
+      student_id TEXT NOT NULL REFERENCES students(id),
+      program_id TEXT REFERENCES programs(id),
+      label TEXT NOT NULL,
+      sort INTEGER NOT NULL,
+      created_at TEXT NOT NULL
+    )`,
+    `CREATE UNIQUE INDEX workouts_label ON workouts(student_id, COALESCE(program_id, ''), label COLLATE NOCASE)`,
+    // Exercises done side by side: bi-set, tri-set or circuit.
+    `CREATE TABLE workout_groups (
+      id TEXT PRIMARY KEY,
+      workout_id TEXT NOT NULL REFERENCES workouts(id),
+      kind TEXT NOT NULL
+    )`,
+    `CREATE TABLE prescribed_exercises (
+      id TEXT PRIMARY KEY,
+      workout_id TEXT NOT NULL REFERENCES workouts(id),
+      exercise_id TEXT NOT NULL REFERENCES exercises(id),
+      sort INTEGER NOT NULL,
+      sets INTEGER NOT NULL,
+      reps_min INTEGER NOT NULL,
+      reps_max INTEGER NOT NULL,
+      load_g INTEGER,
+      rest_s INTEGER NOT NULL,
+      method TEXT NOT NULL DEFAULT 'normal',
+      target_kind TEXT,
+      target_value INTEGER,
+      notes TEXT NOT NULL DEFAULT '',
+      group_id TEXT REFERENCES workout_groups(id)
+    )`,
+    `CREATE INDEX prescribed_workout ON prescribed_exercises(workout_id, sort)`,
   ],
 ];
 

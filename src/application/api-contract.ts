@@ -3,6 +3,7 @@
 import type { Billing, StudentStatus } from '../domain/alunos/student';
 import type { Role } from '../domain/group/roles';
 import type { NivelDeUrgencia, SituacaoDoPacote } from '../domain/pacotes';
+import type { Equipment, ExerciseChoices, GroupKind, Measure, Method, MuscleGroupId, TargetKind } from '../domain/treinos';
 
 export interface MemberView {
   readonly id: string;
@@ -430,6 +431,106 @@ export interface AgendaHome {
   readonly forecastWarnings: readonly ForecastWarning[];
 }
 
+/** The exercise library (docs/spec/treinos-e-exercicios.md). Loads are in grams, so no float travels. */
+export interface ExerciseView {
+  readonly id: string;
+  readonly name: string;
+  readonly aliases: readonly string[];
+  readonly primaryGroups: readonly MuscleGroupId[];
+  readonly secondaryGroups: readonly MuscleGroupId[];
+  readonly tags: readonly string[];
+  readonly measure: Measure;
+  /** What the + and - buttons add to the load: 1000, 2000, 2500 or 5000 g. */
+  readonly loadStepG: number;
+  readonly equipment: Equipment | null;
+  readonly mediaUrl: string | null;
+  /** An archived exercise leaves the choices but stays in the workouts and history that use it. */
+  readonly archived: boolean;
+  /** "Exercício sem músculos": no primary group, so it counts in no volume until completed. */
+  readonly withoutMuscles: boolean;
+}
+
+/** Only `name` is required: the rest takes its default, so an exercise can be created mid-class. */
+export interface ExerciseFormInput {
+  readonly name: string;
+  readonly aliases?: readonly string[];
+  readonly primaryGroups?: readonly MuscleGroupId[];
+  readonly secondaryGroups?: readonly MuscleGroupId[];
+  readonly tags?: readonly string[];
+  readonly measure?: Measure;
+  readonly loadStepG?: number;
+  readonly equipment?: Equipment | null;
+  readonly mediaUrl?: string | null;
+}
+
+export interface ExerciseWarnings {
+  /** Active exercises with no primary group, by name. */
+  readonly withoutMuscles: readonly { readonly id: string; readonly name: string }[];
+}
+
+/** Repetitions, or seconds for a "time" exercise and meters for a "distance" one. */
+export interface PrescribedExerciseView {
+  readonly id: string;
+  readonly exercise: ExerciseView;
+  readonly order: number;
+  readonly sets: number;
+  readonly repsMin: number;
+  readonly repsMax: number;
+  readonly loadG: number | null;
+  readonly restS: number;
+  readonly method: Method;
+  readonly targetKind: TargetKind | null;
+  readonly targetValue: number | null;
+  readonly notes: string;
+  /** Exercises of one group share the id (bi-set, tri-set or circuit); null when alone. */
+  readonly groupId: string | null;
+  readonly groupKind: GroupKind | null;
+}
+
+export interface WorkoutView {
+  readonly id: string;
+  readonly studentId: string;
+  /** Null for a workout outside any program. */
+  readonly programId: string | null;
+  readonly label: string;
+  readonly exercises: readonly PrescribedExerciseView[];
+}
+
+export interface ProgramView {
+  readonly id: string;
+  readonly studentId: string;
+  readonly name: string;
+  readonly startsOn: string | null;
+  readonly endsOn: string | null;
+  readonly workouts: readonly WorkoutView[];
+}
+
+export interface StudentTraining {
+  readonly programs: readonly ProgramView[];
+  /** Workouts that belong to no program. */
+  readonly workouts: readonly WorkoutView[];
+}
+
+export interface ProgramInput {
+  readonly name: string;
+  readonly startsOn?: string | null;
+  readonly endsOn?: string | null;
+}
+
+/** The prescription fields a card edits; on `prescribed.update` only the ones sent change. */
+export interface PrescriptionPatch {
+  readonly sets?: number;
+  readonly repsMin?: number;
+  readonly repsMax?: number;
+  readonly loadG?: number | null;
+  readonly restS?: number;
+  readonly method?: Method;
+  /** Send both or neither; both null clears the target. */
+  readonly targetKind?: TargetKind | null;
+  readonly targetValue?: number | null;
+  readonly notes?: string;
+}
+
 /** Reads: `POST /api/query/<name>`. They never change anything. */
 export interface Queries {
   me: { input: Record<string, never>; output: MeView };
@@ -467,6 +568,17 @@ export interface Queries {
   recurrences: { input: { studentId?: string }; output: RecurrenceView[] };
   /** Last lesson forecast against the due date; `not_found` for an unknown or closed package. */
   packageForecast: { input: { packageId: string }; output: PackageForecast };
+  /** Active exercises (`includeArchived` adds the archived ones), by name. */
+  exercises: { input: { includeArchived?: boolean }; output: ExerciseView[] };
+  exercise: { input: { id: string }; output: ExerciseView };
+  /** The tree walk: the groups still offered after `groups` were picked, and the exercises that use all of them. */
+  exerciseChoices: { input: { groups?: MuscleGroupId[]; search?: string }; output: ExerciseChoices<ExerciseView> };
+  /** Every tag in use, for the tag field's suggestions. */
+  exerciseTags: { input: Record<string, never>; output: string[] };
+  exerciseWarnings: { input: Record<string, never>; output: ExerciseWarnings };
+  /** A student's programs with their workouts, and the workouts outside any program. */
+  studentTraining: { input: { studentId: string }; output: StudentTraining };
+  workout: { input: { id: string }; output: WorkoutView };
 }
 
 /** Writes: `POST /api/command/<name>`. Each runs alone, in one transaction. */
@@ -539,6 +651,27 @@ export interface Commands {
   /** The app opened the message in WhatsApp; it cannot know it was sent (ADR-008). */
   'message.markOpened': { input: { studentId: string; kind: MessageKind }; output: null };
   /** Ends every session of a member (default: the actor's own), for a lost iPad or phone. */
+  'exercise.create': { input: ExerciseFormInput; output: ExerciseView };
+  /** Replaces the whole exercise; `conflict` when the name is taken by another one. */
+  'exercise.update': { input: ExerciseFormInput & { id: string }; output: ExerciseView };
+  'exercise.setArchived': { input: { id: string; archived: boolean }; output: ExerciseView };
+  'program.create': { input: ProgramInput & { studentId: string }; output: ProgramView };
+  'program.update': { input: ProgramInput & { id: string }; output: ProgramView };
+  /** Deletes the program and its workouts; past classes keep what was done. */
+  'program.delete': { input: { id: string }; output: null };
+  /** `label` defaults to the next free letter (A, B, C...) among the workouts of the same program. */
+  'workout.create': { input: { studentId: string; programId?: string | null; label?: string }; output: WorkoutView };
+  'workout.rename': { input: { id: string; label: string }; output: WorkoutView };
+  'workout.delete': { input: { id: string }; output: null };
+  /** `ids` is every prescribed exercise of the workout in the new order; a group must stay together. */
+  'workout.reorder': { input: { workoutId: string; ids: string[] }; output: WorkoutView };
+  /** Adds the exercise at the end with the defaults, then the fields sent. */
+  'prescribed.add': { input: { workoutId: string; exerciseId: string } & PrescriptionPatch; output: WorkoutView };
+  'prescribed.update': { input: { id: string } & PrescriptionPatch; output: WorkoutView };
+  'prescribed.remove': { input: { id: string }; output: WorkoutView };
+  /** Groups the exercises (and every member of a group they already belong to) side by side: the kind follows the size. */
+  'prescribed.group': { input: { ids: string[]; kind: GroupKind }; output: WorkoutView };
+  'prescribed.ungroup': { input: { groupId: string }; output: WorkoutView };
   'session.signOutAll': { input: { memberId?: string }; output: null };
 }
 
@@ -546,7 +679,7 @@ export type QueryName = keyof Queries;
 export type CommandName = keyof Commands;
 
 /** What a live message says changed; the screens that show it refetch. */
-export type Topic = 'me' | 'members' | 'invites' | 'students' | 'plans' | 'packages' | 'payments' | 'classes' | 'monthly' | 'messages';
+export type Topic = 'me' | 'members' | 'invites' | 'students' | 'plans' | 'packages' | 'payments' | 'classes' | 'monthly' | 'messages' | 'exercises' | 'training';
 
 export interface LiveMessage {
   readonly type: 'changed';
