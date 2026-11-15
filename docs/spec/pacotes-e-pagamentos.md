@@ -5,7 +5,7 @@ O saldo e a validade de cada pacote sempre corretos, sem depender da minha memó
 - **Entra aqui:** planos, pacotes, o que consome uma aula, saldo, renovação, pausas, pagamentos, o
   pacote da dupla e o saldo inicial.
 - **Não entra aqui:** mensalistas (`mensalistas.md`), a agenda e o cancelamento de aulas marcadas
-  (`agenda.md`), a mensagem de extrato (`whatsapp.md`) e a tela Alunos e pacotes
+  (`agenda.md`), a mensagem de extrato (`whatsapp.md`) e a aba Alunos
   (`telas-de-gestao.md`).
 
 ## Em aberto

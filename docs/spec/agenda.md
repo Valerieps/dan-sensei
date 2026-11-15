@@ -5,7 +5,7 @@ Meus horários, que são quase todos fixos mas mudam muito em cima da hora.
 - **Entra aqui:** horários fixos, aulas agendadas, duração, remarcação, cancelamento, previsão de
   validade e confirmação das aulas.
 - **Não entra aqui:** o que cada situação da aula consome do pacote (`pacotes-e-pagamentos.md`), o
-  Início (`telas-de-gestao.md`) e o texto da confirmação (`whatsapp.md`).
+  Hoje (`telas-de-gestao.md`) e o texto da confirmação (`whatsapp.md`).
 
 ## Aulas
 
@@ -15,7 +15,7 @@ Meus horários, que são quase todos fixos mas mudam muito em cima da hora.
 - Uma aula tem 1 ou 2 alunos. *(1b)*
 - O endereço da aula vem do cadastro do aluno, e eu posso trocar por outro endereço dele. *(1b)*
 - A aula dura até 60 minutos para todos, podendo terminar antes se o treino for mais curto. *(1b)*
-  Por quê: a duração define até quando a aula aparece como "aula agora" no Início.
+  Por quê: a duração define até quando a aula aparece como "aula agora" em Hoje.
 
 ## Remarcar e cancelar
 

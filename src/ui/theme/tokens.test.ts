@@ -164,6 +164,16 @@ const TEXT_PAIRS = [
   ['--color-on-danger', '--color-danger'],
   ['--color-success', '--color-bg'],
   ['--color-success', '--color-surface'],
+  ['--color-text', '--color-surface-2'],
+  ['--color-text-muted', '--color-surface-2'],
+  ['--color-danger', '--color-danger-tint'],
+  ['--color-health', '--color-bg'],
+  ['--color-health', '--color-surface'],
+  ['--color-health', '--color-health-tint'],
+  ['--color-on-live-work', '--color-live-work'],
+  ['--color-on-live-rest', '--color-live-rest'],
+  ['--color-on-live-prep', '--color-live-prep'],
+  ['--color-on-live-done', '--color-live-done'],
 ] as const;
 
 const NON_TEXT_PAIRS = [

@@ -20,7 +20,7 @@ exercícios o aluno se desloca e o iPad fica mais longe.
 
 ## Começar a aula
 
-Três jeitos, todos a um toque do Início:
+Três jeitos, todos a um toque de Hoje:
 
 - **Treino do programa:** "Iniciar Treino B", com as cargas da última vez já sugeridas. *(1c)*
 - **Repetir a última aula:** copia a aula mais recente do aluno; posso escolher outra data. *(1c)*
@@ -29,7 +29,7 @@ Três jeitos, todos a um toque do Início:
 
 ## Modo Ao Vivo
 
-- Tela cheia, iPad na horizontal, letras grandes para ler a 2 m e botões de pelo menos 60 pt. *(1c)*
+- Tela cheia, iPad na horizontal, letras grandes para ler a 2 m e botões de pelo menos 64 pt. Os números usam SF Pro Rounded, como no app Fitness. As cores do momento são as mesmas no tema claro e no escuro. *(1c)*
 - O cabeçalho mostra a logomarca, o aluno, os alertas de saúde e "Aula 8 de 12". *(1c)*
 - A tela muda com o momento: durante a série, o exercício, a série e a carga ocupam a tela; no
   descanso, o cronômetro ocupa a tela. Os números ficam o maior possível. *(1c)*
@@ -51,7 +51,7 @@ Três jeitos, todos a um toque do Início:
   faixa mostra a cor do próximo intervalo. *(1c)*
   Por quê: ajuda muito em treinos intervalados mais complexos.
 - As cores do cronômetro valem só dentro do Modo Ao Vivo e não usam o vermelho de cobrança nem o
-  âmbar de saúde. *(1c)*
+  laranja de saúde: trabalho em verde esmeralda, descanso em índigo, preparação em cor de papel. *(1c)*
 - O fim do descanso toca um aviso. O som é liberado no primeiro toque da aula. *(1c)*
 
 ## Aula em dupla

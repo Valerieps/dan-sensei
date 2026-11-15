@@ -11,8 +11,8 @@ O que ainda não está pronto.
 
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
-| Identidade visual (paleta, letra, forma) | 1a | `spec/telas-de-gestao.md` | A Valéria escolhe; as quatro direções estão na issue #6 |
-| Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | |
+| Padrão Apple nas telas das fases 1a e 1b: componentes, navegação, Hoje, Agenda, Alunos, perfil, painéis | 1a, 1b | `spec/telas-de-gestao.md` | Sessões A1 a A7 de `rascunhos/plano-padrao-apple-e-fase-1c.md` |
+| Biblioteca de exercícios e árvore de grupos musculares | 1c | `spec/treinos-e-exercicios.md` | A fase 1c segue as sessões C1 a C9 do mesmo plano |
 | Programas, treinos e montagem em cartões | 1c | `spec/treinos-e-exercicios.md` | |
 | Modo Ao Vivo individual, cronômetro e registro das séries | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7) |
 | Aula em dupla com dois cronômetros e sons por aluno | 1c | `spec/aula-ao-vivo.md` | |
@@ -25,7 +25,9 @@ O que ainda não está pronto.
 
 ## O código ainda não segue o spec
 
-- `tokens.css` ainda tem a paleta do template, não o tema escuro com esmeralda do spec.
+- As telas ainda usam o menu lateral, a barra com + no meio e os componentes antigos; o spec pede a
+  barra de abas, a barra de ferramentas e os painéis do iOS (`spec/telas-de-gestao.md`, ADR-011).
+- O código ainda chama a aba Hoje de "Início" e a aba Alunos de "Alunos e pacotes" (`strings.ts`).
 
 ## Adiado
 

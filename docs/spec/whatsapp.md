@@ -26,7 +26,7 @@ As mensagens que o app prepara para eu enviar aos alunos.
 - Na dupla, só o titular recebe o extrato e a renovação. *(1a)*
 - O extrato e a renovação saem numa só mensagem: a renovação é um parágrafo no fim. O plano Avulso
   nunca recebe o parágrafo. O valor é o total do pacote atual. *(1a)*
-- O aluno entra em "Extratos para enviar", na tela Alunos e pacotes, depois de uma aula dada, até eu
+- O aluno entra em "Extratos para enviar", na aba Alunos, depois de uma aula dada, até eu
   abrir a mensagem. O app guarda que eu abri, não que eu enviei. *(1a)*
 
 ## Resumo da aula
