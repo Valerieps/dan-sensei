@@ -11,7 +11,7 @@ O que ainda não está pronto.
 
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
-| Telas da biblioteca de exercícios, da árvore de grupos e da montagem do treino em cartões | 1c | `spec/treinos-e-exercicios.md` | O servidor já responde a tudo (consultas `exercises`, `exerciseChoices`, `studentTraining`; comandos `exercise.*`, `program.*`, `workout.*`, `prescribed.*`); faltam as telas (sessão C2). A fase 1c segue as sessões C1 a C9 do mesmo plano |
+| Montagem do treino: datas do programa, renomear a letra do treino e reordenar dentro de um bi-set, tri-set ou circuito | 1c | `spec/treinos-e-exercicios.md` | A montagem em cartões e a biblioteca já existem (C2); o servidor já aceita as datas e o nome |
 | Modo Ao Vivo individual, cronômetro e registro das séries | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7) |
 | Aula em dupla com dois cronômetros e sons por aluno | 1c | `spec/aula-ao-vivo.md` | |
 | PSE, carga da aula e volume | 1c | `spec/aula-ao-vivo.md` | |

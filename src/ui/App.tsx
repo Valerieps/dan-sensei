@@ -8,6 +8,7 @@ import { Notice } from './components/Notice';
 import { usePath } from './router';
 import { Shell } from './Shell';
 import { Agenda } from './screens/Agenda';
+import { Exercises, NewExercise } from './screens/Exercises';
 import { Home } from './screens/Home';
 import { NewClass } from './screens/NewClass';
 import { Invites } from './screens/Invites';
@@ -71,6 +72,9 @@ function Screen({ me }: { me: MeView }) {
   if (path === '/membros') return <Members me={me} />;
   if (path === '/convites' && canManageGroup(me)) return <Invites />;
   if (path === '/configuracoes') return <Settings />;
+  if (/^\/exercicios\/novo\/?$/.test(path)) return <NewExercise behind={<Exercises />} />;
+  const exercise = /^\/exercicios(?:\/([^/]+))?\/?$/.exec(path);
+  if (exercise) return <Exercises selectedId={exercise[1]} />;
   const newClass = /^\/agenda\/nova(?:\/(\d{4}-\d{2}-\d{2})(?:\/(\d{2}:\d{2}))?)?\/?$/.exec(path);
   if (newClass) return <NewClass key={path} date={newClass[1]} time={newClass[2]} behind={<Agenda mode="day" date={newClass[1]} />} />;
   const week = /^\/agenda\/semana(?:\/(\d{4}-\d{2}-\d{2}))?\/?$/.exec(path);
@@ -89,6 +93,8 @@ function Screen({ me }: { me: MeView }) {
   if (lesson) return <RegisterLesson key={lesson[1] ?? ''} studentId={lesson[1]} behind={behindStudent(lesson[1], 'packages')} />;
   const packageForm = /^\/alunos\/([^/]+)\/pacotes\/(novo|saldo-inicial)\/?$/.exec(path);
   if (packageForm) return <PackageForm key={path} studentId={packageForm[1]} startingBalance={packageForm[2] === 'saldo-inicial'} />;
+  const workouts = /^\/alunos\/([^/]+)\/treinos(?:\/([^/]+))?\/?$/.exec(path);
+  if (workouts) return <StudentProfile key={workouts[1]} id={workouts[1]} tab="workouts" workoutId={workouts[2]} />;
   const profile = /^\/alunos\/([^/]+)(\/notas|\/pacotes|\/mensalidades)?\/?$/.exec(path);
   if (profile) {
     const tabs = { '/notas': 'notes', '/pacotes': 'packages', '/mensalidades': 'monthly' } as const;

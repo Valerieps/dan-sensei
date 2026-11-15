@@ -33,6 +33,7 @@ const TAB_LABEL: Record<TabId, string> = {
   today: strings.nav.home,
   agenda: strings.nav.agenda,
   students: strings.nav.students,
+  exercises: strings.nav.exercises,
 };
 
 const CREATE_LABEL: Record<CreateActionId, string> = {
@@ -81,7 +82,7 @@ export function Shell({ children }: { children: ReactNode }) {
           {titleTab && titleHidden && <span className="compact-title">{TAB_LABEL[titleTab]}</span>}
           <Toolbar onSearch={() => setSearching(true)} />
         </header>
-        <main className="content">
+        <main className={tabOf(path) === 'exercises' ? 'content wide' : 'content'}>
           {titleTab && <LargeTitle key={titleTab} title={TAB_LABEL[titleTab]} onVisible={onTitleVisible} />}
           {children}
         </main>
@@ -117,7 +118,7 @@ function TabBar({ placement }: { placement: 'top' | 'bottom' }) {
   return (
     <nav className={`tab-bar glass ${placement}`} aria-label={strings.nav.main}>
       {TABS.map((tab) => (
-        <Link key={tab.id} to={tab.path} aria-current={tab.id === current ? 'page' : undefined}>
+        <Link key={tab.id} to={tab.path} className={tab.padOnly ? 'pad-only' : undefined} aria-current={tab.id === current ? 'page' : undefined}>
           <Icon name={tab.icon} filled={tab.id === current} />
           <span>{TAB_LABEL[tab.id]}</span>
         </Link>
@@ -134,7 +135,7 @@ function Sidebar() {
     <aside className="sidebar" aria-label={strings.nav.main}>
       <nav className="sidebar-nav" aria-label={strings.nav.tabs}>
         {TABS.map((tab) => (
-          <Link key={tab.id} to={tab.path} aria-current={tab.id === current ? 'page' : undefined}>
+          <Link key={tab.id} to={tab.path} className={tab.padOnly ? 'pad-only' : undefined} aria-current={tab.id === current ? 'page' : undefined}>
             <Icon name={tab.icon} filled={tab.id === current} />
             {TAB_LABEL[tab.id]}
           </Link>
