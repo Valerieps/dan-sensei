@@ -14,15 +14,21 @@ import {
 } from '../../domain/agenda';
 import { dataEmSaoPaulo, formatarData, somarDias } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
-import { classNames, classStatusText, classTone } from '../components/class-text';
+import { Badge } from '../components/Badge';
+import { classNames, classStatusText, classTone, lessonSwipeActions } from '../components/class-text';
+import { SegmentedControl } from '../components/Controls';
 import { EmptyState } from '../components/EmptyState';
+import { ListRow, ListSection } from '../components/GroupedList';
+import { Icon } from '../components/Icon';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
-import { Link } from '../router';
+import { SwipeActions } from '../components/SwipeActions';
+import { Link, navigate } from '../router';
 import { useQuery } from '../use-query';
 import { ClassSheet } from './ClassSheet';
 
-type Open = { readonly lesson: AgendaClass; readonly initial?: { readonly date: string; readonly time: string } };
+type Open = { readonly lesson: AgendaClass; readonly initial?: { readonly date: string; readonly time: string }; readonly missed?: boolean };
+type Reaction = (lesson: AgendaClass, how?: { readonly initial?: { readonly date: string; readonly time: string }; readonly missed?: boolean }) => void;
 
 /** "terça, 17/11" */
 const dayText = (date: string) => strings.agenda.dayLabel(strings.agenda.weekdays[diaDaSemana(date)] ?? '', formatarData(date).slice(0, 5));
@@ -46,34 +52,35 @@ export function Agenda({ mode, date: rawDate }: { mode: 'day' | 'week'; date?: s
 
   return (
     <section>
-      <nav className="row tabs" aria-label={a.views}>
-        <Link to={`/agenda/${date}`} aria-current={mode === 'day' ? 'page' : undefined}>
-          {a.day}
-        </Link>
-        <Link to={`/agenda/semana/${date}`} aria-current={mode === 'week' ? 'page' : undefined}>
-          {a.week}
-        </Link>
-      </nav>
+      <SegmentedControl
+        label={a.views}
+        options={[
+          { value: 'day', label: a.day },
+          { value: 'week', label: a.week },
+        ]}
+        value={mode}
+        onChange={(next) => navigate(next === 'day' ? `/agenda/${date}` : `/agenda/semana/${date}`)}
+      />
 
       <div className="row agenda-nav">
         <Link className="button secondary" to={`${base}/${somarDias(date, -step)}`} aria-label={mode === 'day' ? a.previousDay : a.previousWeek}>
-          ‹
+          <Icon name="chevron-left" />
         </Link>
         <h2 className="grow agenda-label">{label}</h2>
         <Link className="button secondary" to={`${base}/${today}`}>
           {a.today}
         </Link>
         <Link className="button secondary" to={`${base}/${somarDias(date, step)}`} aria-label={mode === 'day' ? a.nextDay : a.nextWeek}>
-          ›
+          <Icon name="chevron-right" />
         </Link>
       </div>
 
       {!current.data && (current.error ? <Notice tone="error">{a.loadFailed}</Notice> : <Loading />)}
 
-      {mode === 'day' && day.data && <DayGrid date={date} lessons={day.data} onOpen={(lesson, initial) => setOpen({ lesson, initial })} />}
-      {mode === 'week' && week.data && <WeekList from={week.data.from} lessons={week.data.classes} today={today} onOpen={(lesson) => setOpen({ lesson })} />}
+      {mode === 'day' && day.data && <DayGrid date={date} today={today} lessons={day.data} onOpen={(lesson, how) => setOpen({ lesson, ...how })} />}
+      {mode === 'week' && week.data && <WeekList from={week.data.from} lessons={week.data.classes} today={today} onOpen={(lesson, how) => setOpen({ lesson, ...how })} />}
 
-      {open && <ClassSheet key={open.lesson.id + (open.initial?.time ?? '')} lesson={open.lesson} initial={open.initial} onClose={() => setOpen(undefined)} onChanged={current.reload} />}
+      {open && <ClassSheet key={open.lesson.id + (open.initial?.time ?? '') + (open.missed ? 'm' : '')} lesson={open.lesson} initial={open.initial} startMissed={open.missed} onClose={() => setOpen(undefined)} onChanged={current.reload} />}
     </section>
   );
 }
@@ -85,7 +92,7 @@ interface Drag {
   readonly deltaMin: number;
 }
 
-function DayGrid({ date, lessons, onOpen }: { date: string; lessons: readonly AgendaClass[]; onOpen: (lesson: AgendaClass, initial?: { date: string; time: string }) => void }) {
+function DayGrid({ date, today, lessons, onOpen }: { date: string; today: string; lessons: readonly AgendaClass[]; onOpen: Reaction }) {
   const a = strings.agenda;
   const gridRef = useRef<HTMLDivElement>(null);
   const [drag, setDrag] = useState<Drag>();
@@ -110,7 +117,7 @@ function DayGrid({ date, lessons, onOpen }: { date: string; lessons: readonly Ag
     if (!drag) return;
     const time = horaAposArrasto(lesson, drag.deltaMin, faixa);
     setDrag(undefined);
-    if (time !== lesson.time) onOpen(lesson, { date: lesson.date, time });
+    if (time !== lesson.time) onOpen(lesson, { initial: { date: lesson.date, time } });
   }
 
   /** The keyboard's way to drag: a quarter of an hour up or down. */
@@ -118,7 +125,7 @@ function DayGrid({ date, lessons, onOpen }: { date: string; lessons: readonly Ag
     const direction = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0;
     if (direction === 0) return;
     event.preventDefault();
-    onOpen(lesson, { date: lesson.date, time: horaAposArrasto(lesson, direction * PASSO_DO_ARRASTO_MIN, faixa) });
+    onOpen(lesson, { initial: { date: lesson.date, time: horaAposArrasto(lesson, direction * PASSO_DO_ARRASTO_MIN, faixa) } });
   }
 
   return (
@@ -150,15 +157,19 @@ function DayGrid({ date, lessons, onOpen }: { date: string; lessons: readonly Ag
             const time = dragging ? horaAposArrasto(lesson, dragging.deltaMin, faixa) : lesson.time;
             const { topo, altura } = posicaoNaGrade({ time, durationMin: lesson.durationMin }, faixa);
             const names = classNames(lesson);
+            const actions = lessonSwipeActions(lesson, today, { reschedule: () => onOpen(lesson), missed: () => onOpen(lesson, { missed: true }) });
+            const main = (
+              <button type="button" className="class-main" onClick={() => onOpen(lesson)}>
+                <span className="strong">{names}</span>
+                <span className="small">
+                  {dragging ? a.dragging(time) : a.classLine(lesson.time, classStatusText(lesson))}
+                  {lesson.status === 'scheduled' && !lesson.confirmed ? ` · ${a.notConfirmed}` : ''}
+                </span>
+              </button>
+            );
             return (
               <div key={lesson.id} className={`class-block ${classTone(lesson)}${dragging ? ' dragging' : ''}`} style={{ top: `${topo}%`, height: `${altura}%` }}>
-                <button type="button" className="class-main" onClick={() => onOpen(lesson)}>
-                  <span className="strong">{names}</span>
-                  <span className="small">
-                    {dragging ? a.dragging(time) : a.classLine(lesson.time, classStatusText(lesson))}
-                    {lesson.status === 'scheduled' && !lesson.confirmed ? ` · ${a.notConfirmed}` : ''}
-                  </span>
-                </button>
+                {actions.length > 0 ? <SwipeActions actions={actions}>{main}</SwipeActions> : main}
                 {lesson.status === 'scheduled' && (
                   <button
                     type="button"
@@ -182,35 +193,37 @@ function DayGrid({ date, lessons, onOpen }: { date: string; lessons: readonly Ag
   );
 }
 
-function WeekList({ from, lessons, today, onOpen }: { from: string; lessons: readonly AgendaClass[]; today: string; onOpen: (lesson: AgendaClass) => void }) {
+function WeekList({ from, lessons, today, onOpen }: { from: string; lessons: readonly AgendaClass[]; today: string; onOpen: Reaction }) {
   const a = strings.agenda;
   const days = Array.from({ length: 7 }, (_, i) => somarDias(from, i));
   const visible = lessons.filter((l) => l.status !== 'rescheduled');
   return (
     <>
       {visible.length === 0 && <EmptyState>{a.emptyWeek}</EmptyState>}
-      <ul className="list">
-        {days.map((day) => {
-          const ofDay = visible.filter((l) => l.date === day).sort((x, y) => x.time.localeCompare(y.time));
-          return (
-            <li key={day} className={day === today ? 'card week-day today' : 'card week-day'}>
-              <h3>
-                <Link to={`/agenda/${day}`}>{dayText(day)}</Link>
-              </h3>
-              <ul className="list stack tight">
-                {ofDay.map((lesson) => (
-                  <li key={lesson.id}>
-                    <button type="button" className={`week-class ${classTone(lesson)}`} onClick={() => onOpen(lesson)}>
-                      <span className="strong">{a.classLine(lesson.time, classNames(lesson))}</span>
-                      <span className="small">{classStatusText(lesson)}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </li>
-          );
-        })}
-      </ul>
+      {days.map((day) => {
+        const ofDay = visible.filter((l) => l.date === day).sort((x, y) => x.time.localeCompare(y.time));
+        const header = (
+          <Link to={`/agenda/${day}`}>
+            {dayText(day)}
+            {day === today ? ` · ${a.todayMark}` : ''}
+          </Link>
+        );
+        return (
+          <ListSection key={day} header={header}>
+            {ofDay.length === 0 && <ListRow title={<span className="muted">{a.noClassesThatDay}</span>} />}
+            {ofDay.map((lesson) => (
+              <ListRow
+                key={lesson.id}
+                title={a.classLine(lesson.time, classNames(lesson))}
+                subtitle={lesson.status === 'scheduled' && !lesson.confirmed ? a.notConfirmed : undefined}
+                trailing={<Badge tone={lesson.status === 'given' ? 'brand' : 'neutral'}>{classStatusText(lesson)}</Badge>}
+                onClick={() => onOpen(lesson)}
+                swipeActions={lessonSwipeActions(lesson, today, { reschedule: () => onOpen(lesson), missed: () => onOpen(lesson, { missed: true }) })}
+              />
+            ))}
+          </ListSection>
+        );
+      })}
     </>
   );
 }

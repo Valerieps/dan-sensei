@@ -1,30 +1,39 @@
 import { useState } from 'react';
 import type { AgendaClass, MonthlyDue, StudentView } from '../../application/api-contract';
-import { diaDaSemana, duracaoPorExtenso, intervalosEntreAulas, minutosDoDia } from '../../domain/agenda';
+import { diaDaSemana, duracaoPorExtenso, horaDeMinutos, intervalosEntreAulas, minutosDoDia } from '../../domain/agenda';
 import { linkDoWhatsApp } from '../../domain/mensagens/extrato';
 import { montarConfirmacaoDaAula, montarLembreteDeMensalidade } from '../../domain/mensagens/lembretes';
-import { formatarData, formatarReais } from '../../domain/pacotes';
+import { dataEmSaoPaulo, formatarData, formatarReais } from '../../domain/pacotes';
 import { formatMonth, strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
+import { Badge } from '../components/Badge';
 import { Button, ButtonLink } from '../components/Button';
-import { classNames, classStatusText } from '../components/class-text';
+import { classNames, classStatusText, lessonSwipeActions } from '../components/class-text';
+import { SegmentedControl } from '../components/Controls';
+import { ListRow, ListSection } from '../components/GroupedList';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
-import { Link } from '../router';
+import { SwipeActions } from '../components/SwipeActions';
+import { Link, navigate } from '../router';
 import { useQuery } from '../use-query';
 import { ClassSheet } from './ClassSheet';
 import { urgencyLabel } from './Overview';
 
 const t = strings.home;
 
-/** The first screen: today as a timeline, who needs attention, and who has not confirmed (docs/spec/telas-de-gestao.md). */
+/** The ways to start a lesson. Until phase 1c (the Modo Ao Vivo) there is only one. */
+const START_WAYS = [{ value: 'given', label: t.markGiven }] as const;
+
+type Open = { readonly lesson: AgendaClass; readonly missed: boolean };
+
+/** The first screen: today as a timeline of cards, who needs attention, and who has not confirmed (docs/spec/telas-de-gestao.md). */
 export function Home() {
   const home = useQuery('agendaHome', {}, ['classes', 'packages', 'students']);
   const overview = useQuery('packagesOverview', {}, ['packages', 'payments', 'students', 'classes', 'monthly']);
   const due = useQuery('monthlyDue', {}, ['monthly', 'students']);
   const students = useQuery('students', {}, ['students']);
   const settings = useQuery('messageSettings', {}, ['messages']);
-  const [sheet, setSheet] = useState<AgendaClass>();
+  const [sheet, setSheet] = useState<Open>();
   const [confirming, setConfirming] = useState(false);
 
   const data = home.data;
@@ -37,6 +46,7 @@ export function Home() {
   const tomorrowFirst = featuredId === null ? (data.tomorrow[0] ?? null) : null;
   const dueToday = (due.data ?? []).filter((d) => d.dueToday);
   const attention = (overview.data?.items ?? []).filter((i) => i.highlighted);
+  const today = dataEmSaoPaulo(new Date());
 
   return (
     <section>
@@ -52,40 +62,50 @@ export function Home() {
       {confirming && <ConfirmTomorrow lessons={data.tomorrow} students={studentById} onChanged={home.reload} />}
 
       {tomorrowFirst && (
-        <div className="card timeline-item featured">
-          <p className="strong">{t.nextTomorrowTag}</p>
-          <LessonSummary lesson={tomorrowFirst} />
-        </div>
+        <ul className="timeline">
+          <li className="tl-card">
+            <p className="tl-tag">{t.nextTomorrowTag}</p>
+            <LessonSummary lesson={tomorrowFirst} />
+          </li>
+        </ul>
       )}
 
       {dueToday.length > 0 && (
-        <div className="card stack">
-          <h2>{t.monthlyTitle}</h2>
+        <ListSection header={t.monthlyTitle}>
           {dueToday.map((d) => (
-            <MonthlyQuestion key={d.studentId} item={d} student={studentById.get(d.studentId)} pix={pix} />
+            <ListRow
+              key={d.studentId}
+              title={t.monthlyAsk(d.name, formatarReais(d.amountCents), formatMonth(d.month), d.dueToday)}
+              trailing={<MonthlyActions item={d} student={studentById.get(d.studentId)} pix={pix} />}
+            />
           ))}
-        </div>
+        </ListSection>
       )}
 
       <h2>{t.timeline}</h2>
       {data.classes.length === 0 && <p className="muted">{t.empty}</p>}
-      <ol className="list timeline">
+      <ol className="timeline">
         {withGaps(data.classes).map((entry) =>
           entry.kind === 'gap' ? (
-            <li key={entry.key} className="timeline-gap muted small">
-              {t.freeBetween(duracaoPorExtenso(entry.minutes))}
+            <li key={entry.key} className="timeline-entry">
+              <span className="timeline-time" aria-hidden="true">
+                {entry.from}
+              </span>
+              <div className="free-slot">{t.freeBetween(duracaoPorExtenso(entry.minutes))}</div>
             </li>
           ) : (
-            <li key={entry.lesson.id}>
+            <li key={entry.lesson.id} className="timeline-entry">
+              <span className="timeline-time">{entry.lesson.time}</span>
               <LessonCard
                 lesson={entry.lesson}
+                today={today}
                 featured={entry.lesson.id === featuredId}
                 current={entry.lesson.id === data.currentClassId}
                 due={entry.lesson.students.flatMap((s) => dueByStudent.get(s.id) ?? [])}
                 students={studentById}
                 pix={pix}
                 forecast={data.forecastWarnings.filter((w) => entry.lesson.students.some((s) => s.id === w.holderId)).map((w) => w.message)}
-                onOpen={() => setSheet(entry.lesson)}
+                onOpen={(missed = false) => setSheet({ lesson: entry.lesson, missed })}
                 onChanged={home.reload}
               />
             </li>
@@ -94,30 +114,24 @@ export function Home() {
       </ol>
 
       {attention.length > 0 && (
-        <div className="stack">
-          <h2>{t.attention}</h2>
-          <p className="muted small">{t.attentionHint}</p>
-          <ul className="list">
-            {attention.map((item) => (
-              <li key={item.studentId} className="statement-line">
-                <span className="grow">
-                  <span className="strong">{item.name}</span> <span className="urgent-label">{urgencyLabel(item)}</span>
-                </span>
-                <Link className="button secondary" to={item.billing === 'monthly' ? `/alunos/${item.studentId}/mensalidades` : `/alunos/${item.studentId}/pacotes`}>
-                  {t.openStudent}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <ListSection header={t.attention} footer={t.attentionHint}>
+          {attention.map((item) => (
+            <ListRow
+              key={item.studentId}
+              title={item.name}
+              subtitle={<span className="urgent-label">{urgencyLabel(item)}</span>}
+              onClick={() => navigate(item.billing === 'monthly' ? `/alunos/${item.studentId}/mensalidades` : `/alunos/${item.studentId}/pacotes`)}
+            />
+          ))}
+        </ListSection>
       )}
 
-      {sheet && <ClassSheet lesson={sheet} onClose={() => setSheet(undefined)} onChanged={home.reload} />}
+      {sheet && <ClassSheet lesson={sheet.lesson} startMissed={sheet.missed} onClose={() => setSheet(undefined)} onChanged={home.reload} />}
     </section>
   );
 }
 
-type Entry = { kind: 'lesson'; lesson: AgendaClass } | { kind: 'gap'; key: string; minutes: number };
+type Entry = { kind: 'lesson'; lesson: AgendaClass } | { kind: 'gap'; key: string; from: string; minutes: number };
 
 /** The lessons in time order with the free time between them. */
 function withGaps(lessons: readonly AgendaClass[]): Entry[] {
@@ -125,39 +139,42 @@ function withGaps(lessons: readonly AgendaClass[]): Entry[] {
   const entries: Entry[] = [];
   lessons.forEach((lesson, index) => {
     const gap = index > 0 ? gaps.find((g) => g.ateMin === minutosDoDia(lesson.time)) : undefined;
-    if (gap) entries.push({ kind: 'gap', key: `gap-${gap.deMin}`, minutes: gap.ateMin - gap.deMin });
+    if (gap) entries.push({ kind: 'gap', key: `gap-${gap.deMin}`, from: horaDeMinutos(gap.deMin), minutes: gap.ateMin - gap.deMin });
     entries.push({ kind: 'lesson', lesson });
   });
   return entries;
 }
 
-function LessonSummary({ lesson }: { lesson: AgendaClass }) {
+function LessonSummary({ lesson, featured = false }: { lesson: AgendaClass; featured?: boolean }) {
   return (
     <div>
-      <p className="strong">{strings.agenda.classLine(lesson.time, classNames(lesson))}</p>
-      <p className="muted small">{lesson.address ?? strings.agenda.sheet.noAddress}</p>
+      <p className="tl-name">{featured ? classNames(lesson) : strings.agenda.classLine(lesson.time, classNames(lesson))}</p>
+      <p className="tl-sub">{lesson.address ?? strings.agenda.sheet.noAddress}</p>
     </div>
   );
 }
 
 interface LessonCardProps {
   readonly lesson: AgendaClass;
+  readonly today: string;
   readonly featured: boolean;
   readonly current: boolean;
   readonly due: readonly MonthlyDue[];
   readonly students: ReadonlyMap<string, StudentView>;
   readonly pix: string;
   readonly forecast: readonly string[];
-  readonly onOpen: () => void;
+  readonly onOpen: (missed?: boolean) => void;
   readonly onChanged: () => void;
 }
 
-function LessonCard({ lesson, featured, current, due, students, pix, forecast, onOpen, onChanged }: LessonCardProps) {
+function LessonCard({ lesson, today, featured, current, due, students, pix, forecast, onOpen, onChanged }: LessonCardProps) {
   const { backend } = useServices();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [way, setWay] = useState<(typeof START_WAYS)[number]['value']>(START_WAYS[0].value);
   const scheduled = lesson.status === 'scheduled';
   const unconfirmed = scheduled && lesson.confirmationAsked && !lesson.confirmed;
+  const past = lesson.status === 'given';
 
   async function markGiven() {
     setBusy(true);
@@ -169,58 +186,67 @@ function LessonCard({ lesson, featured, current, due, students, pix, forecast, o
     else onChanged();
   }
 
-  return (
-    <div className={featured ? 'card timeline-item featured' : unconfirmed ? 'card timeline-item unconfirmed' : 'card timeline-item'}>
-      {featured && <p className="strong">{current ? t.nowTag : t.nextTag}</p>}
+  const card = (
+    <div className={featured ? 'tl-card featured' : past ? 'tl-card past' : 'tl-card'}>
+      {featured && <p className="tl-tag">{current ? t.nowTag : t.nextTag}</p>}
       <div className="row spread">
-        <LessonSummary lesson={lesson} />
-        <span className="muted small">{classStatusText(lesson)}</span>
+        <button type="button" className="tl-main" onClick={() => onOpen()}>
+          <LessonSummary lesson={lesson} featured={featured} />
+        </button>
+        {!featured && <Badge tone={past ? 'brand' : 'neutral'}>{classStatusText(lesson)}</Badge>}
+        {featured && lesson.confirmed && <Badge tone="brand">{strings.agenda.confirmed}</Badge>}
+        {unconfirmed && <Badge>{t.notConfirmed}</Badge>}
       </div>
-      {unconfirmed && <p className="strong">{t.notConfirmed}</p>}
-      {scheduled && lesson.confirmed && <p className="muted small">{strings.agenda.confirmed}</p>}
       {forecast.map((message) => (
-        <p key={message} className="small strong forecast">
+        <p key={message} className="tl-sub forecast">
           {t.forecast}: {message}
         </p>
       ))}
       {due.map((d) => (
-        <MonthlyQuestion key={d.studentId} item={d} student={students.get(d.studentId)} pix={pix} />
+        <div key={d.studentId} className="tl-question">
+          <p className="strong">{t.monthlyAsk(d.name, formatarReais(d.amountCents), formatMonth(d.month), d.dueToday)}</p>
+          <MonthlyActions item={d} student={students.get(d.studentId)} pix={pix} />
+        </div>
       ))}
       {failed && <Notice tone="error">{strings.agenda.sheet.failed}</Notice>}
-      {scheduled && (
-        <div className="row">
-          <Button variant={featured ? 'primary' : 'secondary'} disabled={busy} onClick={() => void markGiven()}>
-            {t.markGiven}
+      {scheduled && featured && (
+        <div className="tl-start">
+          <Button size="large" disabled={busy} onClick={() => void markGiven()}>
+            {START_WAYS.find((w) => w.value === way)?.label}
           </Button>
-          <Button variant="secondary" onClick={onOpen}>
-            {t.moreOptions}
+          <SegmentedControl label={t.startWays} options={START_WAYS} value={way} onChange={setWay} />
+        </div>
+      )}
+      {scheduled && !featured && (
+        <div className="row">
+          <Button variant="secondary" disabled={busy} onClick={() => void markGiven()}>
+            {t.markGiven}
           </Button>
         </div>
       )}
     </div>
   );
+
+  const actions = lessonSwipeActions(lesson, today, { reschedule: () => onOpen(), missed: () => onOpen(true) });
+  return actions.length > 0 ? <SwipeActions actions={actions}>{card}</SwipeActions> : card;
 }
 
 /** "Maria pagou a mensalidade?": register the payment or send the reminder (docs/spec/mensalistas.md). */
-function MonthlyQuestion({ item, student, pix }: { item: MonthlyDue; student?: StudentView; pix: string }) {
-  const month = formatMonth(item.month);
+function MonthlyActions({ item, student, pix }: { item: MonthlyDue; student?: StudentView; pix: string }) {
   const text = montarLembreteDeMensalidade({ nome: item.name, mes: item.month, valorCentavos: item.amountCents, chavePix: pix });
   const link = student ? linkDoWhatsApp(student.phone, text) : null;
   return (
-    <div className="stack monthly-question">
-      <p className="strong">{t.monthlyAsk(item.name, formatarReais(item.amountCents), month, item.dueToday)}</p>
-      <div className="row">
-        <Link className="button" to={`/mensalidades/registrar/${item.studentId}`}>
-          {t.registerMonthly}
-        </Link>
-        {link ? (
-          <ButtonLink variant="secondary" href={link} target="_blank" rel="noopener noreferrer">
-            {t.sendReminder}
-          </ButtonLink>
-        ) : (
-          <span className="muted small">{t.noPhone}</span>
-        )}
-      </div>
+    <div className="list-row-trailing">
+      <Link className="button" to={`/mensalidades/registrar/${item.studentId}`}>
+        {t.registerMonthly}
+      </Link>
+      {link ? (
+        <ButtonLink variant="secondary" href={link} target="_blank" rel="noopener noreferrer">
+          {t.sendReminder}
+        </ButtonLink>
+      ) : (
+        <span className="muted small">{t.noPhone}</span>
+      )}
     </div>
   );
 }
@@ -238,48 +264,48 @@ function ConfirmTomorrow({ lessons, students, onChanged }: { lessons: readonly A
   }
 
   return (
-    <div className="card stack">
-      <h2>{t.confirmTitle}</h2>
-      <p className="muted small">{t.confirmHint}</p>
-      {lessons.length === 0 && <p className="muted">{t.confirmNone}</p>}
-      <ul className="list">
+    <>
+      <ListSection header={t.confirmTitle} footer={t.confirmHint}>
+        {lessons.length === 0 && <ListRow title={t.confirmNone} />}
         {lessons.map((lesson) => (
-          <li key={lesson.id} className="statement-line">
-            <span className="grow">
-              <span className="strong">{t.confirmLine(lesson.time, classNames(lesson))}</span>
-              <br />
-              <span className="muted small">{lesson.confirmed ? t.confirmDone : lesson.confirmationAsked ? t.confirmAsked : ''}</span>
-            </span>
-            {lesson.students.map((s) => {
-              const phone = students.get(s.id)?.phone ?? '';
-              const link = linkDoWhatsApp(
-                phone,
-                montarConfirmacaoDaAula({ nome: s.name, data: lesson.date, diaDaSemana: diaDaSemana(lesson.date), hora: lesson.time, endereco: lesson.address }),
-              );
-              return link ? (
-                <ButtonLink
-                  key={s.id}
-                  variant="secondary"
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => void run(() => backend.command('class.markConfirmationAsked', { classId: lesson.id }))}
-                >
-                  {t.confirmSend(s.name)}
-                </ButtonLink>
-              ) : (
-                <span key={s.id} className="muted small">
-                  {s.name}: {t.noPhone}
-                </span>
-              );
-            })}
-            <Button variant="secondary" onClick={() => void run(() => backend.command('class.confirm', { classId: lesson.id, confirmed: !lesson.confirmed }))}>
-              {lesson.confirmed ? t.confirmUndo : t.confirmMark}
-            </Button>
-          </li>
+          <ListRow
+            key={lesson.id}
+            title={t.confirmLine(lesson.time, classNames(lesson))}
+            subtitle={lesson.confirmed ? t.confirmDone : lesson.confirmationAsked ? t.confirmAsked : undefined}
+            trailing={
+              <div className="list-row-trailing">
+                {lesson.students.map((s) => {
+                  const phone = students.get(s.id)?.phone ?? '';
+                  const link = linkDoWhatsApp(
+                    phone,
+                    montarConfirmacaoDaAula({ nome: s.name, data: lesson.date, diaDaSemana: diaDaSemana(lesson.date), hora: lesson.time, endereco: lesson.address }),
+                  );
+                  return link ? (
+                    <ButtonLink
+                      key={s.id}
+                      variant="secondary"
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => void run(() => backend.command('class.markConfirmationAsked', { classId: lesson.id }))}
+                    >
+                      {t.confirmSend(s.name)}
+                    </ButtonLink>
+                  ) : (
+                    <span key={s.id} className="muted small">
+                      {s.name}: {t.noPhone}
+                    </span>
+                  );
+                })}
+                <Button variant="secondary" onClick={() => void run(() => backend.command('class.confirm', { classId: lesson.id, confirmed: !lesson.confirmed }))}>
+                  {lesson.confirmed ? t.confirmUndo : t.confirmMark}
+                </Button>
+              </div>
+            }
+          />
         ))}
-      </ul>
+      </ListSection>
       {failed && <Notice tone="error">{t.confirmFailed}</Notice>}
-    </div>
+    </>
   );
 }

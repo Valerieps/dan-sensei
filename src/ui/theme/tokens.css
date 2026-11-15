@@ -126,6 +126,11 @@
   --size-class-bar: 6px;
   --size-grabber-width: 36px;
   --size-grabber-height: 5px;
+  /* A swipe action's button, and the free-time stripe: the hatch is a line every gap. */
+  --size-swipe-action: 88px;
+  --size-hatch-gap: 9px;
+  --size-hatch-line: 1.5px;
+  --size-free-slot: 52px;
   --size-icon: 24px;
   --size-icon-small: 20px;
   /* A drag in pixels: the panel sets --drag to a plain number and CSS multiplies it by this. */

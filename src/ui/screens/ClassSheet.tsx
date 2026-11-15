@@ -38,6 +38,8 @@ interface ClassSheetProps {
   readonly lesson: AgendaClass;
   /** Where the lesson was dropped: the reschedule form opens filled in. */
   readonly initial?: { readonly date: string; readonly time: string };
+  /** Opens straight on the absence step (the "Falta" swipe action). */
+  readonly startMissed?: boolean;
   readonly onClose: () => void;
   readonly onChanged: () => void;
 }
@@ -47,11 +49,11 @@ interface ClassSheetProps {
  * lesson), mark as given, register an absence, cancel and confirm. Opened by tapping the lesson,
  * or by dropping it somewhere (`initial`).
  */
-export function ClassSheet({ lesson, initial, onClose, onChanged }: ClassSheetProps) {
+export function ClassSheet({ lesson, initial, startMissed = false, onClose, onChanged }: ClassSheetProps) {
   const { backend } = useServices();
   const t = strings.agenda.sheet;
   const ref = useRef<HTMLDivElement>(null);
-  const [mode, setMode] = useState<Mode>('menu');
+  const [mode, setMode] = useState<Mode>(startMissed ? 'missed' : 'menu');
   const [date, setDate] = useState(initial?.date ?? lesson.date);
   const [time, setTime] = useState(initial?.time ?? lesson.time);
   const [scope, setScope] = useState<'this' | 'following'>('this');
