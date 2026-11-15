@@ -5,6 +5,7 @@ import { agendaDay, agendaHome, agendaWeek, cancelClass, completeClass, confirmC
 import { deleteClass, lessonsWithoutPackage, linkClassToPackage, registerClass } from './classes';
 import { failure, QueryError, type CommandResult, type Context } from './context';
 import { exportAll } from './export';
+import { createExercise, exerciseChoicesQuery, exerciseTags, exerciseWarnings, getExercise, listExercises, setExerciseArchived, updateExercise } from './exercises';
 import { markMessageOpened, messageSettings, pendingStatements, setMessageSettings } from './messages';
 import { createInvite, listInvites, revokeInvite } from './invites';
 import {
@@ -28,6 +29,22 @@ import { createPlan, listPlans, updatePlan } from './plans';
 import { isAdmin } from '../../src/domain/group/roles';
 import type { Clock, IdGenerator, Sql } from './ports';
 import { migrate } from './schema';
+import {
+  addPrescribed,
+  createProgram,
+  createWorkout,
+  deleteProgram,
+  deleteWorkout,
+  getWorkout,
+  groupPrescribed,
+  removePrescribed,
+  renameWorkout,
+  reorderWorkout,
+  studentTraining,
+  ungroupPrescribed,
+  updatePrescribed,
+  updateProgram,
+} from './training';
 import { createStudent, getStudent, listStudents, setStudentNotes, setStudentStatus, updateStudent } from './students';
 
 type Input = Record<string, unknown>;
@@ -56,6 +73,13 @@ const QUERIES: { [N in QueryName]: Handler<Queries[N]['output'] | QueryError | n
   monthlyDue: (ctx) => monthlyDue(ctx),
   recurrences: recurrencesOf,
   packageForecast,
+  exercises: listExercises,
+  exercise: getExercise,
+  exerciseChoices: exerciseChoicesQuery,
+  exerciseTags: (ctx) => exerciseTags(ctx),
+  exerciseWarnings: (ctx) => exerciseWarnings(ctx),
+  studentTraining,
+  workout: getWorkout,
 };
 
 /** Every command the API runs; each checks the actor's role itself. */
@@ -97,6 +121,21 @@ const COMMANDS: { [N in CommandName]: Handler<CommandResult<Commands[N]['output'
   'monthly.deletePayment': deleteMonthlyPayment,
   'settings.setMessages': setMessageSettings,
   'message.markOpened': markMessageOpened,
+  'exercise.create': createExercise,
+  'exercise.update': updateExercise,
+  'exercise.setArchived': setExerciseArchived,
+  'program.create': createProgram,
+  'program.update': updateProgram,
+  'program.delete': deleteProgram,
+  'workout.create': createWorkout,
+  'workout.rename': renameWorkout,
+  'workout.delete': deleteWorkout,
+  'workout.reorder': reorderWorkout,
+  'prescribed.add': addPrescribed,
+  'prescribed.update': updatePrescribed,
+  'prescribed.remove': removePrescribed,
+  'prescribed.group': groupPrescribed,
+  'prescribed.ungroup': ungroupPrescribed,
   'session.signOutAll': signOutEverywhere,
 };
 
