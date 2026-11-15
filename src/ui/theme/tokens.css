@@ -6,82 +6,135 @@
  * Changing the look of the app means changing the VALUES below. Keep the names: the components,
  * the tests and docs/UI.md use them. A new token is fine when no existing one fits; add it to
  * both themes if it is a color.
+ *
+ * The identity follows Apple's Human Interface Guidelines (ADR-011): Apple's system colors and text
+ * styles, Dan's emerald as the accent, red only for billing, orange only for health.
  */
 :root {
   color-scheme: light;
 
   /* Colors. Every one is redefined in the dark theme below. */
-  --color-bg: #f4f2ed;
+  /* systemGroupedBackground and secondarySystemGroupedBackground: cards separate by color, not by border. */
+  --color-bg: #f2f2f7;
   --color-surface: #ffffff;
-  --color-text: #1f1f1f;
-  --color-text-muted: #635f57;
-  /* Decorative lines between areas (cards, dividers). Not for controls: see --color-border-strong. */
-  --color-border: #e4e0d8;
+  /* Inside a card: fields, the progress track, the initials avatar, free time in the agenda. */
+  --color-surface-2: #e5e5ea;
+  --color-text: #000000;
+  /* Apple's secondaryLabel is 60% opaque and misses 4.5:1; this opaque grey passes on every surface. */
+  --color-text-muted: #636366;
+  /* Separators between list rows (decorative). Not for controls: see --color-border-strong. */
+  --color-border: #c6c6c8;
   /* Edges people must see to use a control (inputs, secondary buttons): 3:1 on bg and surface. */
-  --color-border-strong: #8a857b;
-  --color-brand: #4b3fb3;
+  --color-border-strong: #7c7c80;
+  /* systemFill: secondary buttons, the segmented control's track, the search field. */
+  --color-fill: rgba(120, 120, 128, 0.16);
+  /* The selected segment of a segmented control, and the knob of a switch. */
+  --color-control-thumb: #ffffff;
+  /* Dan's emerald, darkened in the light theme so white text on it passes 4.5:1. */
+  --color-brand: #047857;
   --color-on-brand: #ffffff;
-  --color-danger: #b3261e;
+  /* Apple's high-contrast red: billing urgency, and the destructive button inside a confirmation. */
+  --color-danger: #d70015;
   --color-on-danger: #ffffff;
-  --color-success: #1e6b3a;
-  --color-focus: #4b3fb3;
-  /* The lesson's situation in the agenda (never red: that is billing; never amber: that is health). */
-  --color-class-scheduled: #2a5db0;
-  --color-class-given: #0f766e;
-  --color-class-missed: #6b7280;
+  --color-danger-tint: #fde7e6;
+  --color-success: #047857;
+  /* Apple's high-contrast orange: health alerts only, always with the health icon. */
+  --color-health: #b25000;
+  --color-health-tint: #fff1dc;
+  --color-focus: #047857;
+  /* The lesson's situation in the agenda (never red: that is billing; never orange: that is health). */
+  --color-class-scheduled: #0040dd;
+  --color-class-given: #047857;
+  --color-class-missed: #6c6c70;
+  /* Liquid Glass: only the floating control layer (tab bar, toolbar, round icon buttons), never content. */
+  --color-glass: rgba(255, 255, 255, 0.72);
+  --color-glass-line: rgba(0, 0, 0, 0.06);
   /* Behind a sheet that covers the screen. */
-  --color-scrim: rgba(0, 0, 0, 0.45);
+  --color-scrim: rgba(0, 0, 0, 0.24);
+  /* The moment of the class, only in the live class. The same in both themes. */
+  --color-live-work: #10b981;
+  --color-on-live-work: #04140e;
+  /* systemIndigo, which also recalls the indigo of training gis. */
+  --color-live-rest: #5e5ce6;
+  --color-on-live-rest: #ffffff;
+  --color-live-prep: #e8e2d4;
+  --color-on-live-prep: #000000;
+  --color-live-done: #2c2c2e;
+  --color-on-live-done: #ffffff;
+  --color-glass-on-live: rgba(255, 255, 255, 0.2);
 
-  /* Type. The scale steps by 1.125 to 1.5 from one size to the next; nothing below 12px. */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-size-caption: 12px;
-  --font-size-small: 14px;
-  /* 16px also keeps iOS from zooming into inputs. */
-  --font-size-body: 16px;
-  --font-size-title: 20px;
-  --font-size-heading: 24px;
-  --font-size-display: 32px;
+  /* Type: Apple's system fonts, so Dynamic Type, Bold Text and optical sizes come for free. */
+  --font-sans: -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, sans-serif;
+  /* SF Pro Rounded for the live class and big numbers, as in Apple's Fitness app. */
+  --font-rounded: ui-rounded, 'SF Pro Rounded', -apple-system, system-ui, sans-serif;
+  /* iOS text styles: footnote, subheadline, body, title 2, title 1, large title. 1.125 to 1.5 per step. */
+  --font-size-caption: 13px;
+  --font-size-small: 15px;
+  /* 17px is the iOS body size, and anything at 16px or more keeps iOS from zooming into inputs. */
+  --font-size-body: 17px;
+  --font-size-title: 22px;
+  --font-size-heading: 28px;
+  --font-size-display: 34px;
   --font-weight-regular: 400;
   --font-weight-strong: 600;
+  --font-weight-bold: 700;
   --line-height-tight: 1.25;
-  --line-height-body: 1.5;
+  --line-height-body: 1.3;
 
   /* Spacing: a 4px grid. Gaps between related items are smaller than between groups. */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
+  /* The side margin on iPhone. */
   --space-4: 16px;
+  /* The side margin on iPad. */
+  --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
   --space-12: 48px;
 
-  /* Shapes and sizes */
-  --radius-sm: 4px;
-  --radius: 8px;
+  /* Shapes and sizes. Corners are concentric: fields 12, cards 22, sheets and bars 34, buttons capsules. */
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-card: 22px;
+  --radius-sheet: 34px;
   --radius-full: 999px;
   --border-width: 1px;
   --border-width-strong: 2px;
   /* The smallest box a finger can hit reliably (WCAG 2.5.5, Apple HIG). */
   --size-touch: 44px;
-  --size-avatar: 40px;
+  /* A large button (iOS large control size). */
+  --size-button-large: 50px;
+  /* The live class is tapped standing and in a hurry. */
+  --size-touch-live: 64px;
+  --size-avatar: 44px;
   --size-content: 720px;
-  --size-sidebar: 240px;
-  --size-bar: 64px;
+  --size-sidebar: 280px;
+  --size-bar: 62px;
   --size-fab: 56px;
-  --size-avatar-large: 64px;
-  --size-progress: 8px;
+  --size-avatar-large: 72px;
+  /* The package belt: one capsule segment per lesson. */
+  --size-progress: 6px;
   /* One hour of the agenda's day grid. */
   --size-hour: 64px;
   --size-hour-label: 48px;
   --size-handle: 44px;
   --size-class-bar: 6px;
-  --focus-ring-width: 2px;
-  --focus-ring-offset: 2px;
+  --size-grabber-width: 36px;
+  --size-grabber-height: 5px;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 0px;
+  --blur-glass: 24px;
+  --shadow-glass: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.12);
 
   /* Motion. global.css turns it off under prefers-reduced-motion. */
   --duration-fast: 120ms;
   --duration-base: 200ms;
-  --easing: cubic-bezier(0.2, 0, 0, 1);
+  --duration-sheet: 350ms;
+  --easing: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --scale-pressed: 0.97;
+  --opacity-pressed: 0.72;
   --opacity-disabled: 0.55;
 }
 
@@ -89,21 +142,40 @@
   :root {
     color-scheme: dark;
 
-    --color-bg: #17161a;
-    --color-surface: #211f25;
-    --color-text: #ecebef;
-    --color-text-muted: #a3a0aa;
-    --color-border: #34313a;
-    --color-border-strong: #807c88;
-    --color-brand: #a59cf0;
-    --color-on-brand: #17161a;
-    --color-danger: #f2b8b5;
-    --color-on-danger: #17161a;
-    --color-success: #8fd4a4;
-    --color-focus: #a59cf0;
-    --color-class-scheduled: #8ab4f8;
-    --color-class-given: #5fd0c4;
-    --color-class-missed: #b0b7c3;
-    --color-scrim: rgba(0, 0, 0, 0.65);
+    /* Dan's graphite and black: black base, Apple's elevated greys. */
+    --color-bg: #000000;
+    --color-surface: #1c1c1e;
+    --color-surface-2: #2c2c2e;
+    --color-text: #ffffff;
+    --color-text-muted: #98989f;
+    --color-border: #38383a;
+    --color-border-strong: #8e8e93;
+    --color-fill: rgba(120, 120, 128, 0.32);
+    --color-control-thumb: #636366;
+    /* #10b981 is the emerald Dan chose. */
+    --color-brand: #10b981;
+    --color-on-brand: #04140e;
+    --color-danger: #ff6961;
+    --color-on-danger: #000000;
+    --color-danger-tint: #3a1614;
+    --color-success: #34d399;
+    --color-health: #ffb340;
+    --color-health-tint: #3a2a10;
+    --color-focus: #34d399;
+    --color-class-scheduled: #409cff;
+    --color-class-given: #10b981;
+    --color-class-missed: #98989f;
+    --color-glass: rgba(44, 44, 46, 0.62);
+    --color-glass-line: rgba(255, 255, 255, 0.14);
+    --color-scrim: rgba(0, 0, 0, 0.48);
+    --color-live-work: #10b981;
+    --color-on-live-work: #04140e;
+    --color-live-rest: #5e5ce6;
+    --color-on-live-rest: #ffffff;
+    --color-live-prep: #e8e2d4;
+    --color-on-live-prep: #000000;
+    --color-live-done: #2c2c2e;
+    --color-on-live-done: #ffffff;
+    --color-glass-on-live: rgba(255, 255, 255, 0.2);
   }
 }

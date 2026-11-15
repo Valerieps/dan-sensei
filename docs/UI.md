@@ -26,6 +26,37 @@ nos dois temas). Nunca afrouxe o teste.
 6. **O tema escuro redefine todas as cores** do claro.
 7. **Alvo de toque com 44px ou mais** (`--size-touch`).
 
+## Padrão Apple
+
+O app segue as Human Interface Guidelines da Apple para iOS e iPadOS 26 (ADR-011). O desenho de cada
+componente, com prévia e motivo, está no design system (artifact "Dan Sensei", link no ADR-011).
+
+- **A barra de abas só navega.** As ações ficam na barra de ferramentas: o + à direita, uma única
+  ação principal.
+- **O vidro só fica na camada de controles:** barra de abas, barra de ferramentas e botões redondos
+  de ícone, com `--color-glass` e `--blur-glass`. Cartões, listas e conteúdo são opacos. Com
+  `prefers-reduced-transparency` ou `prefers-contrast: more`, o vidro vira fundo opaco.
+- **Cartões e seções** usam `--color-surface` sobre `--color-bg`, com `--radius-card` e sem borda.
+  Separadores só entre linhas de lista.
+- **Botões** são cápsulas (`--radius-full`), em três estilos:
+  - principal: `--color-brand`;
+  - secundário: `--color-fill` com texto `--color-brand`;
+  - texto: só o texto.
+
+  O tamanho grande é `--size-button-large`. Pressionado, o botão encolhe (`--scale-pressed`) e
+  esmaece (`--opacity-pressed`).
+- **Ações curtas abrem num painel** (`--radius-sheet`). No celular, o painel tem alça e fecha ao
+  deslizar. Cancelar fica à esquerda e salvar à direita. Um painel por vez.
+- **Ação destrutiva** pede confirmação numa caixa com o botão em `--color-danger` e "Cancelar". O
+  botão destrutivo nunca é o principal.
+- **Ícones** no estilo dos SF Symbols, com traço arredondado. As abas usam a versão preenchida.
+  Os SF Symbols em si não podem ser usados na web.
+- **Tema:** o tema segue o aparelho, e o app não tem ajuste próprio.
+- **Modo Ao Vivo:** usa `--font-rounded`, alvos de `--size-touch-live` e as cores `--color-live-*`,
+  que são iguais nos dois temas.
+- **Áreas seguras:** o conteúdo respeita a barra de status e o indicador de início
+  (`env(safe-area-inset-*)`).
+
 ## O que a revisão confere
 
 Estas regras pedem julgamento. Quem revisa a interface (skill `ui-review`) olha estas, e não as de
@@ -41,7 +72,7 @@ cima.
 - Use os de `src/ui/components/` (`Button`, `ButtonLink`, `Field`, `Notice`) antes de escrever
   CSS novo. Quando um padrão se repete em duas telas, ele vira componente.
 - Todo campo tem rótulo visível. Placeholder não é rótulo.
-- Ações que apagam ou removem usam `danger` e pedem confirmação.
+- Ações que apagam ou removem pedem confirmação; o botão de apagar, dentro da confirmação, usa `danger`.
 
 **Estados**
 - Toda lista e toda tela que carrega dados tem os estados vazio, carregando e erro. O vazio diz o
