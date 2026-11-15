@@ -1,4 +1,5 @@
 import { useId, type ReactNode } from 'react';
+import { Link } from '../router';
 import { Icon, type IconName } from './Icon';
 import { SwipeActions, type SwipeAction } from './SwipeActions';
 
@@ -17,9 +18,11 @@ type ListRowProps = {
   /** The value on the right, in muted text: "Bipes". */
   value?: ReactNode;
   icon?: IconName;
+  /** Something before the text, such as a person's initials or photo. */
+  leading?: ReactNode;
   /** Whether the row opens another screen. A row with `href` or `onClick` shows it by default. */
   chevron?: boolean;
-  /** A row that navigates. */
+  /** A row that opens another screen of the app. */
   href?: string;
   /** A row that acts. */
   onClick?: () => void;
@@ -32,11 +35,12 @@ type ListRowProps = {
 };
 
 /** One row of a `GroupedList`, at least 44 pt tall. */
-export function ListRow({ title, subtitle, value, icon, chevron, href, onClick, action = false, trailing, swipeActions }: ListRowProps) {
+export function ListRow({ title, subtitle, value, icon, leading, chevron, href, onClick, action = false, trailing, swipeActions }: ListRowProps) {
   const interactive = href !== undefined || onClick !== undefined;
   const content = (
     <>
       {icon && <Icon name={icon} />}
+      {leading}
       <span className="list-row-text">
         <span className={action ? 'list-row-title action' : 'list-row-title'}>{title}</span>
         {subtitle && <span className="list-row-subtitle">{subtitle}</span>}
@@ -48,9 +52,9 @@ export function ListRow({ title, subtitle, value, icon, chevron, href, onClick, 
   );
   const body =
     href !== undefined ? (
-      <a className="list-row-body" href={href}>
+      <Link className="list-row-body" to={href}>
         {content}
-      </a>
+      </Link>
     ) : onClick !== undefined ? (
       <button type="button" className="list-row-body" onClick={onClick}>
         {content}
@@ -59,6 +63,15 @@ export function ListRow({ title, subtitle, value, icon, chevron, href, onClick, 
       <div className="list-row-body">{content}</div>
     );
   return <li className="list-row">{swipeActions && swipeActions.length > 0 ? <SwipeActions actions={swipeActions}>{body}</SwipeActions> : body}</li>;
+}
+
+/** A row that holds free content (a form, a few lines of text) instead of a title and a value. */
+export function ListContent({ children }: { children: ReactNode }) {
+  return (
+    <li className="list-row">
+      <div className="list-content">{children}</div>
+    </li>
+  );
 }
 
 /** A `GroupedList` with its small header above (caption, in capitals) and its explanation below. */

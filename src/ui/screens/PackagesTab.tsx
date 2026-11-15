@@ -4,12 +4,13 @@ import { linkDoWhatsApp, montarMensagemDoExtrato, precisaDeRenovacao, type Dados
 import { dataEmSaoPaulo, formatarData, formatarReais } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
-import { Button, ButtonLink } from '../components/Button';
+import { Badge } from '../components/Badge';
+import { ButtonLink } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
+import { ListContent, ListRow, ListSection } from '../components/GroupedList';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
 import { PackageProgress } from '../components/PackageProgress';
-import { Link } from '../router';
 import { PaymentEdit } from './RegisterPayment';
 import { useQuery } from '../use-query';
 
@@ -32,46 +33,34 @@ export function PackagesTab({ student }: { student: StudentView }) {
   return (
     <div className="stack">
       <div className="row">
-        <Link className="button" to={`/alunos/${student.id}/pacotes/novo`}>
-          {holds ? t.renew : t.newPackage}
-        </Link>
+        <ButtonLink to={`/alunos/${student.id}/pacotes/novo`}>{holds ? t.renew : t.newPackage}</ButtonLink>
         {packages.data.length === 0 && (
-          <Link className="button secondary" to={`/alunos/${student.id}/pacotes/saldo-inicial`}>
+          <ButtonLink variant="secondary" to={`/alunos/${student.id}/pacotes/saldo-inicial`}>
             {t.initialBalance}
-          </Link>
+          </ButtonLink>
         )}
-        <Link className="button secondary" to={`/aulas/registrar/${student.id}`}>
+        <ButtonLink variant="secondary" to={`/aulas/registrar/${student.id}`}>
           {t.registerLesson}
-        </Link>
+        </ButtonLink>
       </div>
 
       {packages.data.length === 0 && <EmptyState>{t.empty}</EmptyState>}
 
-      {live.length > 0 && <h2>{t.current}</h2>}
       {live.map((pkg) => (
-        <div key={pkg.id} className="card stack">
-          <PackageHeader pkg={pkg} />
-          <PackageProgress pkg={pkg} urgent={pkg.status === 'vencido' || pkg.status === 'esgotado' || pkg.paymentStatus === 'pending'} />
-          <div className="row">
-            <Link className="button secondary" to={`/pagamentos/registrar/${student.id}/${pkg.id}`}>
-              {t.registerPayment}
-            </Link>
-            <Link className="button secondary" to={`/pacotes/${pkg.id}/pausar`}>
-              {t.pausePackage}
-            </Link>
-          </div>
+        <div key={pkg.id} className="stack">
+          <ListSection header={`${t.current} · ${pkg.planName}`}>
+            <ListContent>
+              <PackageSummaryRows pkg={pkg} />
+            </ListContent>
+            <ListRow title={t.registerPayment} action href={`/pagamentos/registrar/${student.id}/${pkg.id}`} />
+            <ListRow title={t.pausePackage} action href={`/pacotes/${pkg.id}/pausar`} />
+          </ListSection>
           <StatementMessage student={student} pkg={pkg} />
           <Statement id={pkg.id} />
         </div>
       ))}
 
-      {orphans.data && orphans.data.length > 0 && (
-        <>
-          <h2>{t.orphans}</h2>
-          <p className="muted">{t.orphansHint}</p>
-          <OrphanLessons lessons={orphans.data} target={linkable} />
-        </>
-      )}
+      {orphans.data && orphans.data.length > 0 && <OrphanLessons lessons={orphans.data} target={linkable} />}
 
       {closed.length > 0 && <h2>{t.previous}</h2>}
       {closed.map((pkg) => (
@@ -81,17 +70,20 @@ export function PackagesTab({ student }: { student: StudentView }) {
   );
 }
 
-function PackageHeader({ pkg }: { pkg: PackageSummary }) {
+/** What a package card shows: the plan's state, who holds it, the belt, lessons, validity and payment. */
+function PackageSummaryRows({ pkg }: { pkg: PackageSummary }) {
   const t = strings.packages.tab;
+  const urgent = pkg.status === 'vencido' || pkg.status === 'esgotado' || pkg.paymentStatus === 'pending';
   return (
-    <div>
+    <div className="stack tight">
       <div className="row spread">
-        <h3>{pkg.planName}</h3>
-        <span className="strong">{strings.packages.status[pkg.status]}</span>
+        <span className="strong">{pkg.planName}</span>
+        <Badge tone={urgent ? 'danger' : 'brand'}>{strings.packages.status[pkg.status]}</Badge>
       </div>
       <p className="muted small">
         {pkg.participantName ? t.participant(pkg.participantName) : t.holder(pkg.holderName)} · {formatarReais(pkg.totalCents)}
       </p>
+      <PackageProgress pkg={pkg} urgent={urgent} />
     </div>
   );
 }
@@ -147,15 +139,15 @@ function ClosedPackage({ pkg }: { pkg: PackageSummary }) {
   const [open, setOpen] = useState(false);
   const t = strings.packages.tab;
   return (
-    <div className="card stack">
-      <PackageHeader pkg={pkg} />
-      <p className="small">{pkg.origin}</p>
-      {pkg.closedNote && <p className="muted small">{pkg.closedNote}</p>}
-      <div className="row">
-        <Button variant="secondary" aria-expanded={open} onClick={() => setOpen(!open)}>
-          {open ? t.hideStatement : t.showStatement}
-        </Button>
-      </div>
+    <div className="stack">
+      <ListSection header={pkg.planName} footer={pkg.closedNote ?? undefined}>
+        <ListRow
+          title={pkg.origin}
+          subtitle={pkg.participantName ? t.participant(pkg.participantName) : t.holder(pkg.holderName)}
+          value={formatarReais(pkg.totalCents)}
+        />
+        <ListRow title={open ? t.hideStatement : t.showStatement} action onClick={() => setOpen(!open)} />
+      </ListSection>
       {open && <Statement id={pkg.id} />}
     </div>
   );
@@ -190,74 +182,62 @@ function Statement({ id }: { id: string }) {
     setFailed(!result.ok);
   }
 
+  const open = summary.status !== 'encerrado';
   return (
     <div className="stack">
       {failed && <Notice tone="error">{strings.genericError}</Notice>}
       {summary.transferredIn > 0 && <p className="small">{t.transferredFrom(summary.transferredIn)}</p>}
       {summary.usedBeforeApp > 0 && <p className="small">{t.usedBeforeApp(summary.usedBeforeApp)}</p>}
 
-      <h4>{t.lessons}</h4>
-      {lessons.length === 0 && <p className="muted small">{t.noLessons}</p>}
-      <ul className="list">
+      <ListSection header={t.lessons} footer={lessons.length === 0 ? t.noLessons : open ? t.swipeHint : undefined}>
         {lessons.map((lesson) => (
-          <li key={lesson.classId} className="statement-line">
-            <span className="grow">
-              {formatarData(lesson.date)} · {t.outcome[lesson.outcome]}
-              {lesson.studentNames.length > 0 && <span className="muted small"> · {lesson.studentNames.join(', ')}</span>}
-            </span>
-            {summary.status !== 'encerrado' && (
-              <Button variant="secondary-danger" aria-label={t.deleteLessonOf(formatarData(lesson.date))} onClick={() => void remove(lesson.classId, lesson.date)}>
-                {t.deleteLesson}
-              </Button>
-            )}
-          </li>
+          <ListRow
+            key={lesson.classId}
+            title={`${formatarData(lesson.date)} · ${t.outcome[lesson.outcome]}`}
+            subtitle={lesson.studentNames.length > 0 ? lesson.studentNames.join(', ') : undefined}
+            swipeActions={open ? [{ label: t.deleteLesson, tone: 'danger', onClick: () => void remove(lesson.classId, lesson.date) }] : undefined}
+          />
         ))}
-      </ul>
+      </ListSection>
 
-      <h4>{t.payments}</h4>
-      {payments.length === 0 && <p className="muted small">{t.noPayments}</p>}
-      <ul className="list">
-        {payments.map((payment) => (
-          <li key={payment.id} className="statement-line">
-            {editing === payment.id ? (
-              <div className="grow">
-                <PaymentEdit payment={payment} missingCents={summary.missingCents} onDone={() => setEditing(null)} />
-              </div>
-            ) : (
-              <>
-                <span className="grow">
-                  {formatarData(payment.paidOn)} · {formatarReais(payment.amountCents)} · {t.method[payment.method]}
-                </span>
-                <Button variant="secondary" aria-label={t.editPaymentOf(formatarData(payment.paidOn))} onClick={() => setEditing(payment.id)}>
-                  {t.editPayment}
-                </Button>
-                <Button variant="secondary-danger" aria-label={t.deletePaymentOf(formatarData(payment.paidOn))} onClick={() => void removePayment(payment.id, payment.paidOn, payment.amountCents)}>
-                  {t.deletePayment}
-                </Button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-      <p className="small strong">{summary.paymentStatus === 'pending' ? t.missing(formatarReais(summary.missingCents)) : t.paidAll}</p>
+      <ListSection
+        header={t.payments}
+        footer={payments.length === 0 ? t.noPayments : undefined}
+      >
+        {payments.map((payment) =>
+          editing === payment.id ? (
+            <ListContent key={payment.id}>
+              <PaymentEdit payment={payment} missingCents={summary.missingCents} onDone={() => setEditing(null)} />
+            </ListContent>
+          ) : (
+            <ListRow
+              key={payment.id}
+              title={`${formatarData(payment.paidOn)} · ${formatarReais(payment.amountCents)}`}
+              subtitle={t.method[payment.method]}
+              swipeActions={[
+                { label: t.editPayment, onClick: () => setEditing(payment.id) },
+                { label: t.deletePayment, tone: 'danger', onClick: () => void removePayment(payment.id, payment.paidOn, payment.amountCents) },
+              ]}
+            />
+          ),
+        )}
+        <ListRow
+          title={summary.paymentStatus === 'pending' ? t.missing(formatarReais(summary.missingCents)) : t.paidAll}
+          trailing={<Badge tone={summary.paymentStatus === 'pending' ? 'danger' : 'brand'}>{summary.paymentStatus === 'pending' ? strings.packages.card.pending : strings.packages.card.paid}</Badge>}
+        />
+      </ListSection>
 
-      {pauses.length > 0 && <h4>{t.pauses}</h4>}
-      <ul className="list">
-        {pauses.map((pause) => (
-          <li key={pause.id} className="statement-line">
-            {formatarData(pause.startsOn)} a {formatarData(pause.endsOn)}
-            {pause.general && <span className="muted small"> · {t.general}</span>}
-            {pause.reason && <span className="muted small"> · {pause.reason}</span>}
-            {!pause.general && summary.status !== 'encerrado' && (
-              <Button variant="secondary-danger" aria-label={t.removePauseOf(formatarData(pause.startsOn))} onClick={() => void removePause(pause.id)}>
-                {t.removePause}
-              </Button>
-            )}
-          </li>
-        ))}
-      </ul>
-      {summary.originalDueOn && summary.dueOn && summary.originalDueOn !== summary.dueOn && (
-        <p className="muted small">{t.originalDue(formatarData(summary.originalDueOn))}</p>
+      {pauses.length > 0 && (
+        <ListSection header={t.pauses} footer={summary.originalDueOn && summary.dueOn && summary.originalDueOn !== summary.dueOn ? t.originalDue(formatarData(summary.originalDueOn)) : undefined}>
+          {pauses.map((pause) => (
+            <ListRow
+              key={pause.id}
+              title={`${formatarData(pause.startsOn)} a ${formatarData(pause.endsOn)}`}
+              subtitle={[pause.general ? t.general : null, pause.reason].filter(Boolean).join(' · ') || undefined}
+              swipeActions={!pause.general && open ? [{ label: t.removePause, tone: 'danger', onClick: () => void removePause(pause.id) }] : undefined}
+            />
+          ))}
+        </ListSection>
       )}
     </div>
   );
@@ -276,20 +256,15 @@ function OrphanLessons({ lessons, target }: { lessons: ClassWithoutPackage[]; ta
   return (
     <>
       {failed && <Notice tone="error">{strings.genericError}</Notice>}
-      <ul className="list">
+      <ListSection header={t.orphans} footer={t.orphansHint}>
         {lessons.map((lesson) => (
-          <li key={lesson.classId} className="statement-line">
-            <span className="grow">
-              {formatarData(lesson.date)} · {t.outcome[lesson.outcome]}
-            </span>
-            {target && (
-              <Button variant="secondary" onClick={() => void link(lesson.classId, target.id)}>
-                {t.link}
-              </Button>
-            )}
-          </li>
+          <ListRow
+            key={lesson.classId}
+            title={`${formatarData(lesson.date)} · ${t.outcome[lesson.outcome]}`}
+            swipeActions={target ? [{ label: t.link, onClick: () => void link(lesson.classId, target.id) }] : undefined}
+          />
         ))}
-      </ul>
+      </ListSection>
     </>
   );
 }

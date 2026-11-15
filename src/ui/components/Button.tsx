@@ -1,4 +1,5 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes } from 'react';
+import { Link } from '../router';
 import { Icon, type IconName } from './Icon';
 
 /**
@@ -26,11 +27,16 @@ export function Button({ variant = 'primary', size = 'normal', className, type =
   return <button type={type} className={classes(variant, size, className)} {...props} />;
 }
 
-type ButtonLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & { variant?: ButtonVariant; size?: ButtonSize };
+type ButtonLinkProps = AnchorHTMLAttributes<HTMLAnchorElement> & { variant?: ButtonVariant; size?: ButtonSize; to?: string };
 
-/** A link that looks like a button: for navigation (a URL), never for an action. */
-export function ButtonLink({ variant = 'primary', size = 'normal', className, ...props }: ButtonLinkProps) {
-  return <a className={classes(variant, size, className)} {...props} />;
+/**
+ * A link that looks like a button: for navigation, never for an action. `to` is a screen of the
+ * app (no page reload); `href` is any other address.
+ */
+export function ButtonLink({ variant = 'primary', size = 'normal', className, to, ...props }: ButtonLinkProps) {
+  const own = classes(variant, size, className);
+  if (to !== undefined) return <Link className={own} to={to} {...props} />;
+  return <a className={own} {...props} />;
 }
 
 type IconButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'aria-label'> & {

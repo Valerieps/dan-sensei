@@ -3,11 +3,12 @@ import type { MonthlyView, StudentView } from '../../application/api-contract';
 import { dataEmSaoPaulo, formatarData, formatarReais, lerReais, mesDe, reaisParaTexto } from '../../domain/pacotes';
 import { formatMonth, strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
+import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Field } from '../components/Field';
+import { ListContent, ListRow, ListSection } from '../components/GroupedList';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
-import { Link } from '../router';
 import { useQuery } from '../use-query';
 
 const TOPICS = ['monthly', 'students', 'packages'] as const;
@@ -102,11 +103,11 @@ function Setup({ student }: { student: StudentView }) {
   }
 
   return (
-    <div className="stack">
-      <h2>{t.setupTitle}</h2>
-      <p className="muted">{t.setupHint}</p>
-      <FeeFields initial={{ amountCents: null, dueDay: null }} withLastPaid submitLabel={t.setupSubmit} failed={failed} onSubmit={save} />
-    </div>
+    <ListSection header={t.setupTitle} footer={t.setupHint}>
+      <ListContent>
+        <FeeFields initial={{ amountCents: null, dueDay: null }} withLastPaid submitLabel={t.setupSubmit} failed={failed} onSubmit={save} />
+      </ListContent>
+    </ListSection>
   );
 }
 
@@ -130,48 +131,41 @@ function Fees({ student, monthly }: { student: StudentView; monthly: MonthlyView
 
   return (
     <div className="stack">
-      <div className="card stack">
-        <p className="strong">{t.feeOf(formatarReais(monthly.amountCents), monthly.dueDay)}</p>
-        <p className="muted small">{monthly.lastPaidMonth ? t.lastPaid(formatMonth(monthly.lastPaidMonth)) : t.noneYet}</p>
-        {monthly.pendingMonths.length > 0 ? (
-          <p className="strong urgent-label">{t.pending(monthly.pendingMonths)}</p>
-        ) : (
-          <p className="small">{t.upToDate}</p>
-        )}
+      <ListSection>
+        <ListRow title={t.feeOf(formatarReais(monthly.amountCents), monthly.dueDay)} subtitle={monthly.lastPaidMonth ? t.lastPaid(formatMonth(monthly.lastPaidMonth)) : t.noneYet} />
+        <ListRow
+          title={monthly.pendingMonths.length > 0 ? t.pending(monthly.pendingMonths) : t.upToDate}
+          trailing={monthly.pendingMonths.length > 0 ? <Badge tone="danger">{strings.packages.card.pending}</Badge> : <Badge tone="brand">{strings.packages.card.paid}</Badge>}
+        />
         {editing ? (
-          <FeeFields
-            initial={{ amountCents: monthly.amountCents, dueDay: monthly.dueDay }}
-            withLastPaid={false}
-            submitLabel={t.saveFee}
-            failed={failed}
-            onSubmit={saveFee}
-            onCancel={() => setEditing(false)}
-          />
+          <ListContent>
+            <FeeFields
+              initial={{ amountCents: monthly.amountCents, dueDay: monthly.dueDay }}
+              withLastPaid={false}
+              submitLabel={t.saveFee}
+              failed={failed}
+              onSubmit={saveFee}
+              onCancel={() => setEditing(false)}
+            />
+          </ListContent>
         ) : (
-          <div className="row">
-            <Link className="button" to={`/mensalidades/registrar/${student.id}`}>
-              {t.submit}
-            </Link>
-            <Button variant="secondary" onClick={() => setEditing(true)}>
-              {t.changeFee}
-            </Button>
-          </div>
+          <>
+            <ListRow title={t.submit} action href={`/mensalidades/registrar/${student.id}`} />
+            <ListRow title={t.changeFee} action onClick={() => setEditing(true)} />
+          </>
         )}
-      </div>
+      </ListSection>
 
       {failed && !editing && <Notice tone="error">{strings.genericError}</Notice>}
-      <h2>{t.payments}</h2>
-      {monthly.payments.length === 0 && <p className="muted small">{t.noPayments}</p>}
-      <ul className="list">
+      <ListSection header={t.payments} footer={monthly.payments.length === 0 ? t.noPayments : undefined}>
         {monthly.payments.map((p) => (
-          <li key={p.id} className="statement-line">
-            <span className="grow">{t.line(formatMonth(p.month), formatarData(p.paidOn), formatarReais(p.amountCents), strings.packages.tab.method[p.method])}</span>
-            <Button variant="secondary-danger" aria-label={t.deleteOf(formatMonth(p.month))} onClick={() => void remove(p.id, p.month, p.amountCents)}>
-              {t.delete}
-            </Button>
-          </li>
+          <ListRow
+            key={p.id}
+            title={t.line(formatMonth(p.month), formatarData(p.paidOn), formatarReais(p.amountCents), strings.packages.tab.method[p.method])}
+            swipeActions={[{ label: t.delete, tone: 'danger', onClick: () => void remove(p.id, p.month, p.amountCents) }]}
+          />
         ))}
-      </ul>
+      </ListSection>
     </div>
   );
 }

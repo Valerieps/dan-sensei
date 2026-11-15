@@ -159,23 +159,6 @@ a {
 
 /* Navigation */
 
-.tabs {
-  gap: var(--space-4);
-}
-
-.tabs a {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--size-touch);
-  text-decoration: none;
-  border-bottom: var(--border-width-strong) solid transparent;
-}
-
-.tabs a[aria-current='page'] {
-  font-weight: var(--font-weight-strong);
-  border-bottom-color: var(--color-brand);
-}
-
 /* Controls: every one is at least --size-touch tall. */
 
 .field {
@@ -545,11 +528,6 @@ input[aria-invalid='true'] {
 
 /* Students */
 
-.student-row {
-  color: var(--color-text);
-  text-decoration: none;
-}
-
 .initials {
   display: inline-flex;
   align-items: center;
@@ -568,6 +546,12 @@ input[aria-invalid='true'] {
   width: var(--size-avatar-large);
   height: var(--size-avatar-large);
   font-size: var(--font-size-title);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
 }
 
 .profile-header h1 {
@@ -638,44 +622,13 @@ textarea {
   height: 100%;
 }
 
-.package-card {
-  display: block;
-  color: var(--color-text);
-  text-decoration: none;
-}
-
-.package-card.urgent {
-  box-shadow: inset 0 0 0 var(--border-width-strong) var(--color-danger);
-}
-
 .urgent-label {
   color: var(--color-danger);
   font-weight: var(--font-weight-strong);
 }
 
-.month-numbers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-6);
-}
-
-.month-numbers .number {
-  display: block;
-  font-size: var(--font-size-heading);
-  font-weight: var(--font-weight-strong);
-}
-
 .empty-state {
   padding: var(--space-4) 0;
-}
-
-.statement-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) 0;
-  border-bottom: var(--border-width) solid var(--color-border);
 }
 
 /* Agenda: the day grid, the lessons colored by situation, the sheet (docs/spec/agenda.md) */
@@ -1368,4 +1321,85 @@ button.list-row-body:active {
 .badge.health {
   background: var(--color-health-tint);
   color: var(--color-health);
+}
+
+/* Students tab: the cards (design system, CartaoAluno) */
+
+.student-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--size-card-min), 1fr));
+  gap: var(--space-4);
+  margin: var(--space-4) 0 var(--space-6);
+  padding: 0;
+  list-style: none;
+}
+
+.student-card {
+  position: relative;
+  height: 100%;
+}
+
+.student-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-decoration: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.student-card-body:active {
+  transform: scale(var(--scale-pressed));
+}
+
+.student-card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  /* Room for the "⋯" button that sits on the card's corner. */
+  padding-right: var(--size-touch);
+}
+
+.student-card-name {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.student-card-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+
+.student-card-menu {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--size-touch);
+  height: var(--size-touch);
+  border: 0;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.list-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
 }

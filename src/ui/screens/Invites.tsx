@@ -2,8 +2,10 @@ import { useState, type FormEvent } from 'react';
 import type { ApiError, InviteState } from '../../application/api-contract';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
+import { Badge } from '../components/Badge';
 import { Button } from '../components/Button';
 import { Field } from '../components/Field';
+import { ListContent, ListRow, ListSection } from '../components/GroupedList';
 import { Notice } from '../components/Notice';
 import { useQuery } from '../use-query';
 
@@ -48,38 +50,37 @@ export function Invites() {
   return (
     <section>
       <h1>{strings.invites.title}</h1>
-      <form className="row end" onSubmit={submit}>
-        <Field
-          className="grow"
-          label={strings.invites.emailLabel}
-          type="email"
-          required
-          autoComplete="off"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Button type="submit" disabled={busy}>
-          {strings.invites.send}
-        </Button>
+      <form onSubmit={submit}>
+        <ListSection>
+          <ListContent>
+            <div className="row end">
+              <Field
+                className="grow"
+                label={strings.invites.emailLabel}
+                type="email"
+                required
+                autoComplete="off"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Button type="submit" disabled={busy}>
+                {strings.invites.send}
+              </Button>
+            </div>
+          </ListContent>
+        </ListSection>
       </form>
       {error && <Notice tone="error">{error}</Notice>}
-      {invites.data?.length === 0 && <p className="muted">{strings.invites.empty}</p>}
-      <ul className="list">
+      <ListSection header={strings.invites.title} footer={invites.data?.length === 0 ? strings.invites.empty : undefined}>
         {invites.data?.map((invite) => (
-          <li key={invite.email} className="card row">
-            <span className="grow">
-              {invite.email}
-              <br />
-              <span className="muted small">{STATE_LABEL[invite.state]}</span>
-            </span>
-            {invite.state === 'pending' && (
-              <Button variant="secondary" onClick={() => void revoke(invite.email)}>
-                {strings.invites.revoke}
-              </Button>
-            )}
-          </li>
+          <ListRow
+            key={invite.email}
+            title={invite.email}
+            trailing={<Badge tone={invite.state === 'pending' ? 'neutral' : invite.state === 'accepted' ? 'brand' : 'danger'}>{STATE_LABEL[invite.state]}</Badge>}
+            swipeActions={invite.state === 'pending' ? [{ label: strings.invites.revoke, tone: 'danger', onClick: () => void revoke(invite.email) }] : undefined}
+          />
         ))}
-      </ul>
+      </ListSection>
     </section>
   );
 }
