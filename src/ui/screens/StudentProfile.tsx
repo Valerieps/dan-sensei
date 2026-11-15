@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import type { StudentView } from "../../application/api-contract";
 import { initials, NOTES_MAX_LENGTH } from "../../domain/alunos/student";
 import { strings } from "../../domain/strings";
@@ -9,11 +9,12 @@ import { SegmentedControl } from "../components/Controls";
 import { ListContent, ListRow, ListSection } from "../components/GroupedList";
 import { Loading } from "../components/Loading";
 import { Notice } from "../components/Notice";
+import { RouteSheet } from "../components/RouteSheet";
 import { Link, navigate } from "../router";
 import { useQuery } from "../use-query";
 import { MonthlyTab } from "./MonthlyTab";
 import { PackagesTab } from "./PackagesTab";
-import { StudentForm } from "./StudentForm";
+import { StudentForm, STUDENT_FORM_ID } from "./StudentForm";
 
 /** Tabs of the profile. Later sessions add Treinos and Histórico here. */
 export type ProfileTab = "registration" | "packages" | "monthly" | "notes";
@@ -42,12 +43,11 @@ const TABS: { tab: ProfileTab; label: string; path: (id: string) => string }[] =
     },
   ];
 
-export function NewStudent() {
+export function NewStudent({ behind }: { behind?: ReactNode }) {
   return (
-    <section>
-      <h1>{strings.students.newTitle}</h1>
-      <StudentForm onSaved={(student) => navigate(`/alunos/${student.id}`)} />
-    </section>
+    <RouteSheet title={strings.students.newTitle} back="/alunos" behind={behind} formId={STUDENT_FORM_ID}>
+      <StudentForm formId={STUDENT_FORM_ID} onSaved={(student) => navigate(`/alunos/${student.id}`)} />
+    </RouteSheet>
   );
 }
 

@@ -1,18 +1,21 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import type { PaymentMethod } from '../../application/api-contract';
 import { dataEmSaoPaulo, formatarReais, lerReais, reaisParaTexto } from '../../domain/pacotes';
 import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
-import { Button } from '../components/Button';
+import { Switch } from '../components/Controls';
 import { EmptyState } from '../components/EmptyState';
 import { Field } from '../components/Field';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
+import { ChoiceField, RouteSheet } from '../components/RouteSheet';
 import { SelectField } from '../components/SelectField';
-import { Link, navigate } from '../router';
+import { navigate } from '../router';
+import { StudentProfile } from './StudentProfile';
 import { useQuery } from '../use-query';
 
 const MAX_CLASSES = 200;
+const FORM_ID = 'package-form';
 type FormField = keyof typeof strings.packages.form.errors;
 
 /**
@@ -44,25 +47,19 @@ export function PackageForm({ studentId, startingBalance }: { studentId: string;
   const [busy, setBusy] = useState(false);
 
   const back = `/alunos/${studentId}/pacotes`;
-  if (student.error === 'not_found') return <Notice tone="error">{strings.students.notFound}</Notice>;
-  if (!student.data || !plans.data) return plans.error || student.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />;
-  if (student.data.billing === 'monthly') {
-    return (
-      <EmptyState action={<Link className="button secondary" to={back}>{strings.back}</Link>}>
-        {strings.packages.tab.monthly}
-      </EmptyState>
-    );
-  }
+  const sheet = (title: string, children: ReactNode, saveable = false) => (
+    <RouteSheet title={title} back={back} behind={<StudentProfile id={studentId} tab="packages" />} formId={saveable ? FORM_ID : undefined} busy={busy}>
+      {children}
+    </RouteSheet>
+  );
+  if (student.error === 'not_found') return sheet(f.newTitle, <Notice tone="error">{strings.students.notFound}</Notice>);
+  if (!student.data || !plans.data) return sheet(f.newTitle, plans.error || student.error ? <Notice tone="error">{strings.genericError}</Notice> : <Loading />);
+  if (student.data.billing === 'monthly') return sheet(f.newTitle, <EmptyState>{strings.packages.tab.monthly}</EmptyState>);
 
   const activePlans = plans.data.filter((p) => p.active);
   const plan = activePlans.find((p) => p.id === planId) ?? activePlans[0];
   if (!plan) {
-    return (
-      <section>
-        <h1>{f.newTitle}</h1>
-        <EmptyState>{f.noPlans}</EmptyState>
-      </section>
-    );
+    return sheet(f.newTitle, <EmptyState>{f.noPlans}</EmptyState>);
   }
 
   const classesText = classes ?? String(plan.classes);
@@ -122,13 +119,13 @@ export function PackageForm({ studentId, startingBalance }: { studentId: string;
 
   const error = (field: FormField) => (errors.has(field) ? f.errors[field] : null);
 
-  return (
-    <section>
-      <h1>{title}</h1>
+  return sheet(
+    title,
+    <>
       <p className="muted">{student.data.name}</p>
       {startingBalance && <p>{f.initialHint}</p>}
       {preview.data?.notice && <Notice>{preview.data.notice}</Notice>}
-      <form className="stack" onSubmit={submit} noValidate>
+      <form id={FORM_ID} className="stack" onSubmit={submit} noValidate>
         <SelectField label={f.plan} value={plan.id} onChange={(e) => pickPlan(e.target.value)}>
           {activePlans.map((p) => (
             <option key={p.id} value={p.id}>
@@ -155,10 +152,7 @@ export function PackageForm({ studentId, startingBalance }: { studentId: string;
         </SelectField>
 
         {!startingBalance && (
-          <label className="row">
-            <input type="checkbox" checked={inProgress} onChange={(e) => setInProgress(e.target.checked)} />
-            {f.inProgress}
-          </label>
+          <Switch label={f.inProgress} checked={inProgress} onChange={setInProgress} />
         )}
         {inProgress && (
           <div className="row end">
@@ -172,26 +166,18 @@ export function PackageForm({ studentId, startingBalance }: { studentId: string;
           <div className="row end">
             <Field className="grow" label={f.amount} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} error={error('amount')} />
             <Field className="grow" label={f.paidOn} type="date" max={today} value={paidOn} onChange={(e) => setPaidOn(e.target.value)} error={error('paidOn')} />
-            <SelectField className="grow" label={f.method} value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)}>
-              {(Object.keys(strings.packages.tab.method) as PaymentMethod[]).map((m) => (
-                <option key={m} value={m}>
-                  {strings.packages.tab.method[m]}
-                </option>
-              ))}
-            </SelectField>
           </div>
+          <ChoiceField
+            label={f.method}
+            options={(Object.keys(strings.packages.tab.method) as PaymentMethod[]).map((m) => ({ value: m, label: strings.packages.tab.method[m] }))}
+            value={method}
+            onChange={setMethod}
+          />
         </fieldset>
 
         {failed && <Notice tone="error">{strings.genericError}</Notice>}
-        <div className="row">
-          <Button type="submit" disabled={busy}>
-            {startingBalance ? f.save : renewing ? f.renew : f.create}
-          </Button>
-          <Link className="button secondary" to={back}>
-            {strings.cancel}
-          </Link>
-        </div>
       </form>
-    </section>
+    </>,
+    true,
   );
 }

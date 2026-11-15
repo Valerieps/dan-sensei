@@ -175,6 +175,7 @@ export const strings = {
       charge: 'Cobrar a aula',
       waive: 'Abonar a aula',
       confirmCancel: 'Confirmar cancelamento',
+      cancelConfirmBody: 'A aula sai da agenda como cancelada.',
       confirmMissed: 'Registrar falta',
       choosePackage: 'De qual pacote sai a aula?',
       chooseNone: 'Sem pacote',

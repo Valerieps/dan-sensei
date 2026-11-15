@@ -759,26 +759,6 @@ textarea {
   border-left-style: dashed;
 }
 
-.sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: var(--color-scrim);
-}
-
-.sheet {
-  width: 100%;
-  max-width: var(--size-content);
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: var(--space-4);
-  border-radius: var(--radius) var(--radius) 0 0;
-  background: var(--color-bg);
-}
-
 .forecast {
   margin: var(--space-2) 0 0;
 }

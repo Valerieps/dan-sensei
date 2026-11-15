@@ -10,6 +10,7 @@ import { Button } from '../components/Button';
 import { Field } from '../components/Field';
 import { ListContent, ListRow, ListSection } from '../components/GroupedList';
 import { Notice } from '../components/Notice';
+import { useConfirm } from '../components/use-confirm';
 import { useQuery } from '../use-query';
 
 function errorText(error: ApiError): string {
@@ -69,6 +70,7 @@ export function Members({ me }: { me: MeView }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const manages = canManageGroup(me);
+  const { confirm, dialog } = useConfirm();
 
   async function toggleAdmin(member: MemberListItem) {
     setBusy(member.id);
@@ -77,12 +79,17 @@ export function Members({ me }: { me: MeView }) {
     setError(result.ok ? null : errorText(result.error));
   }
 
-  async function remove(member: MemberListItem) {
-    if (!window.confirm(strings.members.removeConfirm(member.name))) return;
-    setBusy(member.id);
-    const result = await backend.command('member.remove', { memberId: member.id });
-    setBusy(null);
-    setError(result.ok ? null : errorText(result.error));
+  function remove(member: MemberListItem) {
+    confirm({
+      title: strings.members.remove,
+      message: strings.members.removeConfirm(member.name),
+      run: async () => {
+        setBusy(member.id);
+        const result = await backend.command('member.remove', { memberId: member.id });
+        setBusy(null);
+        setError(result.ok ? null : errorText(result.error));
+      },
+    });
   }
 
   return (
@@ -118,6 +125,7 @@ export function Members({ me }: { me: MeView }) {
           />
         ))}
       </ListSection>
+      {dialog}
     </section>
   );
 }

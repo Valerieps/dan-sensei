@@ -12,6 +12,7 @@ import { Switch } from '../components/Controls';
 import { ListContent, ListRow, ListSection } from '../components/GroupedList';
 import { Loading } from '../components/Loading';
 import { Notice } from '../components/Notice';
+import { useConfirm } from '../components/use-confirm';
 import { useQuery } from '../use-query';
 
 const MAX_CLASSES = 200;
@@ -58,6 +59,7 @@ function PauseAll() {
   const [invalid, setInvalid] = useState(false);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState(false);
+  const { confirm, dialog } = useConfirm();
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -75,10 +77,12 @@ function PauseAll() {
     }
   }
 
-  async function remove(id: string) {
-    if (!window.confirm(t.removeConfirm)) return;
-    const result = await backend.command('pause.removeGlobal', { id });
-    setFailed(!result.ok);
+  function remove(id: string) {
+    confirm({
+      title: t.remove,
+      message: t.removeConfirm,
+      run: async () => setFailed(!(await backend.command('pause.removeGlobal', { id })).ok),
+    });
   }
 
   return (
@@ -110,6 +114,7 @@ function PauseAll() {
           />
         ))}
       </ListSection>
+      {dialog}
     </>
   );
 }
@@ -244,19 +249,25 @@ function Devices() {
   const members = useQuery('members', {}, ['members']);
   const [done, setDone] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  const { confirm, dialog } = useConfirm();
 
-  async function signOutAll(id: string, name: string) {
+  function signOutAll(id: string, name: string) {
     const self = id === me.data?.id;
-    if (!window.confirm(self ? t.confirmSelf : t.confirmOther(name))) return;
-    const result = await backend.command('session.signOutAll', self ? {} : { memberId: id });
-    setFailed(!result.ok);
-    if (!result.ok) return;
-    if (self) {
-      await backend.signOut();
-      window.location.assign('/');
-    } else {
-      setDone(t.doneOther(name));
-    }
+    confirm({
+      title: t.signOutAll,
+      message: self ? t.confirmSelf : t.confirmOther(name),
+      run: async () => {
+        const result = await backend.command('session.signOutAll', self ? {} : { memberId: id });
+        setFailed(!result.ok);
+        if (!result.ok) return;
+        if (self) {
+          await backend.signOut();
+          window.location.assign('/');
+        } else {
+          setDone(t.doneOther(name));
+        }
+      },
+    });
   }
 
   return (
@@ -267,6 +278,7 @@ function Devices() {
           <ListRow key={member.id} title={member.name} value={t.signOutAll} onClick={() => void signOutAll(member.id, member.name)} />
         ))}
       </ListSection>
+      {dialog}
     </>
   );
 }

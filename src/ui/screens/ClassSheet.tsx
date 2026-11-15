@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import type { AbsenceDecision, AgendaClass, CancelClassResult, PackageSummary, RegisterClassResult } from '../../application/api-contract';
 import { ANTECEDENCIA_MINIMA_H, horasDeAntecedencia } from '../../domain/agenda';
 import { dataEmSaoPaulo, formatarData } from '../../domain/pacotes';
@@ -6,8 +6,11 @@ import { strings } from '../../domain/strings';
 import { useServices } from '../backend-context';
 import { Button } from '../components/Button';
 import { classNames, classStatusText } from '../components/class-text';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Field } from '../components/Field';
 import { Notice } from '../components/Notice';
+import { ChoiceField } from '../components/RouteSheet';
+import { Sheet } from '../components/Sheet';
 
 type Mode = 'menu' | 'cancel' | 'missed';
 const NONE = 'none';
@@ -52,7 +55,6 @@ interface ClassSheetProps {
 export function ClassSheet({ lesson, initial, startMissed = false, onClose, onChanged }: ClassSheetProps) {
   const { backend } = useServices();
   const t = strings.agenda.sheet;
-  const ref = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<Mode>(startMissed ? 'missed' : 'menu');
   const [date, setDate] = useState(initial?.date ?? lesson.date);
   const [time, setTime] = useState(initial?.time ?? lesson.time);
@@ -64,15 +66,7 @@ export function ClassSheet({ lesson, initial, startMissed = false, onClose, onCh
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [done, setDone] = useState<{ message: string; extra?: string }>();
-
-  useEffect(() => {
-    ref.current?.focus();
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
 
   const today = dataEmSaoPaulo(new Date());
   const scheduled = lesson.status === 'scheduled';
@@ -86,6 +80,7 @@ export function ClassSheet({ lesson, initial, startMissed = false, onClose, onCh
     setFailed(false);
     const result = await call();
     setBusy(false);
+    setConfirmingCancel(false);
     if (!result.ok) {
       setFailed(true);
       return;
@@ -146,16 +141,8 @@ export function ClassSheet({ lesson, initial, startMissed = false, onClose, onCh
   }
 
   return (
-    <div className="sheet-backdrop">
-      <div ref={ref} className="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabIndex={-1}>
-        <div className="row spread">
-          <h2 id="sheet-title" className="grow">
-            {t.title(classNames(lesson))}
-          </h2>
-          <Button variant="secondary" onClick={onClose}>
-            {t.close}
-          </Button>
-        </div>
+    <Sheet title={t.title(classNames(lesson))} detent="large" onClose={onClose}>
+      <div className="stack">
         <p className="strong">
           {classStatusText(lesson)} · {t.when(formatarData(lesson.date), lesson.time, lesson.durationMin)}
         </p>
@@ -180,17 +167,15 @@ export function ClassSheet({ lesson, initial, startMissed = false, onClose, onCh
               <Field className="grow" label={t.time} type="time" step={900} value={time} onChange={(e) => setTime(e.target.value)} />
             </div>
             {lesson.recurrenceId && (
-              <fieldset className="addresses">
-                <legend className="field-label">{t.scope}</legend>
-                <label className="row tight">
-                  <input type="radio" name="scope" checked={scope === 'this'} onChange={() => setScope('this')} />
-                  {t.scopeThis}
-                </label>
-                <label className="row tight">
-                  <input type="radio" name="scope" checked={scope === 'following'} onChange={() => setScope('following')} />
-                  {t.scopeFollowing}
-                </label>
-              </fieldset>
+              <ChoiceField
+                label={t.scope}
+                options={[
+                  { value: 'this', label: t.scopeThis },
+                  { value: 'following', label: t.scopeFollowing },
+                ]}
+                value={scope}
+                onChange={setScope}
+              />
             )}
             {failed && <Notice tone="error">{t.failed}</Notice>}
             <div className="row">
@@ -223,31 +208,29 @@ export function ClassSheet({ lesson, initial, startMissed = false, onClose, onCh
         {!done && scheduled && mode !== 'menu' && (
           <div className="stack">
             {mode === 'cancel' && (
-              <fieldset className="addresses">
-                <legend className="field-label">{t.cancelWho}</legend>
-                <label className="row tight">
-                  <input type="radio" name="who" checked={!byTrainer} onChange={() => setByTrainer(false)} />
-                  {t.cancelByStudent}
-                </label>
-                <label className="row tight">
-                  <input type="radio" name="who" checked={byTrainer} onChange={() => setByTrainer(true)} />
-                  {t.cancelByTrainer}
-                </label>
+              <>
+                <ChoiceField
+                  label={t.cancelWho}
+                  options={[
+                    { value: 'student', label: t.cancelByStudent },
+                    { value: 'trainer', label: t.cancelByTrainer },
+                  ]}
+                  value={byTrainer ? 'trainer' : 'student'}
+                  onChange={(who) => setByTrainer(who === 'trainer')}
+                />
                 {byTrainer && <p className="muted small">{t.cancelByTrainerHint}</p>}
-              </fieldset>
+              </>
             )}
             {askDecision && (
-              <fieldset className="addresses">
-                <legend className="field-label">{mode === 'missed' ? t.missedTitle : t.lateTitle}</legend>
-                <label className="row tight">
-                  <input type="radio" name="decision" checked={decision === 'charge'} onChange={() => setDecision('charge')} />
-                  {t.charge}
-                </label>
-                <label className="row tight">
-                  <input type="radio" name="decision" checked={decision === 'waive'} onChange={() => setDecision('waive')} />
-                  {t.waive}
-                </label>
-              </fieldset>
+              <ChoiceField
+                label={mode === 'missed' ? t.missedTitle : t.lateTitle}
+                options={[
+                  { value: 'charge', label: t.charge },
+                  { value: 'waive', label: t.waive },
+                ]}
+                value={decision}
+                onChange={setDecision}
+              />
             )}
             {choose && <PackageChoice packages={choose} choice={choice} onChoice={setChoice} />}
             {failed && <Notice tone="error">{t.failed}</Notice>}
@@ -255,7 +238,7 @@ export function ClassSheet({ lesson, initial, startMissed = false, onClose, onCh
               <Button
                 variant={mode === 'cancel' ? 'danger' : 'primary'}
                 disabled={busy || (choose !== null && choice === undefined)}
-                onClick={() => void (mode === 'cancel' ? cancel() : missed())}
+                onClick={() => (mode === 'cancel' ? setConfirmingCancel(true) : void missed())}
               >
                 {mode === 'cancel' ? t.confirmCancel : t.confirmMissed}
               </Button>
@@ -266,7 +249,12 @@ export function ClassSheet({ lesson, initial, startMissed = false, onClose, onCh
           </div>
         )}
       </div>
-    </div>
+      {confirmingCancel && (
+        <ConfirmDialog title={t.cancel} confirmLabel={t.confirmCancel} busy={busy} onCancel={() => setConfirmingCancel(false)} onConfirm={() => void cancel()}>
+          {t.cancelConfirmBody}
+        </ConfirmDialog>
+      )}
+    </Sheet>
   );
 }
 

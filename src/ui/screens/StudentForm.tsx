@@ -15,11 +15,13 @@ interface AddressDraft {
   isDefault: boolean;
 }
 
+export const STUDENT_FORM_ID = 'student-form';
+
 let nextKey = 0;
 const blankAddress = (isDefault: boolean): AddressDraft => ({ key: nextKey++, label: '', address: '', isDefault });
 
 /** The registration form: creates a student (no `student`) or edits one. */
-export function StudentForm({ student, onSaved }: { student?: StudentView; onSaved: (saved: StudentView) => void }) {
+export function StudentForm({ student, onSaved, formId }: { student?: StudentView; onSaved: (saved: StudentView) => void; formId?: string }) {
   const { backend } = useServices();
   const [name, setName] = useState(student?.name ?? '');
   const [phone, setPhone] = useState(student?.phone ?? '');
@@ -84,7 +86,7 @@ export function StudentForm({ student, onSaved }: { student?: StudentView; onSav
   const error = (field: StudentField) => (errors.has(field) ? f.errors[field === 'heightCm' ? 'height' : field] : null);
 
   return (
-    <form className="stack" onSubmit={submit} noValidate>
+    <form id={formId} className="stack" onSubmit={submit} noValidate>
       <Field label={f.name} required maxLength={STUDENT_NAME_MAX_LENGTH} autoComplete="off" value={name} onChange={(e) => setName(e.target.value)} error={error('name')} />
       <Field label={f.phone} required type="tel" inputMode="tel" autoComplete="off" value={phone} onChange={(e) => setPhone(e.target.value)} error={error('phone')} />
       <div className="row end">
@@ -120,11 +122,13 @@ export function StudentForm({ student, onSaved }: { student?: StudentView; onSav
 
       {failed && <Notice tone="error">{strings.genericError}</Notice>}
       {saved && student && <Notice>{f.saved}</Notice>}
-      <div className="row">
-        <Button type="submit" disabled={busy}>
-          {student ? f.save : f.create}
-        </Button>
-      </div>
+      {!formId && (
+        <div className="row">
+          <Button type="submit" disabled={busy}>
+            {student ? f.save : f.create}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }

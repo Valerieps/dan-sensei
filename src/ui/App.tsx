@@ -61,27 +61,32 @@ function OfflineNotice() {
   return <Notice>{strings.offline}</Notice>;
 }
 
+/** What a panel keeps in view: the student's profile when it opened from there, else the Hoje screen. */
+function behindStudent(studentId: string | undefined, tab: 'packages' | 'monthly') {
+  return studentId ? <StudentProfile key={studentId} id={studentId} tab={tab} /> : <Home />;
+}
+
 function Screen({ me }: { me: MeView }) {
   const path = usePath();
   if (path === '/membros') return <Members me={me} />;
   if (path === '/convites' && canManageGroup(me)) return <Invites />;
   if (path === '/configuracoes') return <Settings />;
   const newClass = /^\/agenda\/nova(?:\/(\d{4}-\d{2}-\d{2})(?:\/(\d{2}:\d{2}))?)?\/?$/.exec(path);
-  if (newClass) return <NewClass key={path} date={newClass[1]} time={newClass[2]} />;
+  if (newClass) return <NewClass key={path} date={newClass[1]} time={newClass[2]} behind={<Agenda mode="day" date={newClass[1]} />} />;
   const week = /^\/agenda\/semana(?:\/(\d{4}-\d{2}-\d{2}))?\/?$/.exec(path);
   if (week) return <Agenda mode="week" date={week[1]} />;
   const day = /^\/agenda(?:\/(\d{4}-\d{2}-\d{2}))?\/?$/.exec(path);
   if (day) return <Agenda mode="day" date={day[1]} />;
   const payment = /^\/pagamentos\/registrar(?:\/([^/]+)(?:\/([^/]+))?)?\/?$/.exec(path);
-  if (payment) return <RegisterPayment key={path} studentId={payment[1]} packageId={payment[2]} />;
+  if (payment) return <RegisterPayment key={path} studentId={payment[1]} packageId={payment[2]} behind={behindStudent(payment[1], 'packages')} />;
   const monthlyPayment = /^\/mensalidades\/registrar(?:\/([^/]+))?\/?$/.exec(path);
-  if (monthlyPayment) return <RegisterMonthly key={path} studentId={monthlyPayment[1]} />;
+  if (monthlyPayment) return <RegisterMonthly key={path} studentId={monthlyPayment[1]} behind={behindStudent(monthlyPayment[1], 'monthly')} />;
   const pause = /^\/pacotes\/([^/]+)\/pausar\/?$/.exec(path);
   if (pause) return <PausePackage key={pause[1]} packageId={pause[1]} />;
   if (path === '/nota-aluno') return <StudentList />;
-  if (path === '/alunos/novo') return <NewStudent />;
+  if (path === '/alunos/novo') return <NewStudent behind={<Overview />} />;
   const lesson = /^\/aulas\/registrar(?:\/([^/]+))?\/?$/.exec(path);
-  if (lesson) return <RegisterLesson key={lesson[1] ?? ''} studentId={lesson[1]} />;
+  if (lesson) return <RegisterLesson key={lesson[1] ?? ''} studentId={lesson[1]} behind={behindStudent(lesson[1], 'packages')} />;
   const packageForm = /^\/alunos\/([^/]+)\/pacotes\/(novo|saldo-inicial)\/?$/.exec(path);
   if (packageForm) return <PackageForm key={path} studentId={packageForm[1]} startingBalance={packageForm[2] === 'saldo-inicial'} />;
   const profile = /^\/alunos\/([^/]+)(\/notas|\/pacotes|\/mensalidades)?\/?$/.exec(path);
