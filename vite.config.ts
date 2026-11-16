@@ -2,16 +2,20 @@ import type { Plugin } from 'vite';
 import { configDefaults, defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { ALLOWED_ORIGINS, IMAGE_ORIGINS } from './network-policy.ts';
+import { writeManifest } from './precache-manifest.ts';
 
 // Strict CSP (docs/SEGURANCA.md, ADR-002). Injected only in production builds: the dev server
 // needs a websocket for hot reload, which a closed `connect-src` would block. It is a meta tag
-// rather than a header so it never applies to a service worker, if the app gets one.
+// rather than a header so it never applies to the service worker (ADR-009).
 export const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   ["connect-src 'self'", ...ALLOWED_ORIGINS].join(' '),
   ["img-src 'self' data:", ...IMAGE_ORIGINS].join(' '),
+  // Generated sounds are played from blob: URLs; the service worker is the app's own file (ADR-009).
+  "media-src 'self' blob:",
+  "worker-src 'self'",
   "object-src 'none'",
   "base-uri 'none'",
   "form-action 'none'",
@@ -34,6 +38,21 @@ function contentSecurityPolicy(): Plugin {
   };
 }
 
+// Writes dist/precache-manifest.json for public/sw.js once every file, public ones included, is in dist/.
+function precacheManifest(): Plugin {
+  let outDir = 'dist';
+  return {
+    name: 'precache-manifest',
+    apply: 'build',
+    configResolved: (config) => {
+      outDir = config.build.outDir;
+    },
+    closeBundle: () => {
+      writeManifest(outDir);
+    },
+  };
+}
+
 // Lets tooling assign a port through the PORT environment variable.
 const port = process.env.PORT ? Number(process.env.PORT) : undefined;
 
@@ -43,7 +62,7 @@ export default defineConfig({
   server: { port, proxy: { '/api': { target: 'http://localhost:8787', ws: true } } },
   // Absolute base: the Worker serves the app at the root and deep links like /membros need it.
   base: '/',
-  plugins: [react(), contentSecurityPolicy()],
+  plugins: [react(), contentSecurityPolicy(), precacheManifest()],
   build: {
     // Keep everything as files under 'self'; never inline assets as scripts.
     assetsInlineLimit: 0,

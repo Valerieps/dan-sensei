@@ -80,8 +80,23 @@ describe('security rules', () => {
     const rules = CONTENT_SECURITY_POLICY.split('; ');
     expect(rules.find((rule) => rule.startsWith('connect-src'))).toBe(["connect-src 'self'", ...ALLOWED_ORIGINS].join(' '));
     expect(rules.find((rule) => rule.startsWith('img-src'))).toBe(["img-src 'self' data:", ...IMAGE_ORIGINS].join(' '));
+    expect(rules).toContain("media-src 'self' blob:");
+    expect(rules).toContain("worker-src 'self'");
     expect(CONTENT_SECURITY_POLICY).toContain("script-src 'self'");
     expect(CONTENT_SECURITY_POLICY).toContain("object-src 'none'");
+  });
+
+  it('the service worker has no external URL, no imported script and no HTML injection (ADR-002, ADR-009)', () => {
+    const worker = read(join(__dirname, '..', 'public', 'sw.js'));
+    expect(worker.match(EXTERNAL_URL) ?? []).toEqual([]);
+    expect(worker).not.toMatch(/importScripts|eval\s*\(|new Function\s*\(/);
+  });
+
+  it('the service worker never keeps or answers /api, and only handles GET (ADR-009)', () => {
+    const worker = read(join(__dirname, '..', 'public', 'sw.js'));
+    expect(worker).toMatch(/startsWith\('\/api\/'\)/);
+    expect(worker).toMatch(/request\.method !== 'GET'/);
+    expect(worker).not.toMatch(/cache\.put|\/api\/['"`]\s*\]/);
   });
 
   it('the test sign-in is never turned on in the deployed configuration (ADR-007)', () => {
