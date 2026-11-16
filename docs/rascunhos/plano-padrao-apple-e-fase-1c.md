@@ -23,7 +23,8 @@ Este arquivo é apagado na última sessão (C9).
 - A aula em dupla segue a proposta A (Metades) do design system. Se a Valéria escolher outra no
   artifact "Propostas da aula em dupla" (link no ADR-011) antes da C6, vale a escolhida.
 - O orquestrador para antes da C5 e pergunta à Valéria se o teste no iPad do Dan (issue #7)
-  passou. Sem esse teste, o Modo Ao Vivo não começa.
+  passou. Sem esse teste, o Modo Ao Vivo não começa. A tela do teste e as sessões que a constroem estão em
+  [teste-ipad-issue-7.md](teste-ipad-issue-7.md); a C9 tira a aba Teste do app.
 
 ## Como gastar poucos tokens
 
@@ -322,7 +323,8 @@ Cada prompt é o texto inteiro que o orquestrador manda para a sessão filha.
 
 > Leia a seção "Regras para toda sessão" do plano. Faça para as regras *(1c)* o mesmo fechamento da
 > A7: rode `ui-review` no Modo Ao Vivo e nas telas novas, confira o spec contra o código e acerte o
-> roadmap. Depois apague este plano e a linha dele em `docs/rascunhos/README.md`. No relatório,
+> roadmap. Tire a aba Teste, a rota `/teste-ipad`, `src/ui/screens/IpadTest.tsx` e
+> `src/ui/ipad-test/` (as peças de `src/infrastructure/device/` ficam). Depois apague este plano e a linha dele em `docs/rascunhos/README.md`. No relatório,
 > liste o que conferir no iPad do Dan, as lacunas decididas e as issues abertas.
 > Pronto quando: o PR está mergeado.
 
