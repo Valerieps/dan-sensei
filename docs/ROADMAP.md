@@ -12,6 +12,7 @@ O que ainda não está pronto.
 | Feature | Fase | Spec | Observação |
 | --- | --- | --- | --- |
 | Montagem do treino: datas do programa, renomear a letra do treino e reordenar dentro de um bi-set, tri-set ou circuito | 1c | `spec/treinos-e-exercicios.md` | A montagem em cartões e a biblioteca já existem (C2); o servidor já aceita as datas e o nome |
+| Tela de teste do iPad do Dan: aba Teste acima de Hoje, etapas, registro e relatório pelo WhatsApp (temporária, sai na C9) | 1c | `rascunhos/teste-ipad-issue-7.md` | Issue #7; sessões T1 a T6 |
 | Modo Ao Vivo individual, cronômetro e registro das séries (a tela) | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7). O servidor, a cópia local e a fila de comandos já existem (`live.*`, `src/application/live-local.ts`, `live-queue.ts`) |
 | Aula em dupla com dois cronômetros e sons por aluno | 1c | `spec/aula-ao-vivo.md` | |
 | Tela de encerramento com a PSE e o gráfico da carga semanal no perfil do aluno | 1c | `spec/aula-ao-vivo.md` | A conta (PSE, carga de Foster, volume, tonelagem, `studentEffort`) já está no servidor |
