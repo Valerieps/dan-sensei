@@ -20,7 +20,7 @@
   // One cron for every time-based job; each job decides whether it is due (GroupService.tick).
   "triggers": { "crons": ["*/5 * * * *"] },
   "vars": {
-    // Public: the OAuth client ID from Google Cloud (BOOTSTRAP.md). The secret is a secret.
+    // Public: the OAuth client ID from Google Cloud (issue #3). The secret is a secret.
     "GOOGLE_CLIENT_ID": "625557632408-p3382fs9v47ass1c0bhvf25shst2ua85.apps.googleusercontent.com"
   },
   // Branch previews (`wrangler preview`, ADR-004) refuse to deploy without this block. Each preview

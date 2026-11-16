@@ -1,7 +1,13 @@
-# <Nome do app> - Claude Code Context & Instructions
+# Dan Sensei - Claude Code Context & Instructions
 
-<!-- BOOTSTRAP.md fills this paragraph: what the app is, for whom, and its core loop. -->
-<One paragraph: what the app does, who uses it, the loop a member repeats every day.>
+Dan Sensei is the work tool of Dan, a personal trainer who trains students at their homes. It
+replaces his memory and WhatsApp for class packages (balance, validity, renewals), payments and the
+schedule, and runs the class on a 10.2" iPad read from 2 m away, with rest timers and one-tap set
+logging, also for two students at once. Only two members use it, both admins: Dan, and Valéria (the
+owner of this repository), who builds and maintains it. Students never sign in. Dan's daily loop:
+open the app, start the next class, log the sets, send the summary and package statement by
+WhatsApp, and check who must renew or pay. Built in phases 1a (packages), 1b (schedule) and 1c
+(class), see `docs/SPEC.md`.
 
 ## Docs
 
@@ -36,7 +42,7 @@ UI hard rules from `docs/UI.md`, valid for every change under `src/ui/`
 - Never rename a token or loosen `tokens.test.ts` to make it pass.
 - Font sizes only from the scale; spacing only from `--space-*`.
 - Every text color pair passes WCAG AA in both themes; a new pair goes into the test's list.
-- Use `src/ui/components/` (`Button`, `ButtonLink`, `Field`, `Notice`) before writing new CSS.
+- Use `src/ui/components/` before writing new CSS: `Button`, `ButtonLink`, `IconButton`, `Icon`, `Sheet`, `ConfirmDialog`, `GroupedList`, `ListSection`, `ListRow`, `SegmentedControl`, `Switch`, `Stepper`, `Badge`, `PackageProgress`, `Field`, `SelectField`, `Notice` (the list with their uses is in `docs/UI.md`).
 
 ### Where information lives
 
@@ -70,10 +76,13 @@ Product docs are written in Brazilian Portuguese; ADRs, code and this file in En
 - She answers questions as a numbered list in the chat, or as nested items under each "Em aberto"
   question. Fold each answer into the text of its section and remove the answered question.
 - Open questions sit at the top of each section, as a checklist.
-- The spec is written in the first person ("eu posso..."), in Brazilian Portuguese, in her voice.
+- The spec is written in the first person ("eu posso..."), in Brazilian Portuguese, in the voice
+  of Dan, the trainer who uses the app. Valéria (the owner) answers the questions, often after
+  asking Dan.
 - Business-rule questions found during a task go in one batch, before implementing.
 - When she asks what you think of the app, she wants a frank assessment, including the risks.
-- Verify with the typecheck and unit tests; use the browser only when she asks.
+- Verify with the typecheck only (`npm run typecheck`); CI runs the full build and tests on the PR.
+  Use the browser only when she asks.
 - Ship with `npm run ship -- "<commit message>"`: it commits, opens the PR, turns on auto-merge and
   waits until GitHub merges it. Do not run the `gh pr` steps by hand or poll with `sleep`.
 - Asked whether everything is merged or the session can be archived: run `npm run branches` and
@@ -135,7 +144,7 @@ Each step rereads the whole conversation, so long sessions and back-and-forth co
 - `npm run branches` - what is not merged yet, per branch and worktree; `-- --clean` deletes merged local branches
 
 ## Deployment
-Production address: `https://<BOOTSTRAP.md: worker name>.souza.pereira.valeria.workers.dev` (the
+Production address: `https://dan-sensei.souza.pereira.valeria.workers.dev` (the
 Worker's `name` in `wrangler.jsonc`, on the owner's account subdomain).
 Cloudflare Workers Builds, from the GitHub repository. Build command `npm run build`, deploy
 command `npx wrangler deploy` for `main`; other branches get a preview version (ADR-004). Sign-in

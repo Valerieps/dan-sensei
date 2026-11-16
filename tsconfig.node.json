@@ -9,6 +9,8 @@
     "server/**/*.test.ts",
     "server/testing",
     "vite.config.ts",
+    "precache-manifest.ts",
+    "precache-manifest.test.ts",
     "network-policy.ts"
   ],
   "exclude": []

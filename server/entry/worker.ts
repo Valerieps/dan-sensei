@@ -1,5 +1,6 @@
 // The Worker: serves the app's files, the API under /api, the live connection and the cron
 // (ADR-004). Everything about the group is delegated to the Group Durable Object.
+import { WorkerEntrypoint } from 'cloudflare:workers';
 import type { ApiError, ApiResult } from '../../src/application/api-contract';
 import { SESSION_DAYS, type GoogleProfile } from '../application/members';
 import { clearCookie, LOGIN_COOKIE, readCookie, SESSION_COOKIE, setCookie } from '../infrastructure/cookies';
@@ -31,6 +32,7 @@ const STATUS: Record<ApiError, number> = {
   invalid: 400,
   conflict: 409,
   last_admin: 409,
+  consent_required: 409,
   unavailable: 503,
 };
 
@@ -127,6 +129,16 @@ async function api(request: Request, env: Env, url: URL): Promise<Response> {
 
   if (path === '/api/auth/dev' && devSignInAllowed(env.DEV_SIGN_IN, url)) return devSignIn(request, env);
 
+  if (path === '/api/export') {
+    if (!hash) return json({ error: 'unauthenticated' }, 401);
+    const data = await group(env).exportData(hash);
+    if (!data) return json({ error: 'forbidden' }, 403);
+    const name = `dan-sensei-dados-${new Date().toISOString().slice(0, 10)}.zip`;
+    return new Response(data, {
+      headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="${name}"` },
+    });
+  }
+
   const match = /^\/api\/(query|command)\/([a-zA-Z.]+)$/.exec(path);
   if (!match) return json({ error: 'not_found' }, 404);
   if (!hash) return json({ error: 'unauthenticated' }, 401);
@@ -150,7 +162,19 @@ export default {
     return env.ASSETS.fetch(request);
   },
 
-  async scheduled(_controller, env, _ctx): Promise<void> {
-    await group(env).tick();
+  async scheduled(_controller, env, ctx): Promise<void> {
+    await runCron(env, ctx);
   },
 } satisfies ExportedHandler<Env>;
+
+/** The cron body, shared by the Worker's own `scheduled` and the central cron's RPC call. */
+export async function runCron(env: Env, _ctx: ExecutionContext): Promise<void> {
+  await group(env).tick();
+}
+
+/** Named entrypoint that `cron-central` calls through a service binding. */
+export class Cron extends WorkerEntrypoint<Env> {
+  async tick(): Promise<void> {
+    await runCron(this.env, this.ctx);
+  }
+}

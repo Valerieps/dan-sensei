@@ -20,6 +20,17 @@ async function post<T>(path: string, body: unknown): Promise<ApiResult<T>> {
   return { ok: false, error: payload.error ?? 'unavailable' };
 }
 
+async function download(path: string): Promise<ApiResult<Blob>> {
+  try {
+    const response = await fetch(path, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    if (response.ok) return { ok: true, value: await response.blob() };
+    const payload = (await response.json().catch(() => ({}))) as { error?: ApiError };
+    return { ok: false, error: payload.error ?? 'unavailable' };
+  } catch {
+    return { ok: false, error: 'unavailable' };
+  }
+}
+
 export function httpBackend(): Backend {
   return {
     query: (name, input) => post(`/api/query/${name}`, input),
@@ -27,6 +38,7 @@ export function httpBackend(): Backend {
     signOut: async () => {
       await post('/api/auth/logout', {});
     },
+    exportData: () => download('/api/export'),
     devSignIn: (email, name) => post('/api/auth/dev', { email, name }),
     signInUrl: '/api/auth/login',
   };

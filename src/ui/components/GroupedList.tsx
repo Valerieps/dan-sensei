@@ -1,0 +1,91 @@
+import { useId, type ReactNode } from 'react';
+import { Link } from '../router';
+import { Icon, type IconName } from './Icon';
+import { SwipeActions, type SwipeAction } from './SwipeActions';
+
+/** The iOS "inset grouped" list: rows on a rounded surface, separated by hairlines (docs/UI.md). */
+export function GroupedList({ children, label }: { children: ReactNode; label?: string }) {
+  return (
+    <ul className="grouped-list" aria-label={label}>
+      {children}
+    </ul>
+  );
+}
+
+type ListRowProps = {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  /** The value on the right, in muted text: "Bipes". */
+  value?: ReactNode;
+  icon?: IconName;
+  /** Something before the text, such as a person's initials or photo. */
+  leading?: ReactNode;
+  /** Whether the row opens another screen. A row with `href` or `onClick` shows it by default. */
+  chevron?: boolean;
+  /** A row that opens another screen of the app. */
+  href?: string;
+  /** A row that acts. */
+  onClick?: () => void;
+  /** An action row: the title in the accent color ("Registrar pagamento"). */
+  action?: boolean;
+  /** Anything else on the right of the value, such as a badge or a switch. */
+  trailing?: ReactNode;
+  /** Buttons that appear when the row is swiped to the left (and are reachable by keyboard). */
+  swipeActions?: readonly SwipeAction[];
+};
+
+/** One row of a `GroupedList`, at least 44 pt tall. */
+export function ListRow({ title, subtitle, value, icon, leading, chevron, href, onClick, action = false, trailing, swipeActions }: ListRowProps) {
+  const interactive = href !== undefined || onClick !== undefined;
+  const content = (
+    <>
+      {icon && <Icon name={icon} />}
+      {leading}
+      <span className="list-row-text">
+        <span className={action ? 'list-row-title action' : 'list-row-title'}>{title}</span>
+        {subtitle && <span className="list-row-subtitle">{subtitle}</span>}
+      </span>
+      {value !== undefined && <span className="list-row-value">{value}</span>}
+      {trailing}
+      {(chevron ?? (interactive && !action)) && <Icon name="chevron-right" />}
+    </>
+  );
+  const body =
+    href !== undefined ? (
+      <Link className="list-row-body" to={href}>
+        {content}
+      </Link>
+    ) : onClick !== undefined ? (
+      <button type="button" className="list-row-body" onClick={onClick}>
+        {content}
+      </button>
+    ) : (
+      <div className="list-row-body">{content}</div>
+    );
+  return <li className="list-row">{swipeActions && swipeActions.length > 0 ? <SwipeActions actions={swipeActions}>{body}</SwipeActions> : body}</li>;
+}
+
+/** A row that holds free content (a form, a few lines of text) instead of a title and a value. */
+export function ListContent({ children }: { children: ReactNode }) {
+  return (
+    <li className="list-row">
+      <div className="list-content">{children}</div>
+    </li>
+  );
+}
+
+/** A `GroupedList` with its small header above (caption, in capitals) and its explanation below. */
+export function ListSection({ header, footer, children }: { header?: ReactNode; footer?: string; children: ReactNode }) {
+  const headerId = useId();
+  return (
+    <section className="list-section" aria-labelledby={header ? headerId : undefined}>
+      {header && (
+        <p id={headerId} className="list-section-header">
+          {header}
+        </p>
+      )}
+      <GroupedList>{children}</GroupedList>
+      {footer && <p className="list-section-footer">{footer}</p>}
+    </section>
+  );
+}

@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { ALLOWED_ORIGINS, IMAGE_ORIGINS, SERVER_ORIGINS } from '../network-policy.ts';
+import { ALLOWED_ORIGINS, IMAGE_ORIGINS, LINK_ORIGINS, SERVER_ORIGINS } from '../network-policy.ts';
 import { CONTENT_SECURITY_POLICY } from '../vite.config';
 
 /**
@@ -64,7 +64,7 @@ describe('security rules', () => {
   });
 
   it('every URL in the app source points to an allowed origin', () => {
-    expect(urlsOutside(files, [...ALLOWED_ORIGINS, ...IMAGE_ORIGINS], SOURCE_ROOT)).toEqual([]);
+    expect(urlsOutside(files, [...ALLOWED_ORIGINS, ...IMAGE_ORIGINS, ...LINK_ORIGINS], SOURCE_ROOT)).toEqual([]);
   });
 
   it('every URL in the server source points to a server origin', () => {
@@ -80,8 +80,23 @@ describe('security rules', () => {
     const rules = CONTENT_SECURITY_POLICY.split('; ');
     expect(rules.find((rule) => rule.startsWith('connect-src'))).toBe(["connect-src 'self'", ...ALLOWED_ORIGINS].join(' '));
     expect(rules.find((rule) => rule.startsWith('img-src'))).toBe(["img-src 'self' data:", ...IMAGE_ORIGINS].join(' '));
+    expect(rules).toContain("media-src 'self' blob:");
+    expect(rules).toContain("worker-src 'self'");
     expect(CONTENT_SECURITY_POLICY).toContain("script-src 'self'");
     expect(CONTENT_SECURITY_POLICY).toContain("object-src 'none'");
+  });
+
+  it('the service worker has no external URL, no imported script and no HTML injection (ADR-002, ADR-009)', () => {
+    const worker = read(join(__dirname, '..', 'public', 'sw.js'));
+    expect(worker.match(EXTERNAL_URL) ?? []).toEqual([]);
+    expect(worker).not.toMatch(/importScripts|eval\s*\(|new Function\s*\(/);
+  });
+
+  it('the service worker never keeps or answers /api, and only handles GET (ADR-009)', () => {
+    const worker = read(join(__dirname, '..', 'public', 'sw.js'));
+    expect(worker).toMatch(/startsWith\('\/api\/'\)/);
+    expect(worker).toMatch(/request\.method !== 'GET'/);
+    expect(worker).not.toMatch(/cache\.put|\/api\/['"`]\s*\]/);
   });
 
   it('the test sign-in is never turned on in the deployed configuration (ADR-007)', () => {
@@ -95,7 +110,7 @@ describe('security rules', () => {
   });
 
   it('allowed origins are bare https origins', () => {
-    for (const origin of [...ALLOWED_ORIGINS, ...IMAGE_ORIGINS, ...SERVER_ORIGINS]) {
+    for (const origin of [...ALLOWED_ORIGINS, ...IMAGE_ORIGINS, ...LINK_ORIGINS, ...SERVER_ORIGINS]) {
       expect(origin).toMatch(/^https:\/\/[a-z0-9.-]+(:\d+)?$/);
     }
   });

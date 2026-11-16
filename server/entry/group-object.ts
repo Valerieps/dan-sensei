@@ -39,6 +39,10 @@ export class Group extends DurableObject<Env> {
     return result;
   }
 
+  exportData(sessionHash: string): Uint8Array | null {
+    return this.service.exportData(sessionHash);
+  }
+
   tick(): void {
     const changed = this.service.tick();
     if (changed.length > 0) this.broadcast(changed);

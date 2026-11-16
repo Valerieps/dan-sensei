@@ -5,16 +5,37 @@ import { strings } from '../domain/strings';
 import { useLiveStatus, useServices } from './backend-context';
 import { Button } from './components/Button';
 import { Notice } from './components/Notice';
-import { Link, navigate, usePath } from './router';
+import { usePath } from './router';
+import { Shell } from './Shell';
+import { Agenda } from './screens/Agenda';
+import { Exercises, NewExercise } from './screens/Exercises';
 import { Home } from './screens/Home';
+import { NewClass } from './screens/NewClass';
 import { Invites } from './screens/Invites';
 import { Members } from './screens/Members';
 import { SignIn } from './screens/SignIn';
+import { IpadTest } from './screens/IpadTest';
+import { Overview } from './screens/Overview';
+import { PackageForm } from './screens/PackageForm';
+import { PausePackage } from './screens/PausePackage';
+import { RegisterMonthly } from './screens/RegisterMonthly';
+import { RegisterPayment } from './screens/RegisterPayment';
+import { Settings } from './screens/Settings';
+import { RegisterLesson } from './screens/RegisterLesson';
+import { StudentList } from './screens/StudentList';
+import { NewStudent, StudentProfile } from './screens/StudentProfile';
 import { useQuery } from './use-query';
 
-/** The app's screens. Replace Home with the app's first real screen (BOOTSTRAP.md). */
+/** The iPad test (issue #7) opens without a session: offline the app cannot check one (ADR-009). */
 export function App() {
-  const { backend, live } = useServices();
+  const path = usePath();
+  if (/^\/teste-ipad\/?$/.test(path)) return <IpadTest />;
+  return <SignedInApp />;
+}
+
+/** Signs in, then puts the screen inside the shell (tab bar, toolbar, large title). */
+function SignedInApp() {
+  const { live } = useServices();
   const me = useQuery('me', {}, ['me']);
   const signedIn = me.data !== undefined && me.error !== 'unauthenticated';
 
@@ -35,40 +56,11 @@ export function App() {
   }
   if (!signedIn) return <SignIn />;
 
-  async function signOut() {
-    await backend.signOut();
-    navigate('/', { replace: true });
-    me.reload();
-  }
-
   return (
-    <div className="app">
-      <Navigation me={me.data} onSignOut={() => void signOut()} />
+    <Shell>
       <OfflineNotice />
       <Screen me={me.data} />
-    </div>
-  );
-}
-
-function Navigation({ me, onSignOut }: { me: MeView; onSignOut: () => void }) {
-  const path = usePath();
-  const tabs = [
-    { path: '/', label: strings.nav.home },
-    { path: '/membros', label: strings.nav.members },
-    ...(canManageGroup(me) ? [{ path: '/convites', label: strings.nav.invites }] : []),
-  ];
-  return (
-    <nav className="row tabs" aria-label={strings.nav.main}>
-      {tabs.map((tab) => (
-        <Link key={tab.path} to={tab.path} aria-current={path === tab.path ? 'page' : undefined}>
-          {tab.label}
-        </Link>
-      ))}
-      <span className="grow" />
-      <Button variant="secondary" onClick={onSignOut}>
-        {strings.nav.signOut}
-      </Button>
-    </nav>
+    </Shell>
   );
 }
 
@@ -78,9 +70,45 @@ function OfflineNotice() {
   return <Notice>{strings.offline}</Notice>;
 }
 
+/** What a panel keeps in view: the student's profile when it opened from there, else the Hoje screen. */
+function behindStudent(studentId: string | undefined, tab: 'packages' | 'monthly') {
+  return studentId ? <StudentProfile key={studentId} id={studentId} tab={tab} /> : <Home />;
+}
+
 function Screen({ me }: { me: MeView }) {
   const path = usePath();
   if (path === '/membros') return <Members me={me} />;
   if (path === '/convites' && canManageGroup(me)) return <Invites />;
-  return <Home me={me} />;
+  if (path === '/configuracoes') return <Settings />;
+  if (/^\/exercicios\/novo\/?$/.test(path)) return <NewExercise behind={<Exercises />} />;
+  const exercise = /^\/exercicios(?:\/([^/]+))?\/?$/.exec(path);
+  if (exercise) return <Exercises selectedId={exercise[1]} />;
+  const newClass = /^\/agenda\/nova(?:\/(\d{4}-\d{2}-\d{2})(?:\/(\d{2}:\d{2}))?)?\/?$/.exec(path);
+  if (newClass) return <NewClass key={path} date={newClass[1]} time={newClass[2]} behind={<Agenda mode="day" date={newClass[1]} />} />;
+  const week = /^\/agenda\/semana(?:\/(\d{4}-\d{2}-\d{2}))?\/?$/.exec(path);
+  if (week) return <Agenda mode="week" date={week[1]} />;
+  const day = /^\/agenda(?:\/(\d{4}-\d{2}-\d{2}))?\/?$/.exec(path);
+  if (day) return <Agenda mode="day" date={day[1]} />;
+  const payment = /^\/pagamentos\/registrar(?:\/([^/]+)(?:\/([^/]+))?)?\/?$/.exec(path);
+  if (payment) return <RegisterPayment key={path} studentId={payment[1]} packageId={payment[2]} behind={behindStudent(payment[1], 'packages')} />;
+  const monthlyPayment = /^\/mensalidades\/registrar(?:\/([^/]+))?\/?$/.exec(path);
+  if (monthlyPayment) return <RegisterMonthly key={path} studentId={monthlyPayment[1]} behind={behindStudent(monthlyPayment[1], 'monthly')} />;
+  const pause = /^\/pacotes\/([^/]+)\/pausar\/?$/.exec(path);
+  if (pause) return <PausePackage key={pause[1]} packageId={pause[1]} />;
+  if (path === '/nota-aluno') return <StudentList />;
+  if (path === '/alunos/novo') return <NewStudent behind={<Overview />} />;
+  const lesson = /^\/aulas\/registrar(?:\/([^/]+))?\/?$/.exec(path);
+  if (lesson) return <RegisterLesson key={lesson[1] ?? ''} studentId={lesson[1]} behind={behindStudent(lesson[1], 'packages')} />;
+  const packageForm = /^\/alunos\/([^/]+)\/pacotes\/(novo|saldo-inicial)\/?$/.exec(path);
+  if (packageForm) return <PackageForm key={path} studentId={packageForm[1]} startingBalance={packageForm[2] === 'saldo-inicial'} />;
+  const workouts = /^\/alunos\/([^/]+)\/treinos(?:\/([^/]+))?\/?$/.exec(path);
+  if (workouts) return <StudentProfile key={workouts[1]} id={workouts[1]} tab="workouts" workoutId={workouts[2]} />;
+  const profile = /^\/alunos\/([^/]+)(\/notas|\/pacotes|\/mensalidades|\/saude)?\/?$/.exec(path);
+  if (profile) {
+    const tabs = { '/notas': 'notes', '/pacotes': 'packages', '/mensalidades': 'monthly', '/saude': 'health' } as const;
+    const tab = tabs[profile[2] as keyof typeof tabs] ?? 'registration';
+    return <StudentProfile key={profile[1]} id={profile[1]} tab={tab} />;
+  }
+  if (path === '/alunos') return <Overview />;
+  return <Home />;
 }
