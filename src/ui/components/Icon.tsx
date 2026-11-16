@@ -12,6 +12,7 @@ const HOUSE = 'M4 11l8-7 8 7v8a1 1 0 01-1 1h-4v-6h-6v6H5a1 1 0 01-1-1z';
 const DUMBBELL = 'M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11';
 
 const DRAWINGS = {
+  checklist: { stroke: <path d="M4 7l1.5 1.5L8 6M4 13l1.5 1.5L8 12M4 19l1.5 1.5L8 18M12 7h8M12 13h8M12 19h8" /> },
   plus: { stroke: <path d="M12 5v14M5 12h14" /> },
   minus: { stroke: <path d="M5 12h14" /> },
   xmark: { stroke: <path d="M6 6l12 12M18 6L6 18" /> },
