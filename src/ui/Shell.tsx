@@ -30,6 +30,7 @@ function saveSidebar(open: boolean): void {
 }
 
 const TAB_LABEL: Record<TabId, string> = {
+  test: strings.nav.test,
   today: strings.nav.home,
   agenda: strings.nav.agenda,
   students: strings.nav.students,

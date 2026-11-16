@@ -1607,3 +1607,50 @@ button.list-row-body:active {
   flex-direction: column;
   gap: var(--space-2);
 }
+
+/* The iPad test (issue #7, temporary until phase 1c closes): big buttons like the live class. */
+.ipad-test {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.ipad-test .button.large {
+  min-height: var(--size-touch-live);
+}
+
+.test-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.test-progress progress {
+  width: 100%;
+  accent-color: var(--color-brand);
+}
+
+.test-question {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.test-timers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.test-timer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.test-clock {
+  font-family: var(--font-rounded);
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-strong);
+  font-variant-numeric: tabular-nums;
+}

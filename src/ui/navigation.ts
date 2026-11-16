@@ -1,7 +1,7 @@
 // Where each URL belongs in the app's navigation (docs/spec/telas-de-gestao.md, "Navegação").
 import type { IconName } from './components/Icon';
 
-export type TabId = 'today' | 'agenda' | 'students' | 'exercises';
+export type TabId = 'test' | 'today' | 'agenda' | 'students' | 'exercises';
 
 export interface Tab {
   readonly id: TabId;
@@ -11,8 +11,9 @@ export interface Tab {
   readonly padOnly?: boolean;
 }
 
-/** The tabs, in order. */
+/** The tabs, in order. Teste (issue #7) is temporary: it leaves with phase 1c. */
 export const TABS: readonly Tab[] = [
+  { id: 'test', path: '/teste-ipad', icon: 'checklist' },
   { id: 'today', path: '/', icon: 'today' },
   { id: 'agenda', path: '/agenda', icon: 'calendar' },
   { id: 'students', path: '/alunos', icon: 'students' },
@@ -25,6 +26,7 @@ const STUDENTS_AREA = /^\/(?:alunos|aulas|pagamentos|mensalidades|pacotes)(?:\/|
 /** The tab a URL lives under, or null for the screens outside the tabs (Configurações, Membros, Convites). */
 export function tabOf(path: string): TabId | null {
   if (path === '/') return 'today';
+  if (/^\/teste-ipad\/?$/.test(path)) return 'test';
   if (path.startsWith('/agenda')) return 'agenda';
   if (path === '/exercicios' || path.startsWith('/exercicios/')) return 'exercises';
   if (STUDENTS_AREA.test(path)) return 'students';

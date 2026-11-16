@@ -4,6 +4,8 @@ import { CREATE_ACTIONS, TABS, hasSettingsGear, largeTitleTab, tabOf } from './n
 describe('tabOf', () => {
   it.each([
     ['/', 'today'],
+    ['/teste-ipad', 'test'],
+    ['/teste-ipad/', 'test'],
     ['/agenda', 'agenda'],
     ['/agenda/semana/2026-11-16', 'agenda'],
     ['/agenda/nova/2026-11-16/09:00', 'agenda'],
@@ -40,9 +42,14 @@ describe('largeTitleTab', () => {
 });
 
 describe('the toolbar', () => {
-  it('has the tabs of the spec, in order, with Exercícios only on the iPad', () => {
-    expect(TABS.map((t) => t.id)).toEqual(['today', 'agenda', 'students', 'exercises']);
+  it('has the tabs of the spec, in order (Teste first, the temporary iPad test), with Exercícios only on the iPad', () => {
+    expect(TABS.map((t) => t.id)).toEqual(['test', 'today', 'agenda', 'students', 'exercises']);
     expect(TABS.filter((t) => t.padOnly).map((t) => t.id)).toEqual(['exercises']);
+  });
+
+  it('shows Teste on the iPad and on the phone', () => {
+    expect(TABS[0]).toMatchObject({ id: 'test', path: '/teste-ipad' });
+    expect(TABS[0]!.padOnly).toBeUndefined();
   });
 
   it('lists the + menu in the order of the spec', () =>
