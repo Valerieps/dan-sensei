@@ -13,7 +13,7 @@ O que ainda não está pronto.
 | --- | --- | --- | --- |
 | Montagem do treino: datas do programa, renomear a letra do treino e reordenar dentro de um bi-set, tri-set ou circuito | 1c | `spec/treinos-e-exercicios.md` | A montagem em cartões e a biblioteca já existem (C2); o servidor já aceita as datas e o nome |
 | Tela de teste do iPad do Dan: aba Teste acima de Hoje, etapas, registro e relatório pelo WhatsApp (temporária, sai na C9) | 1c | `rascunhos/teste-ipad-issue-7.md` | Issue #7; sessões T1 a T6 |
-| Modo Ao Vivo individual, cronômetro e registro das séries (a tela) | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7). O servidor, a cópia local e a fila de comandos já existem (`live.*`, `src/application/live-local.ts`, `live-queue.ts`) |
+| Modo Ao Vivo individual, cronômetro e registro das séries (a tela) | 1c | `spec/aula-ao-vivo.md` | Depois do teste no iPad do Dan (issue #7): a tela de teste está na aba Teste |
 | Aula em dupla com dois cronômetros e sons por aluno | 1c | `spec/aula-ao-vivo.md` | |
 | Tela de encerramento com a PSE e o gráfico da carga semanal no perfil do aluno | 1c | `spec/aula-ao-vivo.md` | A conta (PSE, carga de Foster, volume, tonelagem, `studentEffort`) já está no servidor |
 | Resumo da aula pelo WhatsApp | 1c | `spec/whatsapp.md` | |
@@ -39,6 +39,18 @@ O que ainda não está pronto.
   depois, porque a fila sem internet não pode perguntar; "encerrar agora" é encerrar sem PSE, que
   pode vir depois; a série pode ser corrigida mesmo depois da aula encerrada; a aula aberta fica
   guardada no servidor e só desconta do pacote ao encerrar (`spec/aula-ao-vivo.md`).
+
+- [ ] Teste do iPad (issue #7): a aba Teste aparece também no celular e abre sem login (não mostra
+  dado nenhum do grupo).
+
+- [ ] Teste do iPad (issue #7): o relatório não vai ao servidor; só sai pelo WhatsApp, pelo arquivo
+  ou pelo "Copiar".
+
+- [ ] Teste do iPad (issue #7): o link do WhatsApp vai sem número; o Dan escolhe a Valéria na lista
+  de contatos.
+
+- [ ] Teste do iPad (issue #7): etapa longa com aviso a cada 5 min (12 avisos) e "Ouvi" disponível
+  por 60 s.
 
 - [ ] Exercícios e treinos: a biblioteca vem com uma lista pronta (a proposta do spec); não se apaga
   exercício, só se arquiva; o nome é único; um treino pode ficar fora de programa; bi-set, tri-set e
