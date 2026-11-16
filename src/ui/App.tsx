@@ -14,6 +14,7 @@ import { NewClass } from './screens/NewClass';
 import { Invites } from './screens/Invites';
 import { Members } from './screens/Members';
 import { SignIn } from './screens/SignIn';
+import { IpadTest } from './screens/IpadTest';
 import { Overview } from './screens/Overview';
 import { PackageForm } from './screens/PackageForm';
 import { PausePackage } from './screens/PausePackage';
@@ -25,8 +26,15 @@ import { StudentList } from './screens/StudentList';
 import { NewStudent, StudentProfile } from './screens/StudentProfile';
 import { useQuery } from './use-query';
 
-/** Signs in, then puts the screen inside the shell (tab bar, toolbar, large title). */
+/** The iPad test (issue #7) opens without a session: offline the app cannot check one (ADR-009). */
 export function App() {
+  const path = usePath();
+  if (/^\/teste-ipad\/?$/.test(path)) return <IpadTest />;
+  return <SignedInApp />;
+}
+
+/** Signs in, then puts the screen inside the shell (tab bar, toolbar, large title). */
+function SignedInApp() {
   const { live } = useServices();
   const me = useQuery('me', {}, ['me']);
   const signedIn = me.data !== undefined && me.error !== 'unauthenticated';

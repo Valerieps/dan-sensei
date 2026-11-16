@@ -47,3 +47,27 @@ Online-only classes: breaks the spec and loses classes when the Wi-Fi drops.
   field wins" rule only matters for `live.editSet`, where the order of the queue decides.
 - Still to do in the app: wiring the queue to the screens, the cache before the class, the service
   worker, the Screen Wake Lock and the audio unlock (`docs/ROADMAP.md`).
+
+## Update (service worker, issue #7 test)
+
+- **File:** `public/sw.js`, written by hand, no library; served with `Cache-Control: no-cache`
+  (`public/_headers`). Registered by `src/infrastructure/service-worker.ts` in the production build
+  only, on `load`; a failed registration is silent and the app works online as before.
+- **What it keeps:** at install it fetches `/precache-manifest.json`, which `vite.config.ts` writes at
+  the end of every production build (`precache-manifest.ts`: every file in `dist/` except `sw.js`, the
+  manifest and `_headers`; the page is listed as `/`). All files go into the cache `dan-sensei-<version>`,
+  where the version is a hash of the files' names and contents. One file fails: the install fails
+  and the previous version keeps working.
+- **Updates:** a new build has a new version, so a new `sw.js` install makes a new cache; the worker
+  calls `skipWaiting` and `clients.claim`, and activation deletes older `dan-sensei-*` caches. The
+  browser checks `sw.js` on each page load (no-cache), so a deploy reaches the iPad on the next open.
+- **What it answers:** only same-origin `GET`. Pages (`navigate`) go to the network first and fall back
+  to the kept `/` (the app handles the path, so any deep link opens offline). Other files come from the
+  cache first (their names carry a hash). `/api`, `sw.js` and the manifest are never answered or kept
+  from here: group data always comes from the server (the offline class keeps its own copy in IndexedDB).
+- **CSP (ADR-002):** the page's meta tag gained `media-src 'self' blob:` (sounds generated in the app)
+  and `worker-src 'self'`. The worker itself is not under the meta tag, so `src/security.test.ts` checks
+  that `sw.js` has no external URL, imports no script and never touches `/api`.
+- **Open without a session:** `/teste-ipad` renders before the sign-in check (`App.tsx`), because offline
+  the app cannot check a session and the test must open in airplane mode.
+- Still open: whether this worker becomes the app's final one depends on the iPad test (P4).
