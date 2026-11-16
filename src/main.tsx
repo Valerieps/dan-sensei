@@ -2,10 +2,13 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { httpBackend } from './infrastructure/http-backend';
 import { liveSocket } from './infrastructure/live-socket';
+import { registerServiceWorker } from './infrastructure/service-worker';
 import { App } from './ui/App';
 import { ServicesProvider } from './ui/backend-context';
 import './ui/theme/tokens.css';
 import './ui/theme/global.css';
+
+registerServiceWorker();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

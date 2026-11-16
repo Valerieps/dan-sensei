@@ -17,7 +17,7 @@ O que ainda não está pronto.
 | Aula em dupla com dois cronômetros e sons por aluno | 1c | `spec/aula-ao-vivo.md` | |
 | Tela de encerramento com a PSE e o gráfico da carga semanal no perfil do aluno | 1c | `spec/aula-ao-vivo.md` | A conta (PSE, carga de Foster, volume, tonelagem, `studentEffort`) já está no servidor |
 | Resumo da aula pelo WhatsApp | 1c | `spec/whatsapp.md` | |
-| Aula sem internet: ligar a fila ao app (IndexedDB, `ServicesProvider`), guardar o que a aula precisa antes de começar, service worker do app, tela acesa e som | 1c | `spec/aula-ao-vivo.md` | ADR-009. A fila e a cópia local já estão testadas; falta a parte do navegador |
+| Aula sem internet: ligar a fila ao app (IndexedDB, `ServicesProvider`), guardar o que a aula precisa antes de começar, tela acesa e som (o service worker já existe, ADR-009; falta provar no iPad, issue #7) | 1c | `spec/aula-ao-vivo.md` | ADR-009. A fila e a cópia local já estão testadas; falta a parte do navegador |
 | Aula simples no celular | 1c | `spec/aula-ao-vivo.md` | |
 
 ## Adiado
